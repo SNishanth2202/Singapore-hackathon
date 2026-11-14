@@ -3,6 +3,7 @@ import { CheckCircle2Icon, XCircleIcon, RefreshCwIcon, UserIcon, SlidersIcon, Da
 import { PageHeader } from '../components/ui/PageHeader'
 import { analyticsService, HealthStatus } from '../services/analytics.service'
 import { formatDate } from '../utils/formatters'
+import BusinessKnowledge from '../components/BusinessKnowledge'
 
 export default function Settings() {
   const [health, setHealth] = useState<HealthStatus | null>(null)
@@ -42,6 +43,8 @@ export default function Settings() {
         subtitle="Manage user preferences, data pipeline intervals, and integration diagnostics"
       />
 
+      <BusinessKnowledge />
+
       {/* User Profile */}
       <div className="card p-6">
         <div className="flex items-center gap-3 mb-4">
@@ -50,7 +53,7 @@ export default function Settings() {
           </div>
           <div>
             <h2 className="text-base font-semibold text-gray-800">User Profile</h2>
-            <p className="text-xs text-gray-500">Current authenticated enterprise session</p>
+            <p className="text-xs text-gray-500">Local prototype profile · authentication will be added later</p>
           </div>
         </div>
 

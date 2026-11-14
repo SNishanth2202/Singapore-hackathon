@@ -12,6 +12,7 @@ import { formatDate } from '../utils/formatters'
 import { INDUSTRIES, COUNTRIES, COMPANY_STAGES } from '../utils/constants'
 import { Company } from '../services/companies.service'
 import { Column } from '../components/ui/DataTable'
+import CompanyResearch from '../components/CompanyResearch'
 
 const PAGE_SIZE = 25
 
@@ -124,10 +125,13 @@ export default function CompanyIntelligence() {
         subtitle="Browse and filter companies tracked across Southeast Asia"
       />
 
+      <CompanyResearch />
+
+      <h2 className="text-base font-semibold text-gray-700 mb-4">Tracked company workspace</h2>
       {isMockData && (
         <div className="mb-5 flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
           <AlertCircleIcon className="w-4 h-4 flex-shrink-0" />
-          <span><strong>Sample Data Mode</strong> — Backend unavailable. Showing placeholder data.</span>
+          <span><strong>Sample accounts</strong> — The table below contains illustrative data. Use the research box above for public company research.</span>
         </div>
       )}
 

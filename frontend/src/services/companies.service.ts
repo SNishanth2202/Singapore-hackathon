@@ -163,7 +163,7 @@ export const companiesService = {
           total: resData.meta?.total ?? resData.data.length,
           page: resData.meta?.page ?? filters.page ?? 1,
           limit: resData.meta?.limit ?? filters.limit ?? 25,
-          isMockData: false,
+          isMockData: resData.dataMode === 'sample',
         }
       }
       return resData
@@ -201,34 +201,7 @@ export const companiesService = {
       const resData = response.data
       return (resData.data ?? resData) as CompanyWithSignals & { isMockData?: boolean }
     } catch {
-      const found = MOCK_COMPANIES.find((c) => c._id === id) ?? MOCK_COMPANIES[0]
-      return {
-        ...found,
-        signals: [
-          {
-            _id: 'sig-001',
-            companyId: found._id,
-            signalType: 'FUNDING',
-            description: 'Raised Series B round of $12M led by Sequoia Southeast Asia.',
-            source: 'TechCrunch',
-            sourceUrl: 'https://techcrunch.com',
-            detectedAt: '2024-10-15T00:00:00.000Z',
-            confidenceScore: 0.92,
-          },
-        ],
-        opportunities: [
-          {
-            _id: 'opp-001',
-            opportunityType: 'Network Expansion',
-            potentialService: 'SD-WAN',
-            priority: 'HIGH',
-            confidenceScore: 0.87,
-            status: 'OPEN',
-            createdAt: '2024-10-20T00:00:00.000Z',
-          },
-        ],
-        isMockData: true,
-      }
+      throw new Error('Could not load this company. Check that the local backend is running, then retry.')
     }
   },
 }

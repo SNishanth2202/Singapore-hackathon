@@ -240,3 +240,77 @@ npm run build # TypeScript compilation & optimized production bundle
 ## License
 
 MIT -- built for the Singtel Hackathon 2026.
+
+
+## Local FreeLLMAPI connection
+
+Keep FreeLLMAPI Desktop running. The backend reads these values from the project-root `.env` (never commit the key):
+
+```dotenv
+FREELLMAPI_BASE_URL=http://127.0.0.1:31415/v1
+FREELLMAPI_API_KEY=<your-unified-key>
+FREELLMAPI_MODEL=auto
+FREELLMAPI_TIMEOUT_MS=45000
+```
+
+From `backend`, run:
+
+```powershell
+npm ci --ignore-scripts
+npm run test:ai
+npm run verify:ai
+```
+
+`verify:ai` builds the backend, starts the actual Express application on a temporary loopback port, lists models, and runs a short completion through the backend. It closes the test server afterward and does not require MongoDB or Neo4j. This is useful while the databases are not running. It exits with failure if either backend request fails.
+
+With the regular backend running in local development, the diagnostic routes are `GET /api/v1/ai/models` and `POST /api/v1/ai/test`. The POST route uses a fixed short prompt, has a ten-second cooldown, and permits only one test at a time. These routes are disabled in production and reject non-loopback connections and unexpected browser origins. They do not accept arbitrary public prompts.
+
+The reusable client is in `backend/src/integrations/freellmapi/client.ts`. Sourced analysis and session-only review are described below; opportunity and review persistence remain future work. Credentials and upstream error bodies are excluded from API responses.
+
+When the backend runs in Docker, `127.0.0.1` refers to its container. Use a reachable host address (such as `host.docker.internal` on Docker Desktop) in a container-specific `FREELLMAPI_BASE_URL`, and check that the router accepts that connection. Keep the local diagnostic verification on the host; do not expose the router publicly.
+
+Verified local model: `mistral-small-3.2-24b` (served as Mistral-Small-3.2-24B-Instruct-2506). The local `.env` pins this model and a 90-second deadline after automatic routing timed out at 45 seconds. Set `FREELLMAPI_MODEL=auto` to opt back into automatic routing; record the served model when comparing results.
+
+
+## Visible company-analysis preview
+
+On Windows, open FreeLLMAPI Desktop, then double-click **Start Enterprise Radar.cmd** in the project folder (or the Desktop launcher). It prepares and starts the local backend and website, waits for readiness and opens Company Intelligence. Keep its window open; Ctrl+C stops only the services it started. If the project is already running, it reuses it. This starts the same local public-research/sample-account preview described below. Restart the launcher after backend code changes.
+
+Open two terminals. In `backend`, run `npm run preview:local`. In `frontend`, run `npm run dev -- --host 127.0.0.1 --strictPort`. Visit `http://127.0.0.1:3000/companies/demo-logistics-001` and select **Analyze with AI**. Keep FreeLLMAPI Desktop running.
+
+The explicit local preview uses two fictional company scenarios and does not initialize or modify MongoDB or Neo4j. AI output is live. The profile shows observations with evidence IDs, possible needs, a conditional capability match, discovery questions and unknowns. The no-signal retail case exercises the hold path.
+
+`POST /api/v1/ai/analyze` accepts only `companyId`; the backend loads the matching company context and validates the generated JSON and citation IDs. It does not accept arbitrary company text from the browser. The local-only/origin restrictions of the AI routes apply. In non-demo development mode it reads the existing company and signals from MongoDB. This is a controlled local prototype, not an authenticated production deployment.
+
+The model receives the selected company context through your configured router. Demo data is visibly labelled. Do not use confidential account data without approved provider handling. Existing-ID checks are not proof that every statement is supported: inspect the actual evidence and reasoning. No generated analysis or review is currently persisted, and the session-only review button never sends outreach or creates a CRM record.
+
+
+## Research by company name
+
+Open Company Intelligence (`/companies`) and use **Start with a company name**. Enter a name such as Infosys. The backend searches Wikidata identities, auto-selects only a unique normalized exact organization-name match, or asks you to select a possible match. It then collects bounded source excerpts and automatically requests a live AI brief.
+
+Sources: Wikidata for identity/website discovery, Wikipedia for background, Google News RSS for dated publisher headlines, and readable public paragraphs from the listed HTTPS company website plus at most one same-domain news page. No search-provider key is required. Wikidata does not cover every company; try a registered name when there is no match. This is a bounded public-research connector, not exhaustive web search or a verified company registry.
+
+Source records carry their URL, source kind, publication date when known, retrieval timestamp and excerpt hash. Snapshots persist under ignored `backend/data/research/`; they can be reopened through `GET /api/v1/ai/research/:id`. Analysis and review remain session-only. Model credentials never enter the frontend. Public company names are sent to the directory/news sources; collected excerpts are sent to your configured AI router when analysis runs.
+
+Routes (local-development access restrictions apply):
+- `POST /api/v1/ai/research/search` with `{ "name": "Infosys" }`.
+- `POST /api/v1/ai/research` with a selected `{ "entityId": "Q26989" }`.
+- `GET /api/v1/ai/research/:id` for the stored public snapshot.
+- `POST /api/v1/ai/analyze` with `{ "companyId": "research-<snapshot UUID>" }`.
+
+Headlines are discovery material; full article text is not retrieved. Collection prioritizes company actions over commentary and retains up to twelve headline records. Reports with different wording about the same event are grouped while preserving citations. A publisher byline or market forecast is separated from the company's own operations. Invalid, future and over-120-day-old news dates are excluded. Classification and grouping are heuristic; a headline may still concern a subsidiary, peer or unrelated activity. Website blocks, missing news and unavailable feeds produce visible warnings rather than invented data. No publication date is inferred from a retrieval date. Background-only research produces HOLD and no capability recommendation.
+
+Public-page fetching accepts HTTPS only, checks every resolved address, pins DNS for the request, validates each redirect, blocks local/private/link-local destinations, limits response bytes and deadlines, and never forwards credentials or cookies. Imported text cannot execute scripts or grant tools/permissions. These checks do not guarantee the factual accuracy of source content.
+
+Run `npm run test:research` from backend for the research and AI checks. Engineering references: https://www.wikidata.org/wiki/Wikidata:Data_access ; https://www.mediawiki.org/wiki/API:Search ; https://cheerio.js.org/docs/intro/ ; https://github.com/NaturalIntelligence/fast-xml-parser .
+
+Research relevance checks: each proposed need and service match must cite dated non-profile evidence from its snapshot. Configurable catalogue rules check the evidence for the proposed service, and the evidence policy excludes unrelated legal controversy as a technology justification. Unsupported suggestions are removed with visible warnings; no eligible match returns HOLD. Background text sent to the model is shortened. These heuristic gates reduce observed failure modes; they do not guarantee semantic accuracy or establish buyer intent. Review the source links and discovery questions before using the brief.
+
+## Seller business knowledge
+
+Open **Settings → Business knowledge** to view or edit the structured seller catalogue. Fourteen Singtel enterprise service areas include capabilities, customer problems, buyer roles, discovery questions and official references. Target segments, research markets and business objectives are team settings. Every analysis reads the active configuration, validates service IDs and records the knowledge version. Selecting the seller itself returns HOLD before calling the model.
+
+Changes persist as versioned local configuration; no authentication has been added. The existing local-development boundary applies. See [backend/BUSINESS_KNOWLEDGE.md](backend/BUSINESS_KNOWLEDGE.md) for the schema, API, editing instructions, evidence rules and storage limits. `GET/PUT /api/v1/ai/business-knowledge` supports a future admin interface. Run `npm run test:business` from backend to check the configuration and matching behavior.
+
+Analysis distinguishes a service-related signal from an exploratory event-to-service connection. An acquisition can support a conditional integration question even without exact product phrases. The backend builds factual public-research summaries from the approved event inventory, validates AI hypotheses against service/evidence IDs, and reports why any suggestion was withheld. `DISCOVERY_READY` means ready for a targeted conversation; it does not establish a qualified opportunity. The dashboard explains source limits and customer questions separately instead of using a generic missing-evidence message. The combined checks include regressions for duplicated acquisition coverage, commentary attribution, provider-versus-customer roles and event-based discovery.

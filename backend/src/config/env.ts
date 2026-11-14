@@ -12,6 +12,17 @@ const envSchema = z.object({
     .default('5000')
     .transform((val) => parseInt(val, 10)),
   API_VERSION: z.string().default('v1'),
+  LOCAL_DEMO_MODE: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
+
+  // FreeLLMAPI is called only by the backend. Keep its key out of frontend config.
+  FREELLMAPI_BASE_URL: z.string().url().default('http://127.0.0.1:31415/v1')
+    .refine((value) => {
+      const url = new URL(value);
+      return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password;
+    }, 'Use an HTTP(S) API URL without embedded credentials'),
+  FREELLMAPI_API_KEY: z.string().default(''),
+  FREELLMAPI_MODEL: z.string().min(1).default('auto'),
+  FREELLMAPI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120000).default(45000),
 
   // MongoDB
   MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),

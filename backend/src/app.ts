@@ -5,6 +5,7 @@ import { env } from './config/env';
 import { requestLogger } from './middleware/requestLogger';
 import { errorHandler } from './middleware/errorHandler';
 import apiRouter from './routes/index';
+import demoRoutes from './demo/routes';
 
 const app: Application = express();
 
@@ -40,6 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
 // ----- API routes -----
+if (env.LOCAL_DEMO_MODE && env.NODE_ENV !== 'production') app.use(`/api/${env.API_VERSION}`, demoRoutes);
 app.use(`/api/${env.API_VERSION}`, apiRouter);
 
 // ----- Root -----
