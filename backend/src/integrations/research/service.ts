@@ -6,6 +6,7 @@ import { publicFetch, validatePublicUrl } from './publicFetch';
 import { CompanyIdentity, ResearchRecord, ResearchSource, saveResearch } from './store';
 import { AppError } from '../../utils/errors';
 import { buildResearchOverview, classifySource } from './events';
+import { recordDiscoverySnapshot } from '../../sales/workflow';
 
 const entityId = z.string().regex(/^Q[1-9][0-9]{0,12}$/);
 const textOnly = (value: string) => load(`<body>${value}</body>`).text().replace(/\s+/g, ' ').trim();
@@ -156,5 +157,8 @@ export async function researchCompany(id: string): Promise<ResearchRecord> {
   const record: ResearchRecord = { id: `research-${randomUUID()}`, company,
     sources: [...new Map(sources.map((s) => [s.id, s])).values()], warnings, createdAt: new Date().toISOString() };
   record.quality = buildResearchOverview(record);
-  await saveResearch(record); return record;
+  await saveResearch(record);
+  await recordDiscoverySnapshot({ companyId: `entity:${company.entityId}`, companyName: company.name, researchId: record.id,
+    sourceIds: record.sources.map(s => s.id), evidence: record.sources.map(s => ({ sourceId: s.id, title: s.title, url: s.url, publishedAt: s.publishedAt })) });
+  return record;
 }

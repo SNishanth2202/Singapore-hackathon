@@ -6,6 +6,7 @@ import analyticsRoutes   from './analytics.routes';
 import aiRoutes          from './ai.routes';
 import { createRankingRouter } from './ranking.routes';
 import { RankingService } from '../ranking/service';
+import salesRoutes from './sales.routes';
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.use('/companies',    companyRoutes);
 router.use('/opportunities', opportunityRoutes);
 router.use('/analytics',    analyticsRoutes);
 router.use('/ai',           aiRoutes);
+router.use('/sales',        salesRoutes);
 const rankingService = new RankingService();
 if (process.env.DEMO_REAL_CLOCK === 'true') {
   const rankingClock = setInterval(() => { void rankingService.advance(new Date().toISOString()).catch(err => console.error(err.message)); }, 30000);

@@ -5,6 +5,8 @@ import { View } from '../ranking/contracts';
 import { mockSalesforceProjection, replayEvents } from '../ranking/seed';
 import { SCENARIOS } from '../ranking/engine';
 import { extractSource } from '../ranking/extractor';
+import { DiscoveryHandoffError, prepareDiscoveryHandoff } from '../ranking/discovery';
+import { recordDiscoveryHandoff } from '../sales/workflow';
 
 export function createRankingRouter(service: RankingService) {
   const router = Router();
@@ -26,6 +28,22 @@ export function createRankingRouter(service: RankingService) {
       clockMode: process.env.DEMO_REAL_CLOCK === 'true' ? 'real' : 'frozen', persistence: 'Atomic local JSON; no real Salesforce connection' });
   });
   router.get('/comparison', (_req, res) => res.json(service.comparison()));
+  router.post('/import-discovery', asyncRoute(async (req, res) => {
+    const { researchId } = z.object({ researchId: z.string().regex(/^research-[0-9a-f-]{36}$/) }).strict().parse(req.body);
+    try {
+      const handoff = await prepareDiscoveryHandoff(researchId);
+      const queue = await service.ingestDiscovery(handoff);
+      await recordDiscoveryHandoff({ companyId: `entity:${handoff.company.entityId}`, companyName: handoff.company.name,
+        researchId: handoff.researchId, sourceIds: handoff.opportunities.flatMap(o => o.evidenceIds),
+        evidence: handoff.sources.map(source => ({ sourceId: String(source.claims.researchSourceId), title: String(source.claims.title), url: source.sourceUrl, publishedAt: source.publishedAt })),
+        candidates: handoff.opportunities.map(o => ({ opportunityId: o.id, service: o.product })),
+      });
+      res.status(201).json({ handoff: { researchId: handoff.researchId, company: handoff.company, candidates: handoff.opportunities.length }, queue });
+    } catch (error) {
+      if (error instanceof DiscoveryHandoffError) throw new DomainError(error.message, 409);
+      throw error;
+    }
+  }));
   const writable = (_req: Request, _res: Response, next: NextFunction) => {
     if (process.env.NODE_ENV === 'production' && process.env.ENABLE_DEMO_CONTROLS !== 'true') next(new DomainError('Demo mutations are disabled in production', 403)); else next();
   };
