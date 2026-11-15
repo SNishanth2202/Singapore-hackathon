@@ -7,6 +7,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/graph': 'Knowledge Graph',
   '/dashboard': 'Dashboard',
   '/lead-ranking': 'Lead Ranking',
+  '/sales': 'Sales Workbench',
   '/opportunities': 'Lead Ranking',
   '/legacy-opportunities': 'Opportunity Intelligence',
   '/settings': 'Settings',
@@ -15,6 +16,7 @@ const PAGE_TITLES: Record<string, string> = {
 function getPageTitle(pathname: string): string {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
   if (pathname.startsWith('/companies/')) return 'Company Profile'
+  if (pathname.startsWith('/sales/companies/')) return 'Sales Workflow'
   return 'Singtel Scout'
 }
 

@@ -3,6 +3,7 @@ import { Company } from './Company';
 import { IntelligenceSignal } from './IntelligenceSignal';
 import { Opportunity } from './Opportunity';
 import { DataSource } from './DataSource';
+import { SalesActivity } from './SalesActivity';
 
 const options = { timestamps: true, bufferCommands: false } as const;
 const researchSchema = new Schema({
@@ -41,7 +42,7 @@ export const CompanyProfile = mongoose.model('CompanyProfile', companyIdentitySc
 
 export async function ensureCloudIndexes(): Promise<void> {
   // Add declared indexes without removing any existing indexes or data.
-  const models: mongoose.Model<any>[] = [ResearchSnapshot, CompanyProfile, BusinessProfile, BusinessKnowledgeVersion, AnalysisRun, Company, IntelligenceSignal, Opportunity, DataSource];
+  const models: mongoose.Model<any>[] = [ResearchSnapshot, CompanyProfile, BusinessProfile, BusinessKnowledgeVersion, AnalysisRun, Company, IntelligenceSignal, Opportunity, DataSource, SalesActivity];
   for (const model of models) {
     await model.createCollection();
     await model.createIndexes();

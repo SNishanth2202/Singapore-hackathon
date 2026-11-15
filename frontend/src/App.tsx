@@ -8,6 +8,8 @@ import KnowledgeGraph from './pages/KnowledgeGraph'
 import OpportunityIntelligence from './pages/OpportunityIntelligence'
 import LeadRankingQueue from './pages/LeadRankingQueue'
 import Settings from './pages/Settings'
+import SalesWorkbench from './pages/SalesWorkbench'
+import SalesWorkflowPage from './pages/SalesWorkflowPage'
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/lead-ranking" element={<LeadRankingQueue />} />
+            <Route path="/sales" element={<SalesWorkbench />} />
+            <Route path="/sales/companies/:companyId" element={<SalesWorkflowPage />} />
             <Route path="/opportunities" element={<Navigate to="/lead-ranking" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/companies" element={<CompanyIntelligence />} />
