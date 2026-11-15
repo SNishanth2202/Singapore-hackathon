@@ -1,36 +1,32 @@
 import { Router } from 'express';
+import { timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 import { env } from '../config/env';
 import { AppError } from '../utils/errors';
 import { sendSuccess, buildPaginationMeta } from '../utils/apiResponse';
-import { loadResearch, validResearchId } from '../integrations/research/store';
 import { INTERVENTION_REASONS, INTERVENTION_STATUSES, ISalesActivity } from '../models/SalesActivity';
-import { appendActivity, findCompanyActivities, findInterventions, listDiscoveredCompanies } from '../salesStore';
-import { receiveReply, selectCompany, identifyContact, draftEmail, approveEmail, sendApprovedEmail, updateIntervention, getWorkflow, SalesCompanyContext } from '../sales/workflow';
+import { appendActivity, findCompanyActivities, findInterventions, listDiscoveredCompanies, allActivityEvents } from '../salesStore';
+import { receiveReply, selectCompany, identifyContact, draftEmail, approveEmail, rejectEmail, sendApprovedEmail, updateIntervention, getWorkflow,
+  scheduleFollowup, runDueFollowups, SalesCompanyContext } from '../sales/workflow';
+import { buildCompanyBrief } from '../sales/agents/company-context.agent';
+import { resolveSalesContext } from '../sales/context';
+import { handleInboundEmail } from '../ai-management/orchestrator';
 
 const router = Router();
 
-async function contextFor(key: string): Promise<SalesCompanyContext> {
-  if (validResearchId(key)) {
-    const record = await loadResearch(key);
-    const canonicalId = `entity:${record.company.entityId}`;
-    const events = await findCompanyActivities(canonicalId);
-    const service = [...events].reverse().find(event => event.type === 'QUALIFIED')?.service;
-    return { companyId: canonicalId, companyName: record.company.name, researchId: record.id, service,
-      sourceIds: record.sources.map(source => source.id),
-      evidence: record.sources.map(source => ({ sourceId: source.id, title: source.title, url: source.url, publishedAt: source.publishedAt })) };
-  }
-  const events = await findCompanyActivities(key);
-  const first = events[0];
-  if (!first) throw new AppError('Company is not in the sales workflow.', 404, 'WORKFLOW_COMPANY_NOT_FOUND');
-  const record = first.researchId && validResearchId(first.researchId) ? await loadResearch(first.researchId) : null;
-  return { companyId: key, companyName: first.companyName, researchId: first.researchId,
-    country: first.country, industry: first.industry,
-    service: [...events].reverse().find(event => event.type === 'QUALIFIED')?.service,
-    sourceIds: record?.sources.map(source => source.id) ?? first.sourceIds,
-    evidence: record?.sources.map(source => ({ sourceId: source.id, title: source.title, url: source.url, publishedAt: source.publishedAt })),
-    isSynthetic: first.isSynthetic };
-}
+export { resolveSalesContext };
+
+router.use((req, _res, next) => {
+  if (req.path === '/webhooks/inbound') { next(); return; }
+  const syntheticPreview = env.HOSTED_PREVIEW && env.STORAGE_MODE === 'memory' && env.LOCAL_DEMO_MODE && env.SALES_EMAIL_PROVIDER === 'mock';
+  if (env.NODE_ENV !== 'production' || syntheticPreview) { next(); return; }
+  if (!env.SALES_API_TOKEN) { next(new AppError('Sales API is disabled until SALES_API_TOKEN is configured.', 503, 'SALES_AUTH_NOT_CONFIGURED')); return; }
+  const supplied = req.header('authorization')?.replace(/^Bearer\s+/i, '') ?? '';
+  const expected = Buffer.from(env.SALES_API_TOKEN);
+  const actual = Buffer.from(supplied);
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) { next(new AppError('Sales API authentication is required.', 401, 'UNAUTHORIZED')); return; }
+  next();
+});
 
 router.get('/companies', async (req, res, next) => {
   try {
@@ -41,53 +37,137 @@ router.get('/companies', async (req, res, next) => {
 });
 
 router.get('/companies/:companyId', async (req, res, next) => {
-  try { const context = await contextFor(req.params.companyId); sendSuccess(res, await getWorkflow(context.companyId)); }
+  try {
+    const context = await resolveSalesContext(req.params.companyId);
+    const workflow = await getWorkflow(context.companyId);
+    const companyBrief = await buildCompanyBrief(context, workflow.events);
+    sendSuccess(res, { ...workflow, company: { companyId: context.companyId, companyName: context.companyName, country: context.country,
+      industry: context.industry, website: context.website, description: context.description, opportunity: workflow.events.filter(event => event.type === 'QUALIFIED') },
+      companyBrief });
+  }
   catch (error) { next(error); }
 });
 
+router.get('/drafts', async (_req, res, next) => {
+  try {
+    const events = await allActivityEvents();
+    const drafts = events.filter(event => event.type === 'EMAIL_DRAFTED' && event.payload.aiManaged !== true).filter(draft => !events.some(event => event.type === 'EMAIL_APPROVED' && event.payload.draftId === draft.payload.draftId)
+      && !events.some(event => event.type === 'EMAIL_REJECTED' && event.payload.draftId === draft.payload.draftId))
+      .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
+    sendSuccess(res, drafts);
+  } catch (error) { next(error); }
+});
+
+router.get('/qualification-feedback', async (_req, res, next) => {
+  try {
+    const items = (await allActivityEvents())
+      .filter(event => event.type === 'OPPORTUNITY_UPDATED' && event.payload.change === 'customer_confirmed_requirement_added')
+      .map(event => ({ eventId: event.eventId, opportunityId: event.opportunityId, companyId: event.companyId, companyName: event.companyName,
+        service: event.service, requirement: event.payload.requirement, evidenceText: event.payload.evidenceText,
+        sourceMessageId: event.payload.sourceMessageId, sourceIds: event.sourceIds, createdAt: event.createdAt }));
+    sendSuccess(res, items.sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt)));
+  } catch (error) { next(error); }
+});
+
 router.post('/companies/:companyId/select', async (req, res, next) => {
-  try { const context = await contextFor(req.params.companyId); sendSuccess(res, await selectCompany(context), 201); }
+  try { const context = await resolveSalesContext(req.params.companyId); sendSuccess(res, await selectCompany(context), 201); }
   catch (error) { next(error); }
 });
 
 router.post('/companies/:companyId/contacts', async (req, res, next) => {
   try {
-    const input = z.object({ name: z.string().trim().min(1).max(120), email: z.string().trim().email().max(254), role: z.string().trim().min(1).max(120) }).strict().parse(req.body);
-    const context = await contextFor(req.params.companyId); sendSuccess(res, await identifyContact(context, input), 201);
+    const input = z.object({ name: z.string().trim().min(1).max(120), email: z.string().trim().email().max(254), role: z.string().trim().min(1).max(120),
+      source: z.string().trim().min(1).max(300), outreachBasis: z.enum(['RECORDED_CONSENT', 'EXISTING_BUSINESS_RELATIONSHIP', 'ASSESSED_LEGITIMATE_INTEREST', 'INBOUND_REQUEST']) }).strict().parse(req.body);
+    const context = await resolveSalesContext(req.params.companyId); sendSuccess(res, await identifyContact(context, input), 201);
   } catch (error) { next(error); }
 });
 
 router.post('/companies/:companyId/drafts', async (req, res, next) => {
   try {
     const input = z.object({ contactId: z.string().optional(), subject: z.string().trim().max(200).optional(), body: z.string().trim().max(10000).optional() }).strict().default({}).parse(req.body ?? {});
-    const context = await contextFor(req.params.companyId); sendSuccess(res, await draftEmail(context, input), 201);
+    const context = await resolveSalesContext(req.params.companyId); sendSuccess(res, await draftEmail(context, input), 201);
   } catch (error) { next(error); }
 });
 
 router.post('/companies/:companyId/drafts/:draftId/approve', async (req, res, next) => {
   try {
-    const input = z.object({ editedBody: z.string().trim().min(1).max(10000).optional() }).strict().default({}).parse(req.body ?? {});
-    const context = await contextFor(req.params.companyId); sendSuccess(res, await approveEmail(context, req.params.draftId, input.editedBody), 201);
+    const input = z.object({ editedSubject: z.string().trim().min(1).max(200).optional(), editedBody: z.string().trim().min(1).max(10000).optional() }).strict().default({}).parse(req.body ?? {});
+    const context = await resolveSalesContext(req.params.companyId); sendSuccess(res, await approveEmail(context, req.params.draftId, input), 201);
+  } catch (error) { next(error); }
+});
+
+router.post('/companies/:companyId/drafts/:draftId/reject', async (req, res, next) => {
+  try {
+    const input = z.object({ reason: z.string().trim().max(500).optional() }).strict().default({}).parse(req.body ?? {});
+    const context = await resolveSalesContext(req.params.companyId); sendSuccess(res, await rejectEmail(context, req.params.draftId, input.reason), 201);
   } catch (error) { next(error); }
 });
 
 router.post('/companies/:companyId/drafts/:draftId/send', async (req, res, next) => {
-  try { const context = await contextFor(req.params.companyId); sendSuccess(res, await sendApprovedEmail(context, req.params.draftId), 201); }
+  try { const context = await resolveSalesContext(req.params.companyId); sendSuccess(res, await sendApprovedEmail(context, req.params.draftId), 201); }
   catch (error) { next(error); }
 });
 
 router.post('/companies/:companyId/replies', async (req, res, next) => {
   try {
     if (env.NODE_ENV === 'production' && !env.HOSTED_PREVIEW) throw new AppError('Reply simulation is available only in the local or hosted demo.', 403, 'DEMO_ONLY');
-    const input = z.object({ replyId: z.string().trim().min(1).max(120), contactEmail: z.string().trim().email().max(254), text: z.string().trim().min(1).max(5000) }).strict().parse(req.body);
-    const context = await contextFor(req.params.companyId); sendSuccess(res, await receiveReply(context, input), 201);
+    const input = z.object({ replyId: z.string().trim().min(1).max(200), contactEmail: z.string().trim().email().max(254), text: z.string().trim().min(1).max(5000),
+      providerMessageId: z.string().trim().max(500).optional(), providerThreadId: z.string().trim().max(500).optional(),
+    internetMessageId: z.string().trim().max(500).optional() }).strict().parse(req.body);
+    const context = await resolveSalesContext(req.params.companyId); sendSuccess(res, await receiveReply(context, input), 201);
+  } catch (error) { next(error); }
+});
+
+router.post('/companies/:companyId/followups', async (req, res, next) => {
+  try {
+    const input = z.object({ contactEmail: z.string().trim().email().max(254), scheduledAt: z.string().datetime({ offset: true }),
+      requestId: z.string().trim().min(1).max(120), reason: z.string().trim().max(500).optional() }).strict().parse(req.body);
+    const context = await resolveSalesContext(req.params.companyId); sendSuccess(res, await scheduleFollowup(context, input), 201);
+  } catch (error) { next(error); }
+});
+
+router.get('/followups', async (req, res, next) => {
+  try {
+    const events = await allActivityEvents();
+    const pending = events.filter(event => event.type === 'FOLLOWUP_SCHEDULED').filter(schedule => {
+      const canceled = events.some(event => event.type === 'FOLLOWUP_CANCELLED' && event.payload.scheduleEventId === schedule.eventId);
+      const processed = events.some(event => event.type === 'FOLLOWUP_DUE' && event.payload.scheduleEventId === schedule.eventId);
+      return !canceled && !processed && (!req.query.state || (req.query.state === 'due' ? +new Date(String(schedule.payload.scheduledAt)) <= Date.now() : +new Date(String(schedule.payload.scheduledAt)) > Date.now()));
+    }).sort((a, b) => +new Date(String(a.payload.scheduledAt)) - +new Date(String(b.payload.scheduledAt)));
+    sendSuccess(res, pending);
+  } catch (error) { next(error); }
+});
+
+router.post('/followups/run-due', async (_req, res, next) => {
+  try { sendSuccess(res, await runDueFollowups(resolveSalesContext)); }
+  catch (error) { next(error); }
+});
+
+router.post('/webhooks/inbound', async (req, res, next) => {
+  try {
+    if (!env.SALES_EMAIL_WEBHOOK_SECRET) throw new AppError('Inbound email webhook is not enabled.', 503, 'EMAIL_WEBHOOK_NOT_CONFIGURED');
+    const supplied = req.header('x-sales-webhook-secret') ?? '';
+    const expected = Buffer.from(env.SALES_EMAIL_WEBHOOK_SECRET);
+    const actual = Buffer.from(supplied);
+    if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) throw new AppError('Webhook authentication failed.', 401, 'WEBHOOK_UNAUTHORIZED');
+    const input = z.object({ providerMessageId: z.string().trim().min(1).max(500), providerThreadId: z.string().trim().min(1).max(500),
+      internetMessageId: z.string().trim().max(500).optional(),
+      contactEmail: z.string().trim().email().max(254), subject: z.string().trim().max(200).optional(), text: z.string().trim().min(1).max(20000) }).strict().parse(req.body);
+    const provider = env.SALES_EMAIL_PROVIDER === 'gmail' ? 'GMAIL' : env.SALES_EMAIL_PROVIDER === 'microsoft' ? 'MICROSOFT_GRAPH' : 'MOCK';
+    // The same replyId is used by the polling worker, so a message delivered by both paths is processed once.
+    const result = await handleInboundEmail({ replyId: provider + ':' + input.providerMessageId, contactEmail: input.contactEmail, text: input.text,
+      providerMessageId: input.providerMessageId, providerThreadId: input.providerThreadId, internetMessageId: input.internetMessageId,
+      subject: input.subject, requireThreadMatch: true });
+    if (result.status === 'unmatched' || result.status === 'ambiguous') throw new AppError('Sender and provider thread do not match an existing sales conversation.', 404, 'INBOUND_THREAD_UNMATCHED');
+    if (result.status === 'busy') throw new AppError('Another AI Management action is running for this company; the provider should retry.', 409, 'AI_MANAGEMENT_BUSY');
+    sendSuccess(res, { ...result.reply, aiManagement: { managed: result.managed, companyId: result.companyId, decision: result.decision ?? null, status: result.status } }, 201);
   } catch (error) { next(error); }
 });
 
 router.patch('/companies/:companyId/interventions/:interventionId', async (req, res, next) => {
   try {
     const input = z.object({ status: z.enum(INTERVENTION_STATUSES), assignedTo: z.string().trim().max(120).optional() }).strict().parse(req.body);
-    const context = await contextFor(req.params.companyId); sendSuccess(res, await updateIntervention(context, req.params.interventionId, input));
+    const context = await resolveSalesContext(req.params.companyId); sendSuccess(res, await updateIntervention(context, req.params.interventionId, input));
   } catch (error) { next(error); }
 });
 

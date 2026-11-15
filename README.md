@@ -374,3 +374,11 @@ Both package builds and the existing research/deployment tests also apply.
 - [Public source inventory](docs/lead-ranking-sources.md)
 - [Demo script](docs/lead-ranking-demo.md)
 - [Verification and operational scope](docs/lead-ranking-delivery.md)
+
+## Sales communication agents
+
+The Sales Outreach workbench connects Discovery context to evidence-linked outreach, reply analysis, customer requirement feedback, interventions and human-approved follow-ups. See docs/sales-agents.md for routes, provider setup, demo steps, checks and integration boundaries.
+
+## AI Company Management
+
+A configurable daily lead queue and a per-company AI Management toggle. Once enabled, the autonomous communication agent sends outreach, answers routine questions from approved information, runs follow-ups and escalates to the Human Attention inbox when a person is needed. See [docs/ai-management.md](docs/ai-management.md) for states, safety rules, APIs, email provider setup and tests.

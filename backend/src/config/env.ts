@@ -30,6 +30,20 @@ const envSchema = z.object({
   AI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120000).optional(),
   AI_REASONING_EFFORT: z.enum(['none', 'low', 'medium', 'high']).optional(),
 
+  // Sales workspace is human-approved by default. Provider credentials are server-only secrets.
+  SALES_API_TOKEN: z.string().optional().refine(value => !value || value.length >= 32, 'SALES_API_TOKEN must be at least 32 characters.'),
+  SALES_EMAIL_WEBHOOK_SECRET: z.string().optional().refine(value => !value || value.length >= 32, 'SALES_EMAIL_WEBHOOK_SECRET must be at least 32 characters.'),
+  SALES_EMAIL_PROVIDER: z.enum(['mock', 'gmail', 'microsoft']).default('mock'),
+  GMAIL_CLIENT_ID: z.string().optional(),
+  GMAIL_CLIENT_SECRET: z.string().optional(),
+  GMAIL_REFRESH_TOKEN: z.string().optional(),
+  MICROSOFT_TENANT_ID: z.string().optional(),
+  MICROSOFT_CLIENT_ID: z.string().optional(),
+  MICROSOFT_CLIENT_SECRET: z.string().optional(),
+  MICROSOFT_REFRESH_TOKEN: z.string().optional(),
+  SALES_FOLLOWUP_DELAY_DAYS: z.coerce.number().int().min(1).max(30).default(5),
+  SALES_MAX_FOLLOWUPS: z.coerce.number().int().min(0).max(5).default(2),
+
   // Existing Desktop settings remain supported for local development.
   FREELLMAPI_BASE_URL: z.string().url().default('http://127.0.0.1:31415/v1')
     .refine((value) => {

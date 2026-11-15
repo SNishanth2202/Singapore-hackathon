@@ -6,6 +6,7 @@ import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon, ArrowUpRightIcon, CheckIcon
 import { RankingReasons } from '../components/RankingReasons'
 import { OpenAiKeyForm } from '../components/OpenAiKeyForm'
 import { PageHeader } from '../components/ui/PageHeader'
+import { DailyLeadQueue } from '../components/ai/DailyLeadQueue'
 import { useRankingQueue } from '../hooks/useRankingQueue'
 import { Comparison, Evidence, Meta, Opportunity, PRIORITY_STATUSES, PriorityStatus, Source, Status, View, rankingRequest } from '../services/ranking.service'
 import './lead-ranking.css'
@@ -122,6 +123,7 @@ export default function LeadRankingQueue() {
         <button className="lr-icon-button" aria-label="Demo guide" title="Demo guide" onClick={() => setDrawer('guide')}><CircleHelpIcon size={18} /></button>
       </>}
     />
+    <DailyLeadQueue />
         {error && <div className="lr-banner error" role="alert"><AlertCircleIcon size={18} /><div><strong>Connection issue</strong><p>{error}. {queue ? `Showing the last successful queue from ${date(queue.queueComputedAt, true)} SGT.` : 'Start the backend and retry; no placeholder opportunities are substituted.'}</p></div><button onClick={() => void refresh()}>Retry</button></div>}
         {queue?.degraded && <div className="lr-banner warning" role="status"><AlertCircleIcon size={18} /><div><strong>Public-source refresh failed · worklist preserved</strong><p>{queue.sourceError}. Last successful refresh: {date(queue.lastSuccessfulRefreshAt, true)} SGT.</p></div><button disabled={busy} onClick={() => void mutate('/sources/refresh', {})}>Retry live source</button></div>}
         {queue?.llm && queue.llm.status !== 'ready' && <div className="lr-banner warning" role="status"><AlertCircleIcon size={18} /><div><strong>{queue.llm.status === 'stale' ? 'AI assessment refresh failed' : 'Connect OpenAI to assess leads'}</strong><p>{queue.llm.error}{queue.llm.status === 'stale' && ` Showing the previous assessment from ${date(queue.llm.evaluatedAt, true)} SGT.`}</p></div><button onClick={() => setDrawer('key')}>OpenAI key</button></div>}

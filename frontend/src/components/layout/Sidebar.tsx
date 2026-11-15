@@ -8,6 +8,8 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   RadarIcon,
+  MailIcon,
+  BotIcon,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -16,6 +18,8 @@ const NAV_ITEMS = [
   { label: 'Company Intelligence', path: '/companies', icon: Building2Icon, exact: false },
   { label: 'Knowledge Graph', path: '/graph', icon: NetworkIcon, exact: false },
   { label: 'Lead Ranking', path: '/lead-ranking', icon: TargetIcon, exact: false },
+  { label: 'AI Management', path: '/ai-management', icon: BotIcon, exact: false },
+  { label: 'Sales Outreach', path: '/sales', icon: MailIcon, exact: false },
   { label: 'Settings', path: '/settings', icon: SettingsIcon, exact: false },
 ]
 

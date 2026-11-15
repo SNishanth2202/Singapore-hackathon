@@ -103,6 +103,62 @@ export async function createRelationship(
   logger.debug('Created relationship in Neo4j', { fromId, toId, type });
 }
 
+/** Store a verified customer requirement with its source interaction while retaining earlier graph facts. */
+export async function linkSalesRequirement(input: {
+  companyId: string; companyName: string; opportunityId?: string; requirementId: string; text: string; sourceMessageId: string;
+}) {
+  const cypher = [
+    'MERGE (c:Company { companyId: $companyId })',
+    'ON CREATE SET c.companyName = $companyName',
+    'MERGE (r:Requirement { requirementId: $requirementId })',
+    'SET r.text = $text, r.verifiedByCustomer = true, r.sourceMessageId = $sourceMessageId',
+    'MERGE (i:SalesInteraction { messageId: $sourceMessageId })',
+    'MERGE (c)-[:HAS_REQUIREMENT]->(r)',
+    'MERGE (r)-[:REVEALED_BY]->(i)',
+    'WITH c, r',
+    'OPTIONAL MATCH (o:Opportunity { opportunityId: $opportunityId })',
+    'FOREACH (item IN CASE WHEN o IS NULL THEN [] ELSE [o] END | MERGE (item)-[:HAS_REQUIREMENT]->(r))',
+    'RETURN c.companyId AS companyId',
+  ].join('\n');
+  await runQuery(cypher, input);
+}
+
+/**
+ * Record one conversation interaction: Company → Contact → Opportunity → Requirement → Singtel Service,
+ * and Company → Email Thread → Interaction. MERGE keeps earlier facts; only properties of this interaction are set.
+ */
+export async function linkSalesConversation(input: {
+  companyId: string; companyName: string; contactId?: string; opportunityId?: string; threadId: string;
+  messageId: string; direction: 'INBOUND' | 'OUTBOUND'; at: string; intent?: string;
+  requirements: { requirementId: string; text: string; serviceIds: string[] }[];
+}) {
+  const cypher = [
+    'MERGE (c:Company { companyId: $companyId })',
+    'ON CREATE SET c.companyName = $companyName',
+    'MERGE (t:EmailThread { threadId: $threadId })',
+    'MERGE (c)-[:HAS_EMAIL_THREAD]->(t)',
+    'MERGE (i:SalesInteraction { messageId: $messageId })',
+    'SET i.direction = $direction, i.at = $at, i.intent = $intent',
+    'MERGE (t)-[:CONTAINS]->(i)',
+    'FOREACH (cid IN CASE WHEN $contactId IS NULL THEN [] ELSE [$contactId] END |',
+    '  MERGE (p:Contact { contactId: cid }) MERGE (c)-[:HAS_CONTACT]->(p) MERGE (p)-[:PARTICIPATES_IN]->(t))',
+    'FOREACH (oid IN CASE WHEN $opportunityId IS NULL THEN [] ELSE [$opportunityId] END |',
+    '  MERGE (o:Opportunity { opportunityId: oid }) MERGE (c)-[:HAS_OPPORTUNITY]->(o))',
+    'WITH c, i',
+    'UNWIND $requirements AS req',
+    'MERGE (r:Requirement { requirementId: req.requirementId })',
+    'SET r.text = req.text, r.verifiedByCustomer = true, r.sourceMessageId = $messageId',
+    'MERGE (c)-[:HAS_REQUIREMENT]->(r)',
+    'MERGE (r)-[:REVEALED_BY]->(i)',
+    'FOREACH (sid IN req.serviceIds | MERGE (s:SingtelService { serviceId: sid }) MERGE (r)-[:ADDRESSED_BY]->(s))',
+    'WITH c, r',
+    'OPTIONAL MATCH (c)-[:HAS_OPPORTUNITY]->(o:Opportunity { opportunityId: $opportunityId })',
+    'FOREACH (item IN CASE WHEN o IS NULL THEN [] ELSE [o] END | MERGE (item)-[:HAS_REQUIREMENT]->(r))',
+    'RETURN count(r) AS linked',
+  ].join('\n');
+  await runQuery(cypher, { ...input, contactId: input.contactId ?? null, opportunityId: input.opportunityId ?? null, intent: input.intent ?? null });
+}
+
 /**
  * Ensure Neo4j is reachable. Returns false instead of throwing.
  */

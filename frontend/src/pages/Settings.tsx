@@ -4,6 +4,7 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { analyticsService, HealthStatus } from '../services/analytics.service'
 import { formatDate } from '../utils/formatters'
 import BusinessKnowledge from '../components/BusinessKnowledge'
+import { AiManagementSettingsPanel } from '../components/ai/AiManagementSettingsPanel'
 
 export default function Settings() {
   const [health, setHealth] = useState<HealthStatus | null>(null)
@@ -42,6 +43,11 @@ export default function Settings() {
         title="Settings & Configuration"
         subtitle="Manage user preferences, data pipeline intervals, and integration diagnostics"
       />
+
+      <section aria-labelledby="ai-settings-heading" className="space-y-3">
+        <h2 id="ai-settings-heading" className="text-base font-semibold text-gray-800">AI Management & daily lead discovery</h2>
+        <AiManagementSettingsPanel />
+      </section>
 
       <BusinessKnowledge />
 

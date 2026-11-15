@@ -1,4 +1,5 @@
-import { BellIcon, UserCircleIcon } from 'lucide-react'
+import { UserCircleIcon } from 'lucide-react'
+import { NotificationBell } from '../ai/NotificationBell'
 
 interface NavbarProps {
   title: string
@@ -9,10 +10,7 @@ export function Navbar({ title }: NavbarProps) {
     <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
       <h2 className="text-base font-semibold text-gray-800">{title}</h2>
       <div className="flex items-center gap-3">
-        <button className="relative p-1.5 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
-          <BellIcon className="w-5 h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-teal-500" />
-        </button>
+        <NotificationBell />
         <div className="flex items-center gap-2 pl-3 border-l border-gray-100">
           <UserCircleIcon className="w-7 h-7 text-gray-400" />
           <div className="hidden sm:block">
