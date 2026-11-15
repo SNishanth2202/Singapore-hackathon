@@ -23,7 +23,7 @@ async function start(): Promise<void> {
   }
 
   const server = app.listen(PORT, env.HOST, () => {
-    logger.info(`Enterprise Radar AI backend started`, {
+    logger.info(`Singtel Scout backend started`, {
       port: PORT,
       env: env.NODE_ENV,
       url: `http://localhost:${PORT}/api/${env.API_VERSION}`,

@@ -47,7 +47,7 @@ app.use(`/api/${env.API_VERSION}`, apiRouter);
 // ----- Root -----
 app.get('/', (_req: Request, res: Response) => {
   res.json({
-    name: 'Enterprise Radar AI — Backend API',
+    name: 'Singtel Scout — Backend API',
     version: env.API_VERSION,
     docs: `/api/${env.API_VERSION}/health`,
   });

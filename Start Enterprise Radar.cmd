@@ -1,6 +1,6 @@
 @echo off
 setlocal
-title Enterprise Radar
+title Singtel Scout
 cd /d "%~dp0"
 where node.exe >nul 2>&1
 if errorlevel 1 (

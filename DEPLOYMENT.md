@@ -1,5 +1,7 @@
 # Render backend and Vercel frontend
 
+Public application: https://singtel-scout.vercel.app (Singtel Scout).
+
 Deploy the `priyanshu` branch of the private fork `Priyanshu-10112/Singapore-hackathon`. The upstream branch remains available at `SNishanth2202/Singapore-hackathon`; no merge is needed.
 
 ## Backend: Render

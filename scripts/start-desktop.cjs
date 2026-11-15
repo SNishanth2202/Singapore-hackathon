@@ -22,7 +22,7 @@ function page(port) {
     request.on('error', () => resolve({ up: false, body: '' }));
   });
 }
-const ours = (port, result) => result.up && (port === 5000 ? result.body.includes('Enterprise Radar AI') && result.body.includes('Backend API') : /<title>Enterprise Radar AI/i.test(result.body));
+const ours = (port, result) => result.up && (port === 5000 ? /Singtel Scout|Enterprise Radar AI/.test(result.body) && result.body.includes('Backend API') : /<title>(?:Singtel Scout|Enterprise Radar AI)/i.test(result.body));
 function start(args, cwd) {
   const child = spawn(process.execPath, args, { cwd, stdio: 'inherit', windowsHide: true, env: { ...process.env, PORT: '5000' } });
   children.add(child);

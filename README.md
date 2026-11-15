@@ -1,4 +1,4 @@
-# Enterprise Radar AI 🚀
+# Singtel Scout 🚀
 
 > **Singtel Hackathon Project** — AI-powered enterprise intelligence platform that identifies and surfaces business opportunities across the APAC region.
 
@@ -20,7 +20,7 @@
 
 ## Overview
 
-Enterprise Radar AI aggregates public signals about companies (funding rounds, hiring trends, tech adoption, partnerships) and uses a knowledge graph to surface high-priority sales and partnership opportunities for Singtel's enterprise teams.
+Singtel Scout aggregates public signals about companies (funding rounds, hiring trends, tech adoption, partnerships) and uses a knowledge graph to surface high-priority sales and partnership opportunities for Singtel's enterprise teams.
 
 **Tech Stack**
 
