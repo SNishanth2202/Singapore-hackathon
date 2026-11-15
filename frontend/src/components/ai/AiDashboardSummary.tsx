@@ -32,6 +32,6 @@ export function AiDashboardSummary() {
       <Link to="/ai-management" className="text-xs text-teal-700 underline">Open AI Management</Link></div>
     <div className="grid grid-cols-2 gap-2 md:grid-cols-5">{rows.map(([name, value, detail]) => <article key={name} className="card p-3">
       <p className="text-[11px] font-medium text-gray-500">{name}</p><p className="mt-1 text-xl font-semibold text-navy-600">{value}</p><p className="mt-0.5 text-[10px] text-gray-400">{detail}</p></article>)}</div>
-    <p className="mt-2 text-[11px] text-gray-400">Emails are counted when the provider accepts them. {data.emails.deliveryNote}{data.emails.synthetic ? ` ${data.emails.synthetic} message(s) are synthetic preview records and were not sent.` : ''}</p>
+    <p className="mt-2 text-[11px] text-gray-400">Emails are counted when the provider accepts them. {data.emails.deliveryNote}{data.emails.synthetic ? ` ${data.emails.synthetic} test-mode message record(s) are retained for workflow review and were not sent.` : ''}</p>
   </section>
 }

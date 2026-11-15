@@ -74,7 +74,7 @@ export default function BusinessKnowledge() {
         <label htmlFor="business-knowledge-json" className="text-sm font-medium">Business configuration (JSON)</label>
         <textarea id="business-knowledge-json" value={draft} onChange={e => { setDraft(e.target.value); setMessage('') }} spellCheck={false} rows={20} className="mt-2 w-full font-mono text-xs p-3 rounded-lg border focus:ring-2 focus:ring-teal-500" />
         <button disabled={busy || !draft.trim()} onClick={() => void save()} className="mt-3 bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50">Save business knowledge</button>
-      </details> : <p className="text-xs text-gray-500">Business configuration is view-only in the hosted prototype. Update it from the local development workspace until administrator access is added.</p>}
+      </details> : <p className="text-xs text-gray-500">Business configuration is view-only in the hosted environment. Update it from the local workspace until administrator access is added.</p>}
     </div>}
   </section>
 }

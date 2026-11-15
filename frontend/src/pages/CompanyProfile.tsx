@@ -98,7 +98,7 @@ export default function CompanyProfile() {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl font-bold text-gray-900">{company.companyName}</h1>
-                  {company.isMockData && <Badge label="Demo" variant="sample" />}
+                  {company.isMockData && <Badge label="Illustrative" variant="sample" />}
                 </div>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   {company.industry && <Badge label={company.industry} variant="industry" />}
@@ -179,7 +179,7 @@ export default function CompanyProfile() {
                     <Badge label={sig.signalType} variant="default" />
                     <span className="text-xs text-gray-400">{formatDate(sig.detectedAt)}</span>
                     <span className="ml-auto text-xs font-semibold text-teal-700">
-                      {company.isMockData ? 'Demo signal' : `${formatConfidence(sig.confidenceScore)} confidence`}
+                      {company.isMockData ? 'Illustrative signal' : `${formatConfidence(sig.confidenceScore)} confidence`}
                     </span>
                   </div>
                   <p className="text-sm text-gray-700 mt-2 leading-relaxed">{truncate(sig.description, 160)}</p>

@@ -37,7 +37,7 @@ export default function SalesWorkbench() {
 
   async function seedDemo() {
     setBusy(true); setError(''); setNotice('')
-    try { const r = await api.post('/api/v1/sales/demo/run'); setNotice(`${r.data.data.message} This activity is labelled synthetic.`); await load() }
+    try { const r = await api.post('/api/v1/sales/demo/run'); setNotice(`${r.data.data.message} Workflow activity is retained for review.`); await load() }
     catch (e) { setError(errorText(e)) } finally { setBusy(false) }
   }
 
@@ -51,7 +51,7 @@ export default function SalesWorkbench() {
   }
 
   return <div>
-    <PageHeader title="Sales Outreach & Intervention" subtitle="Move discovered accounts through human approved outreach and manage conversations that need attention." actions={<button onClick={() => void seedDemo()} disabled={busy} className="inline-flex items-center gap-2 rounded-lg bg-navy-600 px-3 py-2 text-sm text-white disabled:opacity-50"><UsersIcon className="h-4 w-4" />Run synthetic end-to-end demo</button>} />
+    <PageHeader title="Sales Outreach & Intervention" subtitle="Move discovered accounts through human approved outreach and manage conversations that need attention." actions={<button onClick={() => void seedDemo()} disabled={busy} className="inline-flex items-center gap-2 rounded-lg bg-navy-600 px-3 py-2 text-sm text-white disabled:opacity-50"><UsersIcon className="h-4 w-4" />Prepare workflow walkthrough</button>} />
     {error && <div role="alert" className="mb-4 flex gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700"><AlertCircleIcon className="h-4 w-4 shrink-0" />{error}</div>}
     {notice && <p role="status" className="mb-4 rounded-lg bg-teal-50 p-3 text-sm text-teal-800">{notice}</p>}
     <div className="mb-5 flex gap-2 border-b">
@@ -64,6 +64,6 @@ export default function SalesWorkbench() {
     </div> : <div className="card overflow-x-auto"><div className="border-b px-5 py-4"><h2 className="font-semibold text-gray-800">Human intervention queue</h2><p className="mt-1 text-xs text-gray-500">Latest status per intervention. High priority and critical cases should be reviewed first.</p></div>
       {interventions.length ? <table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-gray-50 text-xs uppercase text-gray-500"><tr><th className="px-4 py-3">Company / contact</th><th className="px-4 py-3">Reason</th><th className="px-4 py-3">Priority</th><th className="px-4 py-3">Owner / status</th><th className="px-4 py-3">Created</th><th className="px-4 py-3">Action</th></tr></thead><tbody>{interventions.map(item => <tr key={item.payload.interventionId as string} className="border-t"><td className="px-4 py-3"><Link className="font-medium text-navy-600 underline" to={`/sales/companies/${encodeURIComponent(item.companyId)}`}>{item.companyName}</Link><small className="block text-gray-500">{item.contactName ?? item.contactEmail ?? 'Contact unknown'}</small></td><td className="px-4 py-3">{(item.reason ?? 'OTHER').replace(/_/g, ' ')}</td><td className="px-4 py-3">{item.priority}</td><td className="px-4 py-3">{item.assignedTo}<small className="block text-gray-500">{item.status}</small></td><td className="px-4 py-3">{formatDate(item.createdAt)}</td><td className="px-4 py-3"><select aria-label={`Update ${String(item.payload.interventionId)}`} disabled={busy || ['RESOLVED', 'CLOSED'].includes(item.status ?? '')} value={item.status} onChange={e => void update(item, e.target.value)} className="rounded border px-2 py-1 text-xs"><option>PENDING</option><option>ASSIGNED</option><option>IN_PROGRESS</option><option>WAITING_FOR_CUSTOMER</option><option>WAITING_FOR_INTERNAL_INFORMATION</option><option>RESOLVED</option><option>CLOSED</option></select></td></tr>)}</tbody></table> : <p className="p-8 text-sm text-gray-500">No human interventions are currently recorded.</p>}
     </div>}
-    <p className="mt-4 flex items-center gap-2 text-xs text-gray-400"><CheckCircle2Icon className="h-3 w-3" />Mock email acceptance is recorded separately from inbox delivery. Synthetic demo actions are labelled.</p>
+    <p className="mt-4 flex items-center gap-2 text-xs text-gray-400"><CheckCircle2Icon className="h-3 w-3" />Provider acceptance is recorded separately from inbox delivery. Walkthrough actions remain clearly separated from live outreach.</p>
   </div>
 }

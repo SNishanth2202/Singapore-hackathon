@@ -66,7 +66,7 @@ export function MetricCard({ label, value, icon: Icon, trend, isSample, color = 
           )}
           {isSample && (
             <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-600 border border-amber-200">
-              Demo data
+              Illustrative data
             </span>
           )}
         </div>

@@ -102,7 +102,7 @@ export default function AiManagementPage() {
 
   return <div className="space-y-5">
     <PageHeader title="AI Management" subtitle="Companies whose email conversations are run by the autonomous communication agent. You are notified only when a person is needed."
-      badge={analytics?.emailProvider.synthetic ? <span className="rounded bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">Synthetic preview · no real email</span> : undefined}
+      badge={analytics?.emailProvider.synthetic ? <span className="rounded bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">Test mode · no real email</span> : undefined}
       actions={<>
         <button onClick={() => void runWorker()} disabled={busy} className="btn-secondary inline-flex items-center gap-2"><InboxIcon className="h-4 w-4" />Check inbox & run due actions</button>
         <button onClick={() => void load()} disabled={busy} aria-label="Refresh" className="rounded p-2 text-gray-500 hover:bg-gray-100"><RefreshCwIcon className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} /></button>

@@ -128,7 +128,7 @@ test('every artifact renders its exact original content for both accounts', asyn
     for (const artifact of snapshot.artifacts.filter((a: { accountId: string }) => a.accountId === account.id)) {
       await page.locator('.cg-source-group>button').filter({ hasText: artifact.title }).click()
       await expect(page.locator('.cg-artifact-content')).toHaveText(artifact.content)
-      await expect(page.getByRole('article', { name: 'Artifact viewer' })).toContainText('MOCK ARTIFACT')
+      await expect(page.getByRole('article', { name: 'Artifact viewer' })).toContainText('SOURCE ARTIFACT')
       await expect(page.locator('.cg-artifact-footer')).toContainText(artifact.filename)
     }
   }
@@ -179,7 +179,7 @@ test('no-key and not-yet-ingested states leave the source library usable', async
   await page.goto('/customer-graph')
   await expect(page.getByRole('heading', { name: 'Ready to connect the evidence' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Re-ingest with GPT-6.1 Terra' })).toBeDisabled()
-  await expect(page.getByRole('button', { name: 'Ingest mock artifacts', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Ingest source artifacts', exact: true })).toBeDisabled()
   await page.getByRole('button', { name: /Source artifacts/ }).click()
   await expect(page.locator('.cg-source-group>button')).toHaveCount(18)
   await expect(page.locator('.cg-artifact-content')).not.toBeEmpty()

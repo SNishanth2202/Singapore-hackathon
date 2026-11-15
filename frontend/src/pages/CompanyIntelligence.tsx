@@ -139,7 +139,7 @@ export default function CompanyIntelligence() {
       <PageHeader
         title="Company Intelligence"
         subtitle="Browse, filter and research companies tracked across Southeast Asia"
-        badge={isMockData ? <Badge label="Demo" variant="sample" /> : undefined}
+        badge={isMockData ? <Badge label="Illustrative" variant="sample" /> : undefined}
       />
 
       {/* AI Research widget */}

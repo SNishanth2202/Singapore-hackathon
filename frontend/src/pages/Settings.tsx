@@ -69,7 +69,7 @@ export default function Settings() {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-gray-800">User Profile</h2>
-            <p className="text-xs text-gray-400">Local prototype — authentication will be added later</p>
+            <p className="text-xs text-gray-400">Authentication will be added later</p>
           </div>
         </div>
 
