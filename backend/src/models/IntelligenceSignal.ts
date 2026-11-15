@@ -21,6 +21,7 @@ export interface IIntelligenceSignal {
   source: string;
   sourceUrl?: string;
   detectedAt: Date;
+  publishedAt?: Date; // Actual source publication/event date; never inferred from detection time.
   confidenceScore: number; // 0–1
   createdAt: Date;
   updatedAt: Date;
@@ -45,6 +46,7 @@ const IntelligenceSignalSchema = new Schema<IIntelligenceSignalDocument>(
     source:      { type: String, required: true, trim: true },
     sourceUrl:   { type: String, trim: true },
     detectedAt:  { type: Date, required: true, default: Date.now },
+    publishedAt: { type: Date },
     confidenceScore: {
       type: Number,
       required: true,

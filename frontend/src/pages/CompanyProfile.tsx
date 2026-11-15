@@ -7,7 +7,6 @@ import {
   CalendarIcon,
   UsersIcon,
   LayersIcon,
-  AlertCircleIcon,
   ZapIcon,
   TargetIcon,
 } from 'lucide-react'
@@ -15,6 +14,7 @@ import { companiesService, CompanyWithSignals } from '../services/companies.serv
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorState } from '../components/ui/ErrorState'
 import { Badge } from '../components/ui/Badge'
+import CompanyAnalysis from '../components/CompanyAnalysis'
 import { formatDate, formatNumber, formatConfidence, truncate } from '../utils/formatters'
 
 interface ProfileFieldProps {
@@ -77,13 +77,6 @@ export default function CompanyProfile() {
         Back to Company Intelligence
       </button>
 
-      {company.isMockData && (
-        <div className="mb-5 flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-          <AlertCircleIcon className="w-4 h-4 flex-shrink-0" />
-          <span><strong>Sample Data Mode</strong> — Backend unavailable. Showing placeholder data.</span>
-        </div>
-      )}
-
       {/* Company Card */}
       <div className="card p-6 mb-5">
         <div className="flex items-start justify-between mb-4">
@@ -96,6 +89,7 @@ export default function CompanyProfile() {
             <div>
               <h1 className="text-xl font-semibold text-gray-900">{company.companyName}</h1>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {company.isMockData && <Badge label="Demo" variant="sample" />}
                 {company.industry && <Badge label={company.industry} variant="industry" />}
                 {company.companyStage && <Badge label={company.companyStage} />}
               </div>
@@ -142,6 +136,8 @@ export default function CompanyProfile() {
         </div>
       </div>
 
+      <CompanyAnalysis key={company._id} companyId={company._id} />
+
       {/* Intelligence Signals */}
       <div className="card p-6 mb-5">
         <div className="flex items-center gap-2 mb-4">
@@ -172,7 +168,7 @@ export default function CompanyProfile() {
                     <Badge label={sig.signalType} />
                     <span className="text-xs text-gray-400">{formatDate(sig.detectedAt)}</span>
                     <span className="ml-auto text-xs font-medium text-teal-700">
-                      {formatConfidence(sig.confidenceScore)} confidence
+                      {company.isMockData ? 'Demo signal' : `${formatConfidence(sig.confidenceScore)} confidence`}
                     </span>
                   </div>
                   <p className="text-sm text-gray-700 mt-1">{truncate(sig.description, 160)}</p>

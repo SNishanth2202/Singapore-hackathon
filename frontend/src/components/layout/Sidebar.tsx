@@ -39,8 +39,8 @@ export function Sidebar() {
         </div>
         {!collapsed && (
           <div className="min-w-0">
-            <p className="text-sm font-bold text-navy-600 leading-tight">Enterprise</p>
-            <p className="text-xs text-teal-600 font-semibold leading-tight">Radar AI</p>
+            <p className="text-sm font-bold text-navy-600 leading-tight">Singtel</p>
+            <p className="text-xs text-teal-600 font-semibold leading-tight">Scout</p>
           </div>
         )}
       </div>

@@ -21,6 +21,7 @@ export interface AnalyticsOverview {
 }
 
 export interface HealthStatus {
+  storageMode?: string
   status: 'healthy' | 'degraded' | 'down'
   timestamp: string
   services: {
@@ -78,6 +79,7 @@ export const analyticsService = {
       return {
         status: resData.status ?? (resData.success ? 'healthy' : 'down'),
         timestamp: resData.timestamp ?? new Date().toISOString(),
+        storageMode: resData.storageMode,
         services: {
           mongodb:
             typeof rawServices.mongodb === 'object'

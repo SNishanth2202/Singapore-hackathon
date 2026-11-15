@@ -3,24 +3,27 @@ import { env } from './config/env';
 import { logger } from './utils/logger';
 import { initializeDatabases, closeDatabases } from './config/database';
 import { applyConstraints } from './integrations/neo4j/graphService';
+import { deploymentConfigurationProblems } from './config/deployment';
+import { businessKnowledgeStore } from './business/store';
+import { AppError } from './utils/errors';
 
 const PORT = env.PORT;
 
 async function start(): Promise<void> {
+  if (env.NODE_ENV === 'production') {
+    const problems = deploymentConfigurationProblems(env);
+    if (problems.length) throw new AppError(problems.join(' '), 503, 'DEPLOYMENT_CONFIGURATION_REQUIRED');
+  }
   // Connect to databases
   await initializeDatabases();
 
-  // Apply Neo4j uniqueness constraints (non-fatal if Neo4j is down)
-  try {
+  if (env.STORAGE_MODE === 'cloud') {
     await applyConstraints();
-  } catch (err) {
-    logger.warn('Could not apply Neo4j constraints — Neo4j may be unavailable', {
-      error: (err as Error).message,
-    });
+    await businessKnowledgeStore.read();
   }
 
-  const server = app.listen(PORT, () => {
-    logger.info(`Enterprise Radar AI backend started`, {
+  const server = app.listen(PORT, env.HOST, () => {
+    logger.info(`Singtel Scout backend started`, {
       port: PORT,
       env: env.NODE_ENV,
       url: `http://localhost:${PORT}/api/${env.API_VERSION}`,

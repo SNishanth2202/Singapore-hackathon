@@ -31,8 +31,8 @@ export function MetricCard({ label, value, icon: Icon, trend, isSample }: Metric
             </div>
           )}
           {isSample && (
-            <span className="inline-block mt-2 px-1.5 py-0.5 rounded text-xs bg-amber-50 text-amber-600 border border-amber-200">
-              sample
+            <span className="inline-block mt-2 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-500 border border-gray-200">
+              Demo
             </span>
           )}
         </div>

@@ -14,7 +14,7 @@ export function validate(schema: ZodSchema, target: ValidateTarget = 'body') {
     const result = schema.safeParse(req[target]);
 
     if (!result.success) {
-      const details = (result.error as ZodError).errors.map((e) => ({
+      const details = (result.error as ZodError).issues.map((e) => ({
         field: e.path.join('.'),
         message: e.message,
       }));
