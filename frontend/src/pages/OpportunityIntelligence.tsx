@@ -7,6 +7,7 @@ import { ErrorState } from '../components/ui/ErrorState'
 import { Badge } from '../components/ui/Badge'
 import { formatDate, formatConfidence } from '../utils/formatters'
 import { Opportunity } from '../services/opportunities.service'
+import { TargetIcon } from 'lucide-react'
 
 const PAGE_SIZE = 25
 
@@ -66,15 +67,22 @@ export default function OpportunityIntelligence() {
       label: 'Company',
       sortable: true,
       render: (row) => (
-        <span className="font-medium text-navy-600">{row.companyName ?? row.companyId}</span>
+        <div className="flex items-center gap-3">
+          <div className="w-7 h-7 rounded-lg bg-navy-50 border border-navy-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-[10px] font-bold text-navy-600">
+              {(row.companyName ?? 'C').charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <span className="font-semibold text-gray-800">{row.companyName ?? row.companyId}</span>
+        </div>
       ),
     },
     {
       key: 'potentialService',
-      label: 'Service Type',
+      label: 'Service',
       sortable: true,
       render: (row) => (
-        <span className="text-gray-700">
+        <span className="text-sm text-gray-700">
           {row.potentialService ?? row.opportunityType ?? '—'}
         </span>
       ),
@@ -98,14 +106,17 @@ export default function OpportunityIntelligence() {
       label: 'Confidence',
       sortable: true,
       render: (row) => (
-        <div className="flex items-center gap-2">
-          <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="flex items-center gap-2.5">
+          <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-teal-500 rounded-full"
-              style={{ width: `${Math.round(row.confidenceScore * 100)}%` }}
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${Math.round(row.confidenceScore * 100)}%`,
+                background: row.confidenceScore >= 0.7 ? '#0D9488' : row.confidenceScore >= 0.4 ? '#F59E0B' : '#94A3B8',
+              }}
             />
           </div>
-          <span className="text-xs text-gray-600">{formatConfidence(row.confidenceScore)}</span>
+          <span className="text-xs font-semibold text-gray-600">{formatConfidence(row.confidenceScore)}</span>
         </div>
       ),
     },
@@ -113,21 +124,40 @@ export default function OpportunityIntelligence() {
       key: 'createdAt',
       label: 'Created',
       sortable: true,
-      render: (row) => <span className="text-gray-500 text-xs">{formatDate(row.createdAt)}</span>,
+      render: (row) => <span className="text-xs text-gray-400">{formatDate(row.createdAt)}</span>,
     },
   ]
 
   if (error) return <ErrorState message={error} onRetry={() => void refetch()} />
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto space-y-5">
       <PageHeader
         title="Opportunity Intelligence"
-        subtitle="Track and prioritise potential Singtel service opportunities across the portfolio"
+        subtitle="Track and prioritise potential Singtel service opportunities"
         badge={isMockData ? <Badge label="Demo" variant="sample" /> : undefined}
       />
 
-      <div className="mb-5">
+      {/* Stats strip */}
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: 'Total', value: total, color: 'text-gray-800' },
+          { label: 'High Priority', value: opportunities.filter(o => o.priority === 'HIGH').length, color: 'text-red-600' },
+          { label: 'Open', value: opportunities.filter(o => o.status === 'OPEN').length, color: 'text-teal-600' },
+        ].map((stat) => (
+          <div key={stat.label} className="card p-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center">
+              <TargetIcon className="w-4 h-4 text-gray-400" />
+            </div>
+            <div>
+              <p className={`text-lg font-bold ${stat.color}`}>{stat.value}</p>
+              <p className="text-xs text-gray-400">{stat.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card p-4">
         <FilterBar filters={filters} onChange={handleFilterChange} onReset={handleReset} />
       </div>
 

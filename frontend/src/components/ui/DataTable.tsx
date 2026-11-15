@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react'
-import { ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ChevronsUpDownIcon } from 'lucide-react'
 import { LoadingSpinner } from './LoadingSpinner'
 import { EmptyState } from './EmptyState'
 
@@ -53,7 +53,6 @@ export function DataTable<T>({
     }
   }
 
-  // Client-side sort only when no server-side pagination override
   const sortedData = [...data].sort((a, b) => {
     if (!sortKey || !sortDir) return 0
     const aVal = (a as Record<string, unknown>)[sortKey]
@@ -69,17 +68,26 @@ export function DataTable<T>({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50">
+            <tr className="border-b border-gray-100" style={{ background: '#F8FAFC' }}>
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide ${col.width ?? ''} ${col.sortable ? 'cursor-pointer select-none hover:text-gray-800' : ''}`}
+                  className={`px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest ${col.width ?? ''} ${col.sortable ? 'cursor-pointer select-none hover:text-gray-600' : ''}`}
                   onClick={() => col.sortable && handleSort(col.key)}
                 >
                   <div className="flex items-center gap-1">
                     {col.label}
-                    {col.sortable && sortKey === col.key && sortDir === 'asc' && <ChevronUpIcon className="w-3 h-3" />}
-                    {col.sortable && sortKey === col.key && sortDir === 'desc' && <ChevronDownIcon className="w-3 h-3" />}
+                    {col.sortable && (
+                      <span className="text-gray-300">
+                        {sortKey === col.key && sortDir === 'asc' ? (
+                          <ChevronUpIcon className="w-3 h-3 text-teal-500" />
+                        ) : sortKey === col.key && sortDir === 'desc' ? (
+                          <ChevronDownIcon className="w-3 h-3 text-teal-500" />
+                        ) : (
+                          <ChevronsUpDownIcon className="w-3 h-3 opacity-40" />
+                        )}
+                      </span>
+                    )}
                   </div>
                 </th>
               ))}
@@ -99,10 +107,12 @@ export function DataTable<T>({
                 </td>
               </tr>
             ) : (
-              sortedData.map((row) => (
+              sortedData.map((row, idx) => (
                 <tr
                   key={keyExtractor(row)}
-                  className={`border-b border-gray-50 last:border-0 ${onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                  className={`border-b border-gray-50 last:border-0 transition-colors ${
+                    onRowClick ? 'cursor-pointer hover:bg-teal-50/40' : ''
+                  } ${idx % 2 === 0 ? '' : 'bg-gray-50/30'}`}
                   onClick={() => onRowClick?.(row)}
                 >
                   {columns.map((col) => (
@@ -121,27 +131,42 @@ export function DataTable<T>({
 
       {/* Pagination */}
       {totalPages > 1 && onPageChange && (
-        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
           <p className="text-xs text-gray-500">
-            Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}
+            Showing <span className="font-semibold text-gray-700">{(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)}</span> of <span className="font-semibold text-gray-700">{total}</span> results
           </p>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => onPageChange(page - 1)}
+              onClick={() => onPageChange(1)}
               disabled={page <= 1}
-              className="p-1 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="p-1.5 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed text-gray-500 transition-colors"
             >
-              <ChevronLeftIcon className="w-4 h-4 text-gray-600" />
+              <ChevronLeftIcon className="w-3.5 h-3.5" />
             </button>
-            <span className="text-xs text-gray-600 px-2">
-              {page} / {totalPages}
-            </span>
+            <div className="flex items-center gap-1 px-2">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const p = Math.max(1, Math.min(totalPages - 4, page - 2)) + i
+                return (
+                  <button
+                    key={p}
+                    onClick={() => onPageChange(p)}
+                    className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors ${
+                      p === page
+                        ? 'bg-navy-600 text-white'
+                        : 'text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                )
+              })}
+            </div>
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
-              className="p-1 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="p-1.5 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed text-gray-500 transition-colors"
             >
-              <ChevronRightIcon className="w-4 h-4 text-gray-600" />
+              <ChevronRightIcon className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

@@ -16,44 +16,54 @@ interface BarChartProps {
   isSample?: boolean
 }
 
-const COLORS = ['#1E3A5F', '#0D9488', '#3D6BA3', '#1DB3AD', '#5A82B4', '#47C1BC', '#7A9BC4']
+const COLORS = ['#1E3A5F', '#0D9488', '#3D6BA3', '#1DB3AD', '#5A82B4', '#47C1BC', '#7A9BC4', '#2D5080']
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2.5">
+        <p className="text-xs font-semibold text-gray-700">{label}</p>
+        <p className="text-sm font-bold text-navy-600 mt-0.5">{payload[0].value} companies</p>
+      </div>
+    )
+  }
+  return null
+}
 
 export function BarChart({ data, title, color, isSample }: BarChartProps) {
   return (
     <div className="card p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
+          <p className="text-xs text-gray-400 mt-0.5">Distribution across sectors</p>
+        </div>
         {isSample && (
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-500 border border-gray-200">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-600 border border-amber-200">
             Demo
           </span>
         )}
       </div>
       <ResponsiveContainer width="100%" height={220}>
-        <RechartsBarChart data={data} margin={{ top: 4, right: 8, left: -8, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#F1F3F5" vertical={false} />
+        <RechartsBarChart data={data} margin={{ top: 4, right: 8, left: -12, bottom: 0 }} barGap={4}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 11, fill: '#6B7280' }}
+            tick={{ fontSize: 10, fill: '#94A3B8' }}
             axisLine={false}
             tickLine={false}
+            interval={0}
+            angle={data.length > 6 ? -30 : 0}
+            textAnchor={data.length > 6 ? 'end' : 'middle'}
+            height={data.length > 6 ? 48 : 24}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: '#6B7280' }}
+            tick={{ fontSize: 10, fill: '#94A3B8' }}
             axisLine={false}
             tickLine={false}
           />
-          <Tooltip
-            contentStyle={{
-              background: '#fff',
-              border: '1px solid #E5E7EB',
-              borderRadius: '8px',
-              fontSize: 12,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-            }}
-            cursor={{ fill: '#F8F9FA' }}
-          />
-          <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={40}>
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F1F5F9', radius: 4 }} />
+          <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={36}>
             {data.map((_, i) => (
               <Cell key={i} fill={color ?? COLORS[i % COLORS.length]} />
             ))}

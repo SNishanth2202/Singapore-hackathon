@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircleIcon, Building2Icon, MailIcon, RefreshCwIcon, UsersIcon, TrendingUpIcon, TargetIcon } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { useCompanies } from '../hooks/useCompanies'
+import { AlertCircleIcon, Building2Icon, MailIcon, RefreshCwIcon, UsersIcon, TrendingUpIcon, TargetIcon, SparklesIcon, ArrowRightIcon, BuildingIcon, GlobeIcon } from 'lucide-react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar, BarChart as RechartsBarChart, Cell } from 'recharts'
 import { analyticsService, SalesAnalyticsDashboard } from '../services/analytics.service'
 import { PageHeader } from '../components/ui/PageHeader'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
-import { formatNumber } from '../utils/formatters'
+import { formatDate, formatNumber } from '../utils/formatters'
 import api from '../services/api'
 
 const lineColors: Record<string, string> = { EMAIL_PROVIDER_ACCEPTED: '#1e3a5f', REPLY_RECEIVED: '#0d9488', EMAIL_FAILED: '#dc2626' }
@@ -20,6 +22,8 @@ function ChartCard({ title: heading, note, children }: { title: string; note: st
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate()
+  const { companies: recentCompanies, loading: companiesLoading } = useCompanies({ limit: 5 })
   const [data, setData] = useState<SalesAnalyticsDashboard | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -68,8 +72,84 @@ export default function Dashboard() {
   const services = data?.opportunities.byService.map(row => row.service).filter(Boolean) ?? []
   const agents = data?.agentPerformance.map(row => row.agent).filter(Boolean) ?? []
 
-  return <div className="space-y-6">
-    <PageHeader title="Enterprise Radar — Sales Intelligence Command Centre" subtitle="A live view of discovery, evidence-qualified opportunities, outreach, replies, and human follow-up." actions={<button onClick={() => void load()} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600"><RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />Refresh</button>} />
+  return <div className="max-w-7xl mx-auto space-y-6">
+    <PageHeader title="Singtel Scout — Sales Intelligence" subtitle="A live view of discovery, evidence-qualified opportunities, outreach, replies, and human follow-up." actions={<button onClick={() => void load()} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600"><RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />Refresh</button>} />
+    {/* Hero banner */}
+      <div
+        className="rounded-2xl p-6 text-white relative overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #1E3A5F 0%, #2D5080 60%, #0D9488 100%)' }}
+      >
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-white translate-x-20 -translate-y-20" />
+          <div className="absolute bottom-0 left-32 w-40 h-40 rounded-full bg-white translate-y-16" />
+        </div>
+        <div className="relative flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <SparklesIcon className="w-4 h-4 text-teal-300" />
+              <span className="text-xs font-semibold text-teal-300 uppercase tracking-widest">AI-Powered Intelligence</span>
+            </div>
+            <h2 className="text-xl font-bold leading-tight">Singtel Scout</h2>
+            <p className="text-white/70 text-sm mt-1 max-w-md">
+              Identifying enterprise opportunities across APAC through live public research and AI analysis.
+            </p>
+          </div>
+          <div className="hidden md:flex items-center gap-6">
+            <div className="text-center">
+              <p className="text-2xl font-bold">{formatNumber(metric.totalCompaniesDiscovered ?? 0)}</p>
+              <p className="text-xs text-white/60 mt-0.5">Companies discovered</p>
+            </div>
+            <div className="w-px h-10 bg-white/20" />
+            <div className="text-center">
+              <p className="text-2xl font-bold">{formatNumber(metric.qualifiedCompanies ?? 0)}</p>
+              <p className="text-xs text-white/60 mt-0.5">Qualified companies</p>
+            </div>
+            <div className="w-px h-10 bg-white/20" />
+            <div className="text-center">
+              <p className="text-2xl font-bold">{formatNumber(metric.pendingInterventions ?? 0)}</p>
+              <p className="text-xs text-white/60 mt-0.5">Follow-ups pending</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+    {/* Quick actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button
+          onClick={() => navigate('/companies')}
+          className="card card-hover p-5 text-left flex items-center justify-between group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-navy-50 flex items-center justify-center">
+              <BuildingIcon className="w-5 h-5 text-navy-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Research a Company</p>
+              <p className="text-xs text-gray-500 mt-0.5">Search and generate an AI discovery brief</p>
+            </div>
+          </div>
+          <ArrowRightIcon className="w-4 h-4 text-gray-300 group-hover:text-teal-500 transition-colors" />
+        </button>
+
+        <button
+          onClick={() => navigate('/opportunities')}
+          className="card card-hover p-5 text-left flex items-center justify-between group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center">
+              <TargetIcon className="w-5 h-5 text-teal-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">View Opportunities</p>
+              <p className="text-xs text-gray-500 mt-0.5">Track and prioritise service opportunities</p>
+            </div>
+          </div>
+          <ArrowRightIcon className="w-4 h-4 text-gray-300 group-hover:text-teal-500 transition-colors" />
+        </button>
+      </div>
+
+
     <section className="card flex flex-wrap items-end gap-3 p-4">
       <label className="text-xs text-gray-500">Reporting period<select value={preset} onChange={e => changePeriod(e.target.value)} className="mt-1 block rounded-lg border px-3 py-2 text-sm text-gray-700"><option value="today">Today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="custom">Custom range</option></select></label>
       <label className="text-xs text-gray-500">From<input type="date" value={startDate} onChange={e => { setPreset('custom'); setStartDate(e.target.value) }} className="mt-1 block rounded-lg border px-3 py-2 text-sm" /></label>
@@ -113,5 +193,67 @@ export default function Dashboard() {
 
       <details className="card p-5"><summary className="cursor-pointer text-sm font-semibold text-gray-800">Detailed conversion and response KPIs</summary><div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{Object.entries(metric).map(([key, value]) => <div key={key} className="rounded bg-gray-50 p-3"><p className="text-[11px] text-gray-500">{title(key)}</p><strong className="text-gray-800">{value == null ? 'No data' : `${formatNumber(Number(value))}${key.endsWith('Pct') ? '%' : ''}`}</strong></div>)}</div><p className="mt-4 text-[11px] text-gray-500">{data.definitions.providerAccepted} {data.definitions.uniqueCompanyReply} {data.definitions.sentiment}</p></details>
     </>}
+    {/* Recent Companies */}
+      <div className="card overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-800">Recent Companies</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Latest additions to the tracked workspace</p>
+          </div>
+          <button
+            onClick={() => navigate('/companies')}
+            className="inline-flex items-center gap-1 text-xs font-medium text-teal-600 hover:text-teal-700 transition-colors"
+          >
+            View all
+            <ArrowRightIcon className="w-3 h-3" />
+          </button>
+        </div>
+
+        {companiesLoading ? (
+          <LoadingSpinner size="sm" />
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ background: '#F8FAFC' }} className="border-b border-gray-100">
+                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Company</th>
+                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Industry</th>
+                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Country</th>
+                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Stage</th>
+                <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Added</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentCompanies.slice(0, 5).map((company) => (
+                <tr
+                  key={company._id}
+                  className="border-b border-gray-50 last:border-0 hover:bg-teal-50/40 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/companies/${company._id}`)}
+                >
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-navy-50 flex items-center justify-center flex-shrink-0">
+                        <span className="text-[11px] font-bold text-navy-600">
+                          {company.companyName.charAt(0)}
+                        </span>
+                      </div>
+                      <span className="font-semibold text-gray-800">{company.companyName}</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-gray-500 text-xs">{company.industry ?? '—'}</td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <GlobeIcon className="w-3 h-3 text-gray-400" />
+                      {company.country ?? '—'}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-xs text-gray-600">{company.companyStage ?? '—'}</td>
+                  <td className="px-5 py-3 text-xs text-gray-400">{formatDate(company.createdAt)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
   </div>
 }
