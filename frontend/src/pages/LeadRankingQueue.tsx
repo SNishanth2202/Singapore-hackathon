@@ -6,6 +6,7 @@ import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon, ArrowUpRightIcon, CheckIcon
 import { RankingReasons } from '../components/RankingReasons'
 import { OpenAiKeyForm } from '../components/OpenAiKeyForm'
 import { PageHeader } from '../components/ui/PageHeader'
+import { DailyLeadQueue } from '../components/ai/DailyLeadQueue'
 import { useRankingQueue } from '../hooks/useRankingQueue'
 import { Comparison, Evidence, Meta, Opportunity, PRIORITY_STATUSES, PriorityStatus, Source, Status, View, rankingRequest } from '../services/ranking.service'
 import './lead-ranking.css'
@@ -88,7 +89,10 @@ function ComparisonPanel({ comparison }: { comparison: Comparison | null }) {
 
 export default function LeadRankingQueue() {
   const [view, setView] = useState<View>('crm_plus_public'), [search, setSearch] = useState(''), [status, setStatus] = useState('all')
-  const { queue, meta, comparison, error, busy, refresh, mutate, loadComparison } = useRankingQueue(view)
+  const [salesperson, setSalesperson] = useState('aisha')
+  const people = [{ id: 'aisha', name: 'Aisha Tan' }, { id: 'daniel', name: 'Daniel Lim' }, { id: 'priya', name: 'Priya Nair' }]
+  const person = people.find(p => p.id === salesperson)!
+  const { queue, meta, comparison, error, busy, refresh, mutate, loadComparison } = useRankingQueue(view, salesperson)
   const [drawer, setDrawer] = useState<'sources' | 'compare' | 'guide' | 'lab' | 'key' | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const closeDrawer = useRef(() => { setSelected(null); setDrawer(null) }).current
@@ -110,10 +114,10 @@ export default function LeadRankingQueue() {
   }
   return <div className="lr-app">
     <PageHeader
-      title="Lead Ranking"
+      title={`${person.name}'s Lead Ranking`}
       subtitle="Prioritise buying units, products and buying windows using CRM facts and public evidence."
       badge={<span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Synthetic CRM</span>}
-      actions={<>
+      actions={<><label className="lr-status-filter"><span className="lr-sr-only">Mock salesperson</span><select aria-label="Mock salesperson" value={salesperson} onChange={e => { setSelected(null); setSalesperson(e.target.value) }}>{people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
         <button className="lr-button primary" disabled={busy} onClick={() => void mutate('/llm/analyze', {})}><SparklesIcon size={16} />{busy ? 'Assessing…' : 'Reassess leads'}</button>
         <button className="lr-icon-button" aria-label="AI connection" title="AI connection" onClick={() => setDrawer('key')}><KeyIcon size={18} /></button>
         <button className="lr-button secondary" onClick={() => setDrawer('sources')}><GlobeIcon size={16} />Sources & CRM</button>
@@ -122,6 +126,7 @@ export default function LeadRankingQueue() {
         <button className="lr-icon-button" aria-label="Demo guide" title="Demo guide" onClick={() => setDrawer('guide')}><CircleHelpIcon size={18} /></button>
       </>}
     />
+    <DailyLeadQueue />
         {error && <div className="lr-banner error" role="alert"><AlertCircleIcon size={18} /><div><strong>Connection issue</strong><p>{error}. {queue ? `Showing the last successful queue from ${date(queue.queueComputedAt, true)} SGT.` : 'Start the backend and retry; no placeholder opportunities are substituted.'}</p></div><button onClick={() => void refresh()}>Retry</button></div>}
         {queue?.degraded && <div className="lr-banner warning" role="status"><AlertCircleIcon size={18} /><div><strong>Public-source refresh failed · worklist preserved</strong><p>{queue.sourceError}. Last successful refresh: {date(queue.lastSuccessfulRefreshAt, true)} SGT.</p></div><button disabled={busy} onClick={() => void mutate('/sources/refresh', {})}>Retry live source</button></div>}
         {queue?.llm && queue.llm.status !== 'ready' && <div className="lr-banner warning" role="status"><AlertCircleIcon size={18} /><div><strong>{queue.llm.status === 'stale' ? 'AI assessment refresh failed' : queue.llm.status === 'needs_key' ? 'Connect AI to assess leads' : 'AI assessment unavailable'}</strong><p>{queue.llm.error}{queue.llm.status === 'stale' && ` Showing the previous assessment from ${date(queue.llm.evaluatedAt, true)} SGT.`}</p></div><button onClick={() => setDrawer('key')}>AI connection</button></div>}

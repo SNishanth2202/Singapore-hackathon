@@ -5,6 +5,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/': 'Dashboard',
   '/companies': 'Company Intelligence',
   '/graph': 'Knowledge Graph',
+  '/customer-graph': 'Central Customer Graph Database',
   '/dashboard': 'Dashboard',
   '/lead-ranking': 'Lead Ranking',
   '/sales': 'Sales Workbench',

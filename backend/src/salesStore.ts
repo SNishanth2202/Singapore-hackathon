@@ -34,6 +34,22 @@ export async function appendActivity(event: ISalesActivity): Promise<ISalesActiv
   }
 }
 
+/** Atomically reserve a stable event ID. Used for delivery attempts to prevent two workers sending twice. */
+export async function claimActivity(event: ISalesActivity): Promise<{ claimed: boolean; event: ISalesActivity }> {
+  if (env.STORAGE_MODE === 'memory') {
+    const existing = memoryEvents.find(row => row.eventId === event.eventId);
+    if (existing) return { claimed: false, event: structuredClone(existing) };
+    memoryEvents.push(structuredClone(event));
+    return { claimed: true, event };
+  }
+  requireCloudMongo();
+  try { return { claimed: true, event: (await SalesActivity.create(event)).toObject() as ISalesActivity }; }
+  catch (error) {
+    if ((error as { code?: number }).code === 11000) return { claimed: false, event: (await findActivityById(event.eventId))! };
+    throw error;
+  }
+}
+
 export async function findCompanyActivities(companyId: string): Promise<ISalesActivity[]> {
   if (env.STORAGE_MODE === 'memory') return structuredClone(memoryEvents.filter(event => event.companyId === companyId).sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt)));
   requireCloudMongo();
@@ -86,6 +102,15 @@ export async function allActivityEvents() {
   if (env.STORAGE_MODE === 'memory') return structuredClone(memoryEvents);
   requireCloudMongo();
   return await SalesActivity.find().lean() as ISalesActivity[];
+}
+
+export async function findEmailSuppression(email: string): Promise<ISalesActivity | null> {
+  const normalized = email.trim().toLowerCase();
+  if (env.STORAGE_MODE === 'memory') {
+    return structuredClone(memoryEvents.find(event => event.type === 'SUPPRESSION_ADDED' && event.contactEmail?.toLowerCase() === normalized) ?? null);
+  }
+  requireCloudMongo();
+  return await SalesActivity.findOne({ type: 'SUPPRESSION_ADDED', contactEmail: normalized }).lean() as ISalesActivity | null;
 }
 
 export function clearMemoryActivities() { memoryEvents.length = 0; }

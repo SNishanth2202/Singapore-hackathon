@@ -1,4 +1,5 @@
-import { BellIcon, SearchIcon } from 'lucide-react'
+import { SearchIcon } from 'lucide-react'
+import { NotificationBell } from '../ai/NotificationBell'
 
 interface NavbarProps {
   title: string
@@ -22,11 +23,7 @@ export function Navbar({ title }: NavbarProps) {
           <kbd className="ml-1 px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] text-gray-400 font-mono">⌘K</kbd>
         </div>
 
-        {/* Notification */}
-        <button className="relative p-2 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
-          <BellIcon className="w-4.5 h-4.5" style={{ width: 18, height: 18 }} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-teal-500 border-2 border-white" />
-        </button>
+        <NotificationBell />
 
         {/* User */}
         <div className="flex items-center gap-2 pl-3 border-l border-gray-100">

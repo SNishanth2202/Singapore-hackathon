@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import { RankingService } from './service';
 import { createRankingRouter } from '../routes/ranking.routes';
 import { REPO_ROOT } from './seed';
+import { createCustomerGraphRouter } from '../customer-graph/routes';
 
 dotenv.config({ path: path.join(REPO_ROOT, '.env') });
 export function createDemoApp(service = new RankingService(), options: Parameters<typeof createRankingRouter>[1] = {}) {
@@ -16,6 +17,7 @@ export function createDemoApp(service = new RankingService(), options: Parameter
   app.use(express.json({ limit: '1mb' }));
   app.get('/api/v1/health', (_req, res) => res.json({ success: true, mode: 'local-lead-ranking-demo', persistence: 'atomic-json', salesforce: 'synthetic' }));
   app.use('/api/v1/ranking', createRankingRouter(service, options));
+  app.use('/api/v1/customer-graph', createCustomerGraphRouter());
   app.use('/api', (_req, res) => res.status(404).json({ message: 'API route not found' }));
   const frontend = path.join(REPO_ROOT, 'frontend/dist');
   if (fs.existsSync(frontend)) { app.use(express.static(frontend)); app.get('*', (_req, res) => res.sendFile(path.join(frontend, 'index.html'))); }

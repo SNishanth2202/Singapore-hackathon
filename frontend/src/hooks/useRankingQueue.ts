@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Comparison, Meta, Queue, View, rankingRequest, RankingRequestError } from '../services/ranking.service'
 
-export function useRankingQueue(view: View) {
+export function useRankingQueue(view: View, salesperson: string) {
   const [queue, setQueue] = useState<Queue | null>(null)
   const [meta, setMeta] = useState<Meta | null>(null)
   const [comparison, setComparison] = useState<Comparison | null>(null)
@@ -16,27 +16,22 @@ export function useRankingQueue(view: View) {
     const id = ++requestId.current
     setBusy(true)
     try {
-      const q = await rankingRequest<Queue>(`/queue?view=${view}`)
+      const q = await rankingRequest<Queue>(`/queue?view=${view}&salesperson=${encodeURIComponent(salesperson)}`)
       if (q.customerEligibility?.policy !== 'exclude_known_singtel_customers') {
         throw new RankingRequestError('The backend has not verified Singtel customer eligibility. Refresh after the backend is updated.', 'CUSTOMER_DATABASE_UNAVAILABLE')
       }
       const m = await rankingRequest<Meta>('/demo')
       if (id !== requestId.current) return
       setQueue(q); setMeta(m); setComparison(null); setError(null)
-      localStorage.setItem(`ranking-last-${view}`, JSON.stringify(q))
+
     } catch (err) {
       if (id !== requestId.current) return
       setError((err as Error).message)
       if (discardUncheckedQueue(err)) return
-      const saved = localStorage.getItem(`ranking-last-${view}`)
-      if (saved) { try {
-        const cached = JSON.parse(saved) as Queue
-        if (cached.customerEligibility?.policy === 'exclude_known_singtel_customers') setQueue(cached)
-        else { setQueue(null); localStorage.removeItem(`ranking-last-${view}`) }
-      } catch { /* An invalid cache is never a fallback dataset. */ } }
+      setQueue(null)
     } finally { if (id === requestId.current) setBusy(false) }
-  }, [view, discardUncheckedQueue])
-  useEffect(() => { setQueue(previous => previous?.view === view ? previous : null); void refresh(); return () => { requestId.current++ } }, [refresh, view])
+  }, [view, salesperson, discardUncheckedQueue])
+  useEffect(() => { setQueue(null); void refresh(); return () => { requestId.current++ } }, [refresh, view, salesperson])
   const mutate = useCallback(async (path: string, body: unknown) => {
     setBusy(true); setError(null)
     try { await rankingRequest(`${path}${path.includes('?') ? '&' : '?'}view=${view}`, body); await refresh(); return true }
@@ -44,8 +39,8 @@ export function useRankingQueue(view: View) {
   }, [refresh, view, discardUncheckedQueue])
   const loadComparison = useCallback(async () => {
     setComparison(null)
-    try { setComparison(await rankingRequest<Comparison>('/comparison')) }
+    try { setComparison(await rankingRequest<Comparison>(`/comparison?salesperson=${encodeURIComponent(salesperson)}`)) }
     catch (error) { setError((error as Error).message); discardUncheckedQueue(error) }
-  }, [discardUncheckedQueue])
+  }, [discardUncheckedQueue, salesperson])
   return { queue, meta, comparison, error, busy, refresh, mutate, loadComparison }
 }

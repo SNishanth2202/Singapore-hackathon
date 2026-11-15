@@ -6,7 +6,7 @@ export interface Evidence { id: string; title: string; origin: string; date: str
   url: string | null; locator: string; claimStatus: string; entity: string; site: string; sourceFamily: string }
 export interface Decision { rank: number; score: number; status: Status; priorityStatus: PriorityStatus; actionCode: string; nextAction: string; priorityBand: string; confidence: number | null }
 export interface Opportunity extends Omit<Decision, 'confidence'> {
-  customerCheck?: { result: 'not_found_in_mock_customer_database'; databaseVersion: string; databaseUpdatedAt: string; isMock: true; limitation: string };
+  customerCheck?: { result: 'not_found_in_mock_customer_database' | 'former_mock_customer'; databaseVersion: string; databaseUpdatedAt: string; isMock: true; limitation: string };
   id: string; account: string; parent: string; buyingUnit: string; address: string; product: string;
   useCase: string; buyingWindowId: string; owner: string; deadline: string | null; deadlineKind: string;
   readyBy: string; annualDealValueSgd: number; annualContributionSgd: number; pursuitHours: number;

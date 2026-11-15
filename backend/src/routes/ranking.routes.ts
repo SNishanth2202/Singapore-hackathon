@@ -11,6 +11,7 @@ import { recordDiscoveryHandoff } from '../sales/workflow';
 import { LlmQueueService } from '../ranking/llm-queue';
 import { RankingKeySessions } from '../ranking/key-sessions';
 import { AppError } from '../utils/errors';
+import { SALESPERSONS, salespersonQueue } from '../ranking/salesperson';
 
 interface RankingRouterOptions { mode?: 'llm' | 'rules'; llm?: LlmQueueService; keys?: RankingKeySessions; }
 export function createRankingRouter(service: RankingService, options: RankingRouterOptions = {}) {
@@ -19,7 +20,13 @@ export function createRankingRouter(service: RankingService, options: RankingRou
   const keys = options.keys || new RankingKeySessions();
   const asyncRoute = (fn: (req: Request, res: Response) => unknown) => (req: Request, res: Response, next: NextFunction) => Promise.resolve().then(() => fn(req, res)).catch(next);
   const view = (req: Request): View => z.enum(['crm_plus_public', 'crm_only', 'deal_value']).parse(req.query.view || 'crm_plus_public');
-  const queue = (req: Request, force = false) => mode === 'rules' ? Promise.resolve(service.get(view(req))) : llm.get(view(req), keys.resolve(req), force);
+  const queue = async (req: Request, force = false) => {
+    const result = mode === 'rules' ? service.get(view(req)) : await llm.get(view(req), keys.resolve(req), force);
+    if (!req.query.salesperson) return result;
+    const id = z.enum(['aisha', 'daniel', 'priya']).parse(req.query.salesperson);
+    return salespersonQueue(result, service.get('crm_plus_public'), service.customerDatabase(), id);
+  };
+  router.get('/salespeople', (_req, res) => { res.setHeader('Cache-Control', 'no-store'); res.json(SALESPERSONS); });
   const writable = (_req: Request, _res: Response, next: NextFunction) => {
     if (process.env.NODE_ENV === 'production' && process.env.ENABLE_DEMO_CONTROLS !== 'true') next(new DomainError('Demo mutations are disabled in production', 403)); else next();
   };
@@ -42,7 +49,15 @@ export function createRankingRouter(service: RankingService, options: RankingRou
       clockMode: process.env.DEMO_REAL_CLOCK === 'true' ? 'real' : 'frozen', persistence: 'Atomic local JSON; no real Salesforce connection' });
   });
   router.get('/customers', (_req, res) => { res.setHeader('Cache-Control', 'no-store'); res.json(service.customerDatabase()); });
-  router.get('/comparison', asyncRoute(async (req, res) => res.json(mode === 'rules' ? service.comparison() : await llm.comparison(keys.resolve(req)))));
+  router.get('/comparison', asyncRoute(async (req, res) => {
+    const comparison = mode === 'rules' ? service.comparison() : await llm.comparison(keys.resolve(req));
+    if (!req.query.salesperson) { res.json(comparison); return; }
+    const id = z.enum(['aisha', 'daniel', 'priya']).parse(req.query.salesperson);
+    const allowed = new Set(salespersonQueue(service.get(), service.get(), service.customerDatabase(), id).items.map(row => row.id));
+    res.json({ ...comparison, universe: comparison.universe.filter(x => allowed.has(x)), rows: comparison.rows.filter(x => allowed.has(x.id)),
+      summaries: Object.fromEntries(Object.entries(comparison.summaries).map(([key, value]) => [key, { ...value, topFive: value.topFive.filter(x => allowed.has(x)) }])),
+      ablations: comparison.ablations.map(value => ({ ...value, topFive: value.topFive.filter(x => allowed.has(x)), changedRows: value.changedRows.filter(x => allowed.has(x)) })) });
+  }));
 
   router.post('/import-discovery', asyncRoute(async (req, res) => {
     const { researchId } = z.object({ researchId: z.string().regex(/^research-[0-9a-f-]{36}$/) }).strict().parse(req.body);

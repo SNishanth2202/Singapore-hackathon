@@ -20,6 +20,11 @@
 
 ## Overview
 
+**Central Customer Graph Database demo:** `/graph` connects viewable mock Salesforce records, calls, email/calendar,
+support tickets, contracts, billing, and service usage. GPT-6.1 Terra extracts cited facts and connected ideas
+into the existing Neo4j graph, linked to canonical Company records through the shared connection.
+See [setup, demo walkthrough and verification](docs/customer-graph-demo.md).
+
 Singtel Scout aggregates public signals about companies (funding rounds, hiring trends, tech adoption, partnerships) and uses a knowledge graph to surface high-priority sales and partnership opportunities for Singtel's enterprise teams.
 
 **Tech Stack**
@@ -384,3 +389,11 @@ Both package builds and the existing research/deployment tests also apply.
 - [Public source inventory](docs/lead-ranking-sources.md)
 - [Demo script](docs/lead-ranking-demo.md)
 - [Verification and operational scope](docs/lead-ranking-delivery.md)
+
+## Sales communication agents
+
+The Sales Outreach workbench connects Discovery context to evidence-linked outreach, reply analysis, customer requirement feedback, interventions and human-approved follow-ups. See docs/sales-agents.md for routes, provider setup, demo steps, checks and integration boundaries.
+
+## AI Company Management
+
+A configurable daily lead queue and a per-company AI Management toggle. Once enabled, the autonomous communication agent sends outreach, answers routine questions from approved information, runs follow-ups and escalates to the Human Attention inbox when a person is needed. See [docs/ai-management.md](docs/ai-management.md) for states, safety rules, APIs, email provider setup and tests.

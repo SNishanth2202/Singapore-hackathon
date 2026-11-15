@@ -6,8 +6,10 @@ import analyticsRoutes   from './analytics.routes';
 import aiRoutes          from './ai.routes';
 import graphRoutes from './graph.routes';
 import { createRankingRouter } from './ranking.routes';
-import { RankingService } from '../ranking/service';
+import { rankingLlmQueue, rankingService } from '../ranking/runtime';
 import salesRoutes from './sales.routes';
+import aiManagementRoutes from './ai-management.routes';
+import { createCustomerGraphRouter } from '../customer-graph/routes';
 
 const router = Router();
 
@@ -18,12 +20,13 @@ router.use('/analytics',    analyticsRoutes);
 router.use('/ai',           aiRoutes);
 router.use('/graph',        graphRoutes);
 router.use('/sales',        salesRoutes);
-const rankingService = new RankingService();
+router.use('/ai-management', aiManagementRoutes);
+router.use('/customer-graph', createCustomerGraphRouter());
 if (process.env.DEMO_REAL_CLOCK === 'true') {
   const rankingClock = setInterval(() => { void rankingService.advance(new Date().toISOString()).catch(err => console.error(err.message)); }, 30000);
   rankingClock.unref();
 }
-router.use('/ranking',      createRankingRouter(rankingService));
+router.use('/ranking',      createRankingRouter(rankingService, { llm: rankingLlmQueue }));
 
 // 404 fallback for unmatched /api/v1/* routes
 router.use((_req: Request, res: Response) => {
