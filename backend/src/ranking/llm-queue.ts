@@ -66,7 +66,7 @@ export class LlmQueueService {
     if (!previous) q.items = q.items.map(row => ({ ...row, assessment: { pending: true, model: null, responseId: null,
       evaluatedAt: null, reason: message, urgencyReasons: ['Awaiting AI assessment'], confidenceReasons: ['Awaiting AI assessment'], evidenceIds: [] },
       rankingConfidence: { method: 'llm_assessment', reason: message, score: null, retainedScenarios: null, scenarioCount: 0,
-        minRank: null, maxRank: null, actionScore: null, verifyNext: 'Connect OpenAI and assess these leads.',
+        minRank: null, maxRank: null, actionScore: null, verifyNext: 'Configure the AI connection and assess these leads.',
         insufficientEvidenceReason: message, scenarios: [] } }));
     q.llm = { mode: previous ? 'llm' : 'rules_preview', status: !credential ? 'needs_key' : previous ? 'stale' : 'failed',
       model: previous?.llm?.model || credential?.model || null, evaluatedAt: previous?.llm?.evaluatedAt || null,
@@ -92,7 +92,7 @@ export class LlmQueueService {
       return q;
     }
     const base = this.rules.get(view);
-    if (!credential) return this.unavailable(base, null, undefined, 'Connect an OpenAI API key to assess these leads.', 'OPENAI_KEY_REQUIRED');
+    if (!credential) return this.unavailable(base, null, undefined, 'Configure the backend AI provider or connect an OpenAI key for this session.', 'OPENAI_KEY_REQUIRED');
     const state = this.client(credential), fingerprint = this.fingerprint(base, credential), previous = state.snapshots[view];
     const key = `${credential.namespace}:${view}:${fingerprint}`, failure = this.failures.get(key);
     if (!force && failure && Date.now() - failure.at < 15000) return this.unavailable(base, credential, previous, failure.message, failure.code, fingerprint);
@@ -108,7 +108,7 @@ export class LlmQueueService {
         const evaluatedAt = new Date().toISOString();
         let rows: QueueRow[] = base.items.map(row => {
           const assessed = result.rows.find(r => r.id === row.id);
-          if (!assessed) throw new Error('OpenAI omitted a lead from the queue');
+          if (!assessed) throw new Error('The AI provider omitted a lead from the queue');
           return { ...clone(row), score: assessed.score, priorityStatus: assessed.priorityStatus, components: [],
             assessment: { model: result.model, responseId: result.responseId, evaluatedAt, reason: assessed.reason,
               urgencyReasons: assessed.urgencyReasons, confidenceReasons: assessed.confidenceReasons, evidenceIds: assessed.evidenceIds },
@@ -125,7 +125,7 @@ export class LlmQueueService {
           const band: Band = row.status === 'Blocked' ? 'BLOCKED' : row.status === 'Monitor' ? 'WAITING' : actionable <= 5 ? 'WORK_NOW' : 'NEXT';
           row.rank = index + 1; row.priorityBand = band; row.previousRank = prior?.rank ?? null;
           row.movement = prior ? prior.rank - row.rank : 'NEW'; row.previousDecision = prior ? toDecision(prior) : null;
-          row.changedFact = row.changedFact || 'OpenAI assessed the current cited lead evidence.';
+          row.changedFact = row.changedFact || 'AI assessed the current cited lead evidence.';
           if (!prior || JSON.stringify(toDecision(prior)) !== JSON.stringify(toDecision(row))) changes.push({ id: row.id, before: row.previousDecision, after: toDecision(row) });
           return row;
         });
@@ -135,13 +135,13 @@ export class LlmQueueService {
           llm: { mode: 'llm', status: 'ready', model: result.model, evaluatedAt, attemptedAt: evaluatedAt,
             inputHash: fingerprint, promptVersion: RANKING_PROMPT_VERSION, responseId: result.responseId || null, error: null, code: null } };
         state.snapshots[view] = q;
-        if (view === 'crm_plus_public' && changes.length) state.history.push({ eventId: `llm-${fingerprint.slice(0, 16)}`, eventType: 'OpenAIAssessment',
-          fact: 'OpenAI reassessed the current lead evidence.', at: evaluatedAt, changes });
+        if (view === 'crm_plus_public' && changes.length) state.history.push({ eventId: `llm-${fingerprint.slice(0, 16)}`, eventType: 'AIAssessment',
+          fact: `${credential.provider ?? 'OpenAI'} reassessed the current lead evidence.`, at: evaluatedAt, changes });
         state.history = state.history.slice(-30); this.persist(credential, state); this.failures.delete(key);
         return clone(q);
       } catch (error) {
         const known = error instanceof AppError;
-        const message = known ? error.message : 'OpenAI returned an incomplete or unsupported assessment. The previous assessment was preserved.';
+        const message = known ? error.message : 'The AI provider returned an incomplete or unsupported assessment. The previous assessment was preserved.';
         const code = known ? error.code : 'OPENAI_INVALID_ASSESSMENT';
         this.failures.set(key, { at: Date.now(), message, code });
         return this.unavailable(base, credential, previous, message, code, fingerprint);

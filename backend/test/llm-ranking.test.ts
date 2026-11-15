@@ -6,7 +6,7 @@ import path from 'path';
 import { AddressInfo } from 'net';
 import { RankingService } from '../src/ranking/service';
 import { LlmQueueService } from '../src/ranking/llm-queue';
-import { RankingKeySessions } from '../src/ranking/key-sessions';
+import { RankingKeySessions, sharedRankingCredential } from '../src/ranking/key-sessions';
 import { createDemoApp } from '../src/ranking/demo-server';
 import { QueueSnapshot, clone } from '../src/ranking/contracts';
 import { replayEvents } from '../src/ranking/seed';
@@ -23,6 +23,121 @@ function assessments(q: QueueSnapshot): LeadAssessment[] {
     evidenceIds: [r.evidence[0].id], verifyNext: 'Confirm the required site assessment.' }));
 }
 const result = (q: QueueSnapshot) => ({ rows: assessments(q), model: 'test-model-served', responseId: 'resp-test' });
+
+const routerEnvironment = { AI_BASE_URL: 'https://openrouter.ai/api/v1', AI_API_KEY: 'sk-or-v1-test-placeholder-not-real',
+  AI_MODEL: 'example/free-model', AI_PROTOCOL: 'chat_completions', AI_REASONING_EFFORT: 'none' };
+const catalogReply = (parameters: string[] = []) => new Response(JSON.stringify({ data: [{ id: routerEnvironment.AI_MODEL, supported_parameters: parameters }] }));
+
+test('ranking reuses the shared provider namespace and does not borrow a different provider key', () => {
+  const keys = new RankingKeySessions(async () => undefined, { ...routerEnvironment, OPENAI_API_KEY: 'sk-other-provider-placeholder' });
+  const req = { headers: {} } as any;
+  const resolved = keys.resolve(req)!;
+  assert.equal(resolved.apiKey, routerEnvironment.AI_API_KEY);
+  assert.equal(resolved.model, routerEnvironment.AI_MODEL);
+  assert.equal(resolved.provider, 'OpenRouter');
+  assert.equal(resolved.providerConfig?.baseUrl, routerEnvironment.AI_BASE_URL);
+  assert.equal(resolved.providerConfig?.reasoningEffort, 'none');
+  assert.equal(keys.status(req).configured, true);
+  assert.equal(keys.status(req).provider, 'OpenRouter');
+  assert.ok(!JSON.stringify(keys.status(req)).includes(resolved.apiKey));
+  assert.equal(new RankingKeySessions(async () => undefined, { ...routerEnvironment, AI_API_KEY: '', OPENAI_API_KEY: 'sk-other-provider-placeholder' }).resolve(req), null);
+  assert.equal(sharedRankingCredential({ ...routerEnvironment, AI_BASE_URL: 'http://127.0.0.1:31415/v1' }), null);
+  assert.notEqual(sharedRankingCredential({ ...routerEnvironment, AI_MODEL: 'other-model' })!.namespace, resolved.namespace);
+  assert.notEqual(sharedRankingCredential({ ...routerEnvironment, AI_PROTOCOL: 'responses' })!.namespace, resolved.namespace);
+});
+
+test('shared Chat Completions assessment uses the existing key, model and strict evidence validation', async () => {
+  const q = new RankingService(null).get(), configured = sharedRankingCredential(routerEnvironment)!;
+  let calls = 0;
+  const transport = (async (url: string, options: RequestInit) => {
+    if (url.endsWith('/models')) return catalogReply();
+    calls++;
+    assert.equal(url, 'https://openrouter.ai/api/v1/chat/completions');
+    assert.equal((options.headers as any).Authorization, `Bearer ${routerEnvironment.AI_API_KEY}`);
+    const body = JSON.parse(options.body as string);
+    assert.equal(body.model, routerEnvironment.AI_MODEL);
+    assert.equal(body.reasoning.effort, 'none');
+    assert.ok(body.max_tokens > 4096);
+    assert.equal(body.response_format, undefined);
+    assert.match(body.messages[0].content, /Required JSON schema/);
+    return new Response(JSON.stringify({ id: 'router-generation-id', model: 'served-router-model', usage: { total_tokens: 321 },
+      choices: [{ finish_reason: 'stop', message: { content: JSON.stringify({ leads: assessments(q) }) } }] }));
+  }) as typeof fetch;
+  const response = await assessWithOpenAi(q, configured, transport);
+  assert.equal(calls, 1); assert.equal(response.rows.length, 11);
+  assert.equal(response.responseId, 'router-generation-id'); assert.equal(response.model, 'served-router-model');
+  assert.equal(response.totalTokens, 321);
+  const bad = assessments(q); bad[0].evidenceIds = ['another-lead-or-invented-evidence'];
+  const reply = (content: unknown, reason = 'stop') => (async () => new Response(JSON.stringify({ model: 'served-router-model', choices: [{ finish_reason: reason, message: { content: JSON.stringify(content) } }] }))) as typeof fetch;
+  await assert.rejects(assessWithOpenAi(q, configured, reply({ leads: bad })), { code: 'AI_INVALID_ASSESSMENT' });
+  await assert.rejects(assessWithOpenAi(q, configured, reply({ leads: assessments(q) }, 'length')), { code: 'AI_INCOMPLETE_RESPONSE' });
+});
+
+test('shared Responses configuration is honored and provider errors never expose credentials or upstream text', async () => {
+  const q = new RankingService(null).get(), configured = sharedRankingCredential({ ...routerEnvironment, AI_PROTOCOL: 'responses' })!;
+  const transport = (async (url: string, options: RequestInit) => {
+    assert.equal(url, 'https://openrouter.ai/api/v1/responses');
+    const body = JSON.parse(options.body as string); assert.equal(body.store, false); assert.ok(Array.isArray(body.input));
+    return new Response(JSON.stringify({ id: 'router-response-id', model: 'served-router-model', status: 'completed',
+      output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify({ leads: assessments(q) }) }] }] }));
+  }) as typeof fetch;
+  assert.equal((await assessWithOpenAi(q, configured, transport)).responseId, 'router-response-id');
+  const rejected = (async () => new Response(JSON.stringify({ error: { message: routerEnvironment.AI_API_KEY } }), { status: 401 })) as typeof fetch;
+  await assert.rejects(assessWithOpenAi(q, configured, rejected), e => e instanceof AppError && e.code === 'AI_AUTHENTICATION_FAILED' && !e.message.includes(routerEnvironment.AI_API_KEY));
+});
+
+test('router output gets one validation-guided correction and still rejects unsupported evidence', async () => {
+  const q = new RankingService(null).get(), configured = sharedRankingCredential(routerEnvironment)!;
+  let calls = 0;
+  const transport = (async (url: string, options: RequestInit) => {
+    if (url.endsWith('/models')) return catalogReply();
+    calls++;
+    const body = JSON.parse(options.body as string);
+    if (calls === 2) {
+      assert.equal(body.messages[2].role, 'assistant');
+      assert.match(body.messages[3].content, /Validation rejected/);
+      assert.match(body.messages[3].content, /unrecognized_keys/);
+      assert.deepEqual(JSON.parse(body.messages[1].content), modelInput(q));
+    }
+    return new Response(JSON.stringify({ id: `correction-${calls}`, model: 'served-router-model',
+      usage: { total_tokens: 100 }, choices: [{ finish_reason: 'stop', message: {
+        content: JSON.stringify({ leads: assessments(q), ...(calls === 1 ? { type: 'object' } : {}) }),
+      } }] }));
+  }) as typeof fetch;
+  const result = await assessWithOpenAi(q, configured, transport);
+  assert.equal(calls, 2); assert.equal(result.responseId, 'correction-2'); assert.equal(result.totalTokens, 200);
+  const bad = assessments(q); bad[0].evidenceIds = ['fabricated-evidence']; calls = 0;
+  const invalid = (async (url: string) => { if (url.endsWith('/models')) return catalogReply(); calls++; return new Response(JSON.stringify({ model: 'served-router-model', choices: [{
+    finish_reason: 'stop', message: { content: JSON.stringify({ leads: bad }) },
+  }] })); }) as typeof fetch;
+  await assert.rejects(assessWithOpenAi(q, configured, invalid), { code: 'AI_INVALID_ASSESSMENT' });
+  assert.equal(calls, 2);
+  calls = 0;
+  const limited = (async (url: string) => { if (url.endsWith('/models')) return catalogReply(); calls++; return new Response('{}', { status: 429 }); }) as typeof fetch;
+  await assert.rejects(assessWithOpenAi(q, configured, limited), { code: 'AI_RATE_LIMITED' });
+  assert.equal(calls, 1);
+});
+
+test('advertised router tool output is parsed as data and never executes unexpected tools', async () => {
+  const q = new RankingService(null).get(), configured = sharedRankingCredential(routerEnvironment)!;
+  let toolName = 'submit_lead_assessments', duplicate = false;
+  const transport = (async (url: string, options: RequestInit) => {
+    if (url.endsWith('/models')) return catalogReply(['tools', 'tool_choice']);
+    const body = JSON.parse(options.body as string);
+    assert.equal(body.tool_choice.function.name, 'submit_lead_assessments');
+    assert.equal(body.tools.length, 1); assert.ok(body.tools[0].function.parameters.properties.leads);
+    const call = { type: 'function', function: { name: toolName, arguments: JSON.stringify({ leads: assessments(q) }) } };
+    return new Response(JSON.stringify({ id: 'structured-router-response', model: 'served-router-model', choices: [{
+      finish_reason: 'tool_calls', message: { content: null, tool_calls: duplicate ? [call, call] : [call] },
+    }] }));
+  }) as typeof fetch;
+  const result = await assessWithOpenAi(q, configured, transport);
+  assert.equal(result.rows.length, 11); assert.equal(result.responseId, 'structured-router-response');
+  toolName = 'unexpected_tool';
+  await assert.rejects(assessWithOpenAi(q, configured, transport), { code: 'AI_INVALID_RESPONSE' });
+  toolName = 'submit_lead_assessments'; duplicate = true;
+  await assert.rejects(assessWithOpenAi(q, configured, transport), { code: 'AI_INVALID_RESPONSE' });
+});
 
 test('LLM input contains raw facts without deterministic scores and CRM-only excludes public evidence', () => {
   const rules = new RankingService(null), input = modelInput(rules.get());

@@ -150,7 +150,7 @@ test('missing-key popup connects without browser key storage; AI urgency and per
     return route.continue()
   })
   await page.goto('/lead-ranking')
-  const dialog = page.getByRole('dialog', { name: 'Connect OpenAI' })
+  const dialog = page.getByRole('dialog', { name: 'Connect AI' })
   await expect(dialog).toBeVisible()
   const input = dialog.getByLabel('OpenAI API key', { exact: true })
   await expect(input).toHaveAttribute('type', 'password')

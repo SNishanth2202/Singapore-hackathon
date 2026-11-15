@@ -1,10 +1,15 @@
 import { z } from 'zod';
 import { AppError } from '../utils/errors';
 import { PriorityStatusSchema, QueueSnapshot } from './contracts';
+import { ChatMessage, createFreeLlmClient, FreeLlmConfig } from '../integrations/freellmapi/client';
 
-export const RANKING_PROMPT_VERSION = 'llm-lead-ranking-v2-customer-eligibility';
+export const RANKING_PROMPT_VERSION = 'llm-lead-ranking-v3-shared-provider-structured';
 export const DEFAULT_RANKING_MODEL = 'gpt-4.1-mini';
-export interface OpenAiCredential { apiKey: string; model: string; namespace: string; source: 'environment' | 'session'; }
+export interface OpenAiCredential {
+  apiKey: string; model: string; namespace: string; source: 'environment' | 'session';
+  provider?: string;
+  providerConfig?: Omit<FreeLlmConfig, 'apiKey' | 'model'>;
+}
 export const ReasonSchema = z.string().min(3).max(70).refine(s => {
   const count = s.trim().split(/\s+/).length; return count >= 2 && count <= 5;
 }, 'Use a two-to-five-word descriptor');
@@ -114,6 +119,54 @@ export function validateAssessments(value: unknown, snapshot: QueueSnapshot): Le
 }
 
 export async function assessWithOpenAi(snapshot: QueueSnapshot, credential: OpenAiCredential, transport: typeof fetch = fetch): Promise<ModelAssessment> {
+  if (credential.providerConfig) {
+    const deadline = Date.now() + Math.min(110000, credential.providerConfig.timeoutMs);
+    let structuredTool: { name: string; schema: Record<string, unknown> } | undefined;
+    // OpenRouter advertises model capabilities. Prefer a forced formatting tool when
+    // supported; this returns data only and never executes a tool or external action.
+    if (credential.provider === 'OpenRouter' && credential.providerConfig.protocol !== 'responses') {
+      const catalog = createFreeLlmClient({ ...credential.providerConfig, apiKey: credential.apiKey, model: credential.model,
+        timeoutMs: Math.min(8000, credential.providerConfig.timeoutMs) }, transport);
+      try {
+        const parameters = await catalog.supportedParameters();
+        if (parameters.includes('tools') && parameters.includes('tool_choice')) structuredTool = { name: 'submit_lead_assessments', schema: ASSESSMENT_JSON_SCHEMA };
+      } catch { /* Optional capability lookup: the configured completion is still validated. */ }
+    }
+    const format = `Return a JSON instance with exactly one top-level key: "leads". Do not copy schema metadata such as type, properties or required into the result.
+Each evidenceIds array must contain 1-6 selected IDs, never every ID when a lead has more than six.
+priorityStatus must be exactly one of: ${PriorityStatusSchema.options.join(' | ')}. Pursue, Verify, Resolve, Monitor and Blocked are application actions, never urgency labels.
+Every urgencyReasons and confidenceReasons entry must have 2-5 words. Use null confidence for every unbounded=true lead.
+Required JSON schema:\n${JSON.stringify(ASSESSMENT_JSON_SCHEMA)}`;
+    const messages: ChatMessage[] = [
+      { role: 'system', content: RANKING_INSTRUCTIONS + '\n' + format + (structuredTool
+        ? '\nUse submit_lead_assessments only to format the complete response. It executes no actions.' : '') },
+      { role: 'user', content: JSON.stringify(modelInput(snapshot)) },
+    ];
+    // One validation-guided correction, within a single request time budget. Never
+    // repair facts in application code or publish a partially validated queue.
+    let totalTokens = 0;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const client = createFreeLlmClient({ ...credential.providerConfig, apiKey: credential.apiKey, model: credential.model,
+        timeoutMs: Math.max(1, deadline - Date.now()) }, transport);
+      const output = await client.generateText(messages, Math.min(12000, 1500 + snapshot.items.length * 400), { includeMetadata: true, structuredTool });
+      totalTokens += output.totalTokens ?? 0;
+      let value: any;
+      try {
+        value = JSON.parse(output.reply.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
+        return { rows: validateAssessments(value, snapshot), model: output.model, responseId: output.responseId ?? '', totalTokens };
+      } catch (error) {
+        if (attempt === 1 || deadline - Date.now() < 1000) break;
+        const issues = error instanceof z.ZodError
+          ? error.issues.map(issue => ({ path: issue.path, code: issue.code, message: issue.message,
+            leadId: issue.path[0] === 'leads' && typeof issue.path[1] === 'number' ? value?.leads?.[issue.path[1]]?.id : undefined,
+            received: JSON.stringify(issue.path.reduce((item: any, key) => item?.[key], value))?.slice(0, 200) }))
+          : [{ path: [], code: error instanceof SyntaxError ? 'invalid_json' : 'invalid_lead_ids_evidence_scope_or_unbounded_confidence' }];
+        messages.push({ role: 'assistant', content: output.reply }, { role: 'user', content:
+          `Validation rejected the result: ${JSON.stringify(issues)}. Correct the complete JSON using only the original supplied facts. ${format}` });
+      }
+    }
+    throw new AppError('The configured AI provider returned an incomplete or unsupported assessment. The previous assessment was preserved.', 502, 'AI_INVALID_ASSESSMENT');
+  }
   const body = await openAiRequest(credential.apiKey, '/responses', {
     model: credential.model, instructions: RANKING_INSTRUCTIONS, input: JSON.stringify(modelInput(snapshot)),
     max_output_tokens: Math.min(12000, 1500 + snapshot.items.length * 400), store: false,

@@ -39,7 +39,7 @@ export interface Meta { events: ReplayEvent[]; appliedEventIds: string[];
     changes: { id: string; before: Decision | null; after: Decision }[] }[];
   sources: Source[]; evidence: Evidence[]; crm: Record<string, unknown[]>;
   liveExtractionConfigured: boolean; clockMode: string; persistence: string;
-  rankingMode?: 'llm' | 'rules'; openAi?: { configured: boolean; source: 'environment' | 'session' | null; model: string } | null }
+  rankingMode?: 'llm' | 'rules'; openAi?: { configured: boolean; source: 'environment' | 'session' | null; model: string; provider?: string } | null }
 export interface Comparison {
   note: string; universe: string[]; eventCursor: number; asOf: string;
   summaries: Record<View, { topFive: string[]; pursueInTopFive: number; verifyOrResolveInTopFive: number }>;

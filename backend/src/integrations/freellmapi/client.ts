@@ -18,13 +18,17 @@ export interface ChatMessage {
   content: string;
 }
 
-const ModelsResponse = z.object({ data: z.array(z.object({ id: z.string() })) });
+const ModelsResponse = z.object({ data: z.array(z.object({ id: z.string(), supported_parameters: z.array(z.string()).optional() })) });
 const CompletionResponse = z.object({
+  id: z.string().optional(),
   model: z.string(),
-  choices: z.array(z.object({ message: z.object({ content: z.string().nullable() }) })).min(1),
+  choices: z.array(z.object({ message: z.object({ content: z.string().nullish(),
+    tool_calls: z.array(z.object({ type: z.literal('function'), function: z.object({ name: z.string(), arguments: z.string() }) })).optional(),
+  }), finish_reason: z.string().nullable().optional() })).min(1),
   usage: z.object({ total_tokens: z.number().optional() }).optional(),
 });
 const ResponsesResponse = z.object({
+  id: z.string().optional(),
   model: z.string(), status: z.string().optional(),
   output: z.array(z.object({ type: z.string(), content: z.array(z.object({ type: z.string(), text: z.string().optional() })).optional() })),
   usage: z.object({ total_tokens: z.number().optional() }).optional(),
@@ -79,8 +83,16 @@ export function createFreeLlmClient(config: FreeLlmConfig, transport: typeof fet
     return parsed.data.data.map((model) => model.id);
   }
 
-  async function generateText(messages: ChatMessage[], maxTokens: number = 512) {
-    if (!messages.length || !Number.isInteger(maxTokens) || maxTokens < 1 || maxTokens > 4096) {
+  async function supportedParameters(): Promise<string[]> {
+    const parsed = ModelsResponse.safeParse(await request('/models', undefined, config.modelsUrl));
+    if (!parsed.success) throw new AppError('The AI provider returned an invalid model list.', 502, 'AI_INVALID_RESPONSE');
+    return parsed.data.data.find(model => model.id === config.model)?.supported_parameters ?? [];
+  }
+
+  async function generateText(messages: ChatMessage[], maxTokens: number = 512, options: {
+    includeMetadata?: boolean; structuredTool?: { name: string; schema: Record<string, unknown> };
+  } = {}) {
+    if (!messages.length || !Number.isInteger(maxTokens) || maxTokens < 1 || maxTokens > 12000) {
       throw new AppError('Invalid AI request parameters.', 400, 'AI_INVALID_INPUT');
     }
     if (!config.baseUrl || !config.model) throw new AppError('Configure the backend AI base URL and model.', 503, 'AI_NOT_CONFIGURED');
@@ -90,19 +102,34 @@ export function createFreeLlmClient(config: FreeLlmConfig, transport: typeof fet
       const reply = parsed.data.output.filter(item => item.type === 'message').flatMap(item => item.content ?? [])
         .filter(item => item.type === 'output_text').map(item => item.text ?? '').join('\n');
       if (!reply.trim()) throw new AppError('The AI provider returned no text.', 502, 'AI_EMPTY_RESPONSE');
-      return { model: parsed.data.model, reply, totalTokens: parsed.data.usage?.total_tokens };
+      return { model: parsed.data.model, reply, totalTokens: parsed.data.usage?.total_tokens,
+        ...(options.includeMetadata ? { responseId: parsed.data.id ?? null } : {}) };
     }
     const parsed = CompletionResponse.safeParse(await request('/chat/completions', {
       model: config.model, messages, max_tokens: maxTokens, stream: false,
       ...(config.reasoningEffort ? { reasoning: { effort: config.reasoningEffort } } : {}),
+      ...(options.structuredTool ? {
+        tools: [{ type: 'function', function: { name: options.structuredTool.name,
+          description: 'Return the complete assessment as structured data. This executes no actions.', parameters: options.structuredTool.schema } }],
+        tool_choice: { type: 'function', function: { name: options.structuredTool.name } },
+      } : {}),
     }));
     if (!parsed.success) throw new AppError('The AI provider returned an invalid completion.', 502, 'AI_INVALID_RESPONSE');
-    const reply = parsed.data.choices[0].message.content;
+    const choice = parsed.data.choices[0];
+    if (options.includeMetadata && choice.finish_reason && choice.finish_reason !== 'stop' && !(options.structuredTool && choice.finish_reason === 'tool_calls')) {
+      throw new AppError('The AI provider returned an incomplete or refused assessment. Retry after checking its output limit.', 502, 'AI_INCOMPLETE_RESPONSE');
+    }
+    const calls = choice.message.tool_calls;
+    if (options.structuredTool && (calls?.length !== 1 || calls[0].function.name !== options.structuredTool.name)) {
+      throw new AppError('The AI provider did not return the requested structured assessment.', 502, 'AI_INVALID_RESPONSE');
+    }
+    const reply = options.structuredTool ? calls![0].function.arguments : choice.message.content;
     if (!reply?.trim()) throw new AppError('The AI provider returned no text.', 502, 'AI_EMPTY_RESPONSE');
-    return { model: parsed.data.model, reply, totalTokens: parsed.data.usage?.total_tokens };
+    return { model: parsed.data.model, reply, totalTokens: parsed.data.usage?.total_tokens,
+      ...(options.includeMetadata ? { responseId: parsed.data.id ?? null } : {}) };
   }
 
-  return { listModels, generateText };
+  return { listModels, supportedParameters, generateText };
 }
 
 export const freeLlmClient = createFreeLlmClient(resolveAiConfiguration(env));

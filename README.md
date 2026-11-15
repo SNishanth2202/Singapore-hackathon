@@ -318,7 +318,7 @@ Analysis distinguishes a service-related signal from an exploratory event-to-ser
 ## Lead ranking
 
 Lead ranking combines cited public signals with synthetic Salesforce-style CRM and engineering facts.
-It ranks each account, buying unit, product/use case and buying window. **OpenAI actively assesses
+It ranks each account, buying unit, product/use case and buying window. **The configured AI actively assesses
 urgency and confidence**; application code enforces site, technical and deadline requirements.
 Open **Lead Ranking** in the app navigation (`/lead-ranking`); `/opportunities` redirects there.
 
@@ -328,12 +328,14 @@ npm --prefix frontend ci
 npm run dev
 ```
 
-Open http://localhost:3000/lead-ranking. If no OpenAI key is configured, the app opens a popup to enter
-one. Alternatively set `OPENAI_API_KEY` in the ignored project-root `.env`; the default ranking model
-is `gpt-4.1-mini`, configurable with `OPENAI_MODEL`. Browser-entered keys stay in backend memory for
+Open http://localhost:3000/lead-ranking. Ranking reuses company research's backend `AI_BASE_URL`,
+`AI_API_KEY`, `AI_MODEL` and protocol settings, including OpenRouter. No second key is needed.
+When no `AI_*` provider is selected, `OPENAI_API_KEY` / `OPENAI_MODEL` remain an optional fallback
+(default `gpt-4.1-mini`). The connection panel also offers an optional browser-specific OpenAI key.
+Browser-entered keys stay in backend memory for
 the session; the browser receives an opaque HttpOnly cookie. Keys are never saved in browser storage
 or returned by the API. OpenAI API usage is billed to the key's account. Restarting the server clears
-browser key sessions. Company research retains its existing, separate provider settings.
+browser key sessions. Never put backend secrets in `VITE_` variables.
 
 Urgency labels are **Very urgent**, **Urgent**, **Normal priority**, **Low priority** and **Irrelevant**.
 The table shows one **confidence percentage**, with no separate numeric priority score. Hover, focus

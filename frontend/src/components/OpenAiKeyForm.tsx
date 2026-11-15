@@ -2,8 +2,9 @@ import { FormEvent, useState } from 'react'
 import { KeyIcon, Loader2Icon } from 'lucide-react'
 import { rankingRequest } from '../services/ranking.service'
 
-export function OpenAiKeyForm({ configured, onConnected }: { configured: boolean; onConnected: () => Promise<void> }) {
+export function OpenAiKeyForm({ configured, provider = 'OpenAI', model, source, onConnected }: { configured: boolean; provider?: string; model?: string; source?: 'environment' | 'session' | null; onConnected: () => Promise<void> }) {
   const [apiKey, setApiKey] = useState(''), [busy, setBusy] = useState(false), [error, setError] = useState('')
+  const [useOwnKey, setUseOwnKey] = useState(false)
   async function submit(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError('')
     try {
@@ -13,6 +14,13 @@ export function OpenAiKeyForm({ configured, onConnected }: { configured: boolean
     } catch (error) { setApiKey(''); setError((error as Error).message) }
     finally { setBusy(false) }
   }
+  if (configured && source === 'environment' && !useOwnKey) return <div className="lr-key-form">
+    <div className="lr-key-icon"><KeyIcon size={24} /></div>
+    <h3>AI is connected</h3>
+    <p>Lead Ranking uses the existing backend AI connection.</p>
+    <p className="lr-key-configured">{provider}{model ? ` · ${model}` : ''}</p>
+    <button type="button" className="lr-button secondary" onClick={() => setUseOwnKey(true)}>Use a separate OpenAI key</button>
+  </div>
   return <form className="lr-key-form" onSubmit={event => void submit(event)}>
     <div className="lr-key-icon"><KeyIcon size={24} /></div>
     <h3>{configured ? 'Use your own OpenAI key' : 'Connect OpenAI to rank leads'}</h3>
