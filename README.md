@@ -1,16 +1,327 @@
-# Singtel Enterprise lead-ranking agent
+# Singtel Scout 🚀
 
-A local, evidence-led sales worklist for **account x buying unit x product/use case x buying window**.
-It combines cited public observations with clearly synthetic Salesforce records, scores opportunities with
-transparent rules, and replays the facts that change a rep's next action.
+> **Singtel Hackathon Project** — AI-powered enterprise intelligence platform that identifies and surfaces business opportunities across the APAC region.
 
-**Branch:** `Lead-Ranking-Agent`. This is a working prototype, with local persistence and mock CRM / engineering.
-No real Salesforce account is connected. All buyer contacts, telco contracts, buying dates, assessments,
-commercial values and Singtel customer relationships in the demo are synthetic.
+---
 
-## Run locally
+## Table of Contents
 
-Requires Node.js 20+ and npm. From the repository root:
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Quick Start (Docker)](#quick-start-docker)
+- [Local Development](#local-development)
+- [API Reference](#api-reference)
+- [Environment Variables](#environment-variables)
+- [Seed Data](#seed-data)
+- [Project Structure](#project-structure)
+
+---
+
+## Overview
+
+Singtel Scout aggregates public signals about companies (funding rounds, hiring trends, tech adoption, partnerships) and uses a knowledge graph to surface high-priority sales and partnership opportunities for Singtel's enterprise teams.
+
+**Tech Stack**
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Node.js · Express · TypeScript |
+| Primary DB | MongoDB (Mongoose) |
+| Graph DB | Neo4j |
+| Validation | Zod |
+| Logging | Winston |
+| Container | Docker / Docker Compose |
+
+---
+
+## Architecture
+
+```
++---------------------------------------------------------+
+|                     Frontend (React)                    |
++---------------------+-----------------------------------+
+                      | HTTP  /api/v1
++---------------------v-----------------------------------+
+|               Express API (backend:5000)                |
+|  Routes -> Controllers -> Repositories -> Models        |
++------------+------------------------+-------------------+
+             |                        |
+  +----------v---------+   +-----------v-----------+
+  |  MongoDB :27017    |   |  Neo4j      :7687     |
+  |  (Mongoose)        |   |  (Graph DB)           |
+  +--------------------+   +-----------------------+
+```
+
+---
+
+## Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) >= 24
+- [Node.js](https://nodejs.org/) >= 20 (for local dev)
+- [pnpm](https://pnpm.io/) >= 9 (`npm i -g pnpm`)
+
+---
+
+## Quick Start (Docker)
+
+```bash
+# 1. Clone the repo
+git clone <repo-url>
+cd Singapore-hackathon
+
+# 2. Create your .env file
+cp .env.example .env
+# Edit .env -- set NEO4J_PASSWORD and JWT_SECRET at minimum
+
+# 3. Start all services
+docker compose up --build -d
+
+# 4. Check health
+curl http://localhost:5000/api/v1/health
+```
+
+Services will be available at:
+- **Backend API**: http://localhost:5000
+- **Neo4j Browser**: http://localhost:7474
+- **Frontend**: http://localhost:3000
+
+---
+
+## Local Development
+
+```bash
+# Install backend dependencies
+cd backend
+pnpm install
+
+# Start MongoDB + Neo4j only via Docker
+docker compose up mongodb neo4j -d
+
+# Run dev server (hot-reload)
+pnpm run dev
+
+# Build TypeScript
+pnpm run build
+
+# Seed sample data
+pnpm run seed
+```
+
+---
+
+## API Reference
+
+### Health
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/health` | Overall health + all services |
+| GET | `/api/v1/health/mongodb` | MongoDB latency check |
+| GET | `/api/v1/health/neo4j` | Neo4j latency check |
+
+### Companies
+
+| Method | Endpoint | Query Params |
+|--------|----------|-------------|
+| GET | `/api/v1/companies` | `country`, `industry`, `stage`, `search`, `page`, `limit` |
+| GET | `/api/v1/companies/:id` | -- |
+
+### Opportunities
+
+| Method | Endpoint | Query Params |
+|--------|----------|-------------|
+| GET | `/api/v1/opportunities` | `status`, `priority`, `page`, `limit` |
+
+### Analytics
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/analytics/overview` | Dashboard KPIs |
+
+---
+
+## Environment Variables
+
+See [.env.example](.env.example) for a full list with descriptions.
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MONGODB_URI` | Yes | MongoDB connection string |
+| `NEO4J_URI` | Yes | Neo4j Bolt URI |
+| `NEO4J_USERNAME` | Yes | Neo4j username |
+| `NEO4J_PASSWORD` | Yes | Neo4j password |
+| `JWT_SECRET` | Yes | Secret for JWT signing |
+| `PORT` | No | API port (default 5000) |
+| `CORS_ORIGIN` | No | Allowed CORS origin |
+
+---
+
+## Seed Data
+
+```bash
+cd backend
+pnpm run seed
+```
+
+Inserts **5 fictional sample companies** (clearly labelled) with associated opportunities and intelligence signals into both MongoDB and Neo4j. **This data is not real.**
+
+---
+
+## Project Structure
+
+```
+Singapore-hackathon/
+├── .env.example
+├── .gitignore
+├── docker-compose.yml
+├── README.md
+├── backend/
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── src/
+│       ├── app.ts
+│       ├── server.ts
+│       ├── config/
+│       ├── controllers/
+│       ├── integrations/
+│       │   ├── mongodb/
+│       │   └── neo4j/
+│       ├── middleware/
+│       ├── models/
+│       ├── repositories/
+│       ├── routes/
+│       ├── scripts/
+│       │   └── seed.ts
+│       ├── utils/
+│       └── validators/
+└── frontend/
+    ├── Dockerfile
+    ├── nginx.conf
+    ├── index.html
+    ├── package.json
+    ├── tsconfig.json
+    ├── vite.config.ts
+    └── src/
+        ├── App.tsx
+        ├── main.tsx
+        ├── components/
+        │   ├── charts/
+        │   ├── layout/
+        │   └── ui/
+        ├── context/
+        ├── hooks/
+        ├── layouts/
+        ├── pages/
+        │   ├── Dashboard.tsx
+        │   ├── CompanyIntelligence.tsx
+        │   ├── CompanyProfile.tsx
+        │   ├── KnowledgeGraph.tsx
+        │   ├── OpportunityIntelligence.tsx
+        │   └── Settings.tsx
+        ├── services/
+        └── utils/
+```
+
+---
+
+## Frontend Development
+
+```bash
+cd frontend
+npm install # or pnpm install
+npm run dev # runs Vite on http://localhost:3000 with API proxy to port 5000
+npm run build # TypeScript compilation & optimized production bundle
+```
+
+---
+
+## License
+
+MIT -- built for the Singtel Hackathon 2026.
+
+
+## Local FreeLLMAPI connection
+
+Keep FreeLLMAPI Desktop running. The backend reads these values from the project-root `.env` (never commit the key):
+
+```dotenv
+FREELLMAPI_BASE_URL=http://127.0.0.1:31415/v1
+FREELLMAPI_API_KEY=<your-unified-key>
+FREELLMAPI_MODEL=auto
+FREELLMAPI_TIMEOUT_MS=45000
+```
+
+From `backend`, run:
+
+```powershell
+npm ci --ignore-scripts
+npm run test:ai
+npm run verify:ai
+```
+
+`verify:ai` builds the backend, starts the actual Express application on a temporary loopback port, lists models, and runs a short completion through the backend. It closes the test server afterward and does not require MongoDB or Neo4j. This is useful while the databases are not running. It exits with failure if either backend request fails.
+
+With the regular backend running in local development, the diagnostic routes are `GET /api/v1/ai/models` and `POST /api/v1/ai/test`. The POST route uses a fixed short prompt, has a ten-second cooldown, and permits only one test at a time. These routes are disabled in production and reject non-loopback connections and unexpected browser origins. They do not accept arbitrary public prompts.
+
+The reusable client is in `backend/src/integrations/freellmapi/client.ts`. Sourced analysis and session-only review are described below; opportunity and review persistence remain future work. Credentials and upstream error bodies are excluded from API responses.
+
+When the backend runs in Docker, `127.0.0.1` refers to its container. Use a reachable host address (such as `host.docker.internal` on Docker Desktop) in a container-specific `FREELLMAPI_BASE_URL`, and check that the router accepts that connection. Keep the local diagnostic verification on the host; do not expose the router publicly.
+
+Verified local model: `mistral-small-3.2-24b` (served as Mistral-Small-3.2-24B-Instruct-2506). The local `.env` pins this model and a 90-second deadline after automatic routing timed out at 45 seconds. Set `FREELLMAPI_MODEL=auto` to opt back into automatic routing; record the served model when comparing results.
+
+
+## Visible company-analysis preview
+
+On Windows, open FreeLLMAPI Desktop, then double-click **Start Enterprise Radar.cmd** in the project folder (or the Desktop launcher). It prepares and starts the local backend and website, waits for readiness and opens Company Intelligence. Keep its window open; Ctrl+C stops only the services it started. If the project is already running, it reuses it. This starts the same local public-research/sample-account preview described below. Restart the launcher after backend code changes.
+
+Open two terminals. In `backend`, run `npm run preview:local`. In `frontend`, run `npm run dev -- --host 127.0.0.1 --strictPort`. Visit `http://127.0.0.1:3000/companies/demo-logistics-001` and select **Analyze with AI**. Keep FreeLLMAPI Desktop running.
+
+The explicit local preview uses two fictional company scenarios and does not initialize or modify MongoDB or Neo4j. AI output is live. The profile shows observations with evidence IDs, possible needs, a conditional capability match, discovery questions and unknowns. The no-signal retail case exercises the hold path.
+
+`POST /api/v1/ai/analyze` accepts only `companyId`; the backend loads the matching company context and validates the generated JSON and citation IDs. It does not accept arbitrary company text from the browser. The local-only/origin restrictions of the AI routes apply. In non-demo development mode it reads the existing company and signals from MongoDB. This is a controlled local prototype, not an authenticated production deployment.
+
+The model receives the selected company context through your configured router. Demo data is visibly labelled. Do not use confidential account data without approved provider handling. Existing-ID checks are not proof that every statement is supported: inspect the actual evidence and reasoning. No generated analysis or review is currently persisted, and the session-only review button never sends outreach or creates a CRM record.
+
+
+## Research by company name
+
+Open Company Intelligence (`/companies`) and use **Start with a company name**. Enter a name such as Infosys. The backend searches Wikidata identities, auto-selects only a unique normalized exact organization-name match, or asks you to select a possible match. It then collects bounded source excerpts and automatically requests a live AI brief.
+
+Sources: Wikidata for identity/website discovery, Wikipedia for background, Google News RSS for dated publisher headlines, and readable public paragraphs from the listed HTTPS company website plus at most one same-domain news page. No search-provider key is required. Wikidata does not cover every company; try a registered name when there is no match. This is a bounded public-research connector, not exhaustive web search or a verified company registry.
+
+Source records carry their URL, source kind, publication date when known, retrieval timestamp and excerpt hash. Snapshots persist under ignored `backend/data/research/`; they can be reopened through `GET /api/v1/ai/research/:id`. Analysis and review remain session-only. Model credentials never enter the frontend. Public company names are sent to the directory/news sources; collected excerpts are sent to your configured AI router when analysis runs.
+
+Routes (local-development access restrictions apply):
+- `POST /api/v1/ai/research/search` with `{ "name": "Infosys" }`.
+- `POST /api/v1/ai/research` with a selected `{ "entityId": "Q26989" }`.
+- `GET /api/v1/ai/research/:id` for the stored public snapshot.
+- `POST /api/v1/ai/analyze` with `{ "companyId": "research-<snapshot UUID>" }`.
+
+Headlines are discovery material; full article text is not retrieved. Collection prioritizes company actions over commentary and retains up to twelve headline records. Reports with different wording about the same event are grouped while preserving citations. A publisher byline or market forecast is separated from the company's own operations. Invalid, future and over-120-day-old news dates are excluded. Classification and grouping are heuristic; a headline may still concern a subsidiary, peer or unrelated activity. Website blocks, missing news and unavailable feeds produce visible warnings rather than invented data. No publication date is inferred from a retrieval date. Background-only research produces HOLD and no capability recommendation.
+
+Public-page fetching accepts HTTPS only, checks every resolved address, pins DNS for the request, validates each redirect, blocks local/private/link-local destinations, limits response bytes and deadlines, and never forwards credentials or cookies. Imported text cannot execute scripts or grant tools/permissions. These checks do not guarantee the factual accuracy of source content.
+
+Run `npm run test:research` from backend for the research and AI checks. Engineering references: https://www.wikidata.org/wiki/Wikidata:Data_access ; https://www.mediawiki.org/wiki/API:Search ; https://cheerio.js.org/docs/intro/ ; https://github.com/NaturalIntelligence/fast-xml-parser .
+
+Research relevance checks: each proposed need and service match must cite dated non-profile evidence from its snapshot. Configurable catalogue rules check the evidence for the proposed service, and the evidence policy excludes unrelated legal controversy as a technology justification. Unsupported suggestions are removed with visible warnings; no eligible match returns HOLD. Background text sent to the model is shortened. These heuristic gates reduce observed failure modes; they do not guarantee semantic accuracy or establish buyer intent. Review the source links and discovery questions before using the brief.
+
+## Seller business knowledge
+
+Open **Settings → Business knowledge** to view or edit the structured seller catalogue. Fourteen Singtel enterprise service areas include capabilities, customer problems, buyer roles, discovery questions and official references. Target segments, research markets and business objectives are team settings. Every analysis reads the active configuration, validates service IDs and records the knowledge version. Selecting the seller itself returns HOLD before calling the model.
+
+Changes persist as versioned local configuration; no authentication has been added. The existing local-development boundary applies. See [backend/BUSINESS_KNOWLEDGE.md](backend/BUSINESS_KNOWLEDGE.md) for the schema, API, editing instructions, evidence rules and storage limits. `GET/PUT /api/v1/ai/business-knowledge` supports a future admin interface. Run `npm run test:business` from backend to check the configuration and matching behavior.
+
+Analysis distinguishes a service-related signal from an exploratory event-to-service connection. An acquisition can support a conditional integration question even without exact product phrases. The backend builds factual public-research summaries from the approved event inventory, validates AI hypotheses against service/evidence IDs, and reports why any suggestion was withheld. `DISCOVERY_READY` means ready for a targeted conversation; it does not establish a qualified opportunity. The dashboard explains source limits and customer questions separately instead of using a generic missing-evidence message. The combined checks include regressions for duplicated acquisition coverage, commentary attribution, provider-versus-customer roles and event-based discovery.
+
+## Lead ranking
+
+Lead ranking combines cited public signals with synthetic Salesforce-style CRM and engineering facts.
+It ranks each account, buying unit, product/use case and buying window using deterministic rules.
+Open **Lead Ranking** in the app navigation (`/lead-ranking`); `/opportunities` redirects there.
+
+For a credential-free local preview of the full app:
 
 ```powershell
 npm --prefix backend ci
@@ -18,141 +329,37 @@ npm --prefix frontend ci
 npm run dev
 ```
 
-Open **http://localhost:3000**. The API runs at **http://127.0.0.1:5000/api/v1/ranking**.
-No Docker, database, API key or `.env` is required for the full replay.
-Stop the dev launcher with Ctrl+C. The demo state is saved under `.local/` and survives reloads/restarts.
-Use the in-app Reset button to replay from the same initial state.
+Open http://localhost:3000/lead-ranking. The default home page remains the dashboard.
+The local launcher uses the app's memory preview for company/research features and a separate atomic
+JSON store under `.local/` for lead ranking. No real Salesforce connection is claimed.
+The cloud backend keeps its existing `npm --prefix backend start` entry point and deployment settings.
 
-For a built, single-server preview:
+Status labels are **Very urgent** (85-100), **Urgent** (70-84), **Normal priority** (50-69),
+**Low priority** (25-49) and **Irrelevant** (0-24). The separate next-action labels are Pursue,
+Verify, Resolve, Monitor and Blocked. Mandatory site, technical and deadline checks control pursuit.
+Priority score and ranking confidence are separate: confidence measures priority-band stability
+across ten whole-queue scenarios, with Insufficient evidence when plausible inputs cannot be bounded.
 
-```powershell
-npm --prefix backend run build
-npm --prefix frontend run build
-npm start
-```
+The worklist opens directly onto the ranked leads. Use **Demo checks** for replay/reset, connector failure,
+ambiguous matches, clock changes and an empty list. Source refresh failures retain the last successful queue.
+The initial 15 candidates become 16 when the cited ETLA trigger is replayed. All buyer dates, contacts,
+commercial estimates, service cases and engineering assessments in this module are synthetic.
 
-Then open http://localhost:5000. Keep ports 3000 and 5000 free before starting another instance.
-The Docker Compose configuration also builds the demo frontend and API with an isolated `ranking_data`
-volume: `docker compose up --build`. MongoDB and Neo4j remain under the optional `legacy` profile.
-The legacy app is retained at `/dashboard`, `/companies`, `/graph`, `/legacy-opportunities` and `/settings`;
-its original database-backed API uses `npm --prefix backend run dev:legacy` and the legacy environment settings.
-
-## The demo
-
-Open **Demo checks > Replay next event**; inspect any row for scoring, mandatory conditions, scenario stability and evidence.
-The initial queue has 15 opportunities; the public trigger creates the sixteenth.
-
-| Step | Fact arriving | Visible result |
-| --- | --- | --- |
-| 1 | Cited SGX/EDB ETLA facility trigger | O01 created: 53 points, rank 13, Verify |
-| 2 | Mock Salesforce confirms buying window | 84 points, rank 3, Verify, 80/100 ranking confidence |
-| 3 | Mock Micron service case opens | Resolve replaces renewal outreach |
-| 4 | Mock site assessment verifies ETLA serviceability | 89 points, rank 1, Pursue, 100/100 ranking and action confidence |
-| 5 | Private 5G latency measured at 28ms | Fails mock <=20ms requirement; Blocked |
-| 6 | Micron case is resolved | Renewal pursuit resumes after all gates pass |
-
-The single queue shows rank, movement, opportunity, status, next action, owner, deadline, strongest evidence
-and ranking confidence. **Status** uses the priority score: **Very urgent** (85?100), **Urgent** (70?84),
-**Normal priority** (50?69), **Low priority** (25?49), and **Irrelevant** (0?24). These thresholds are our
-prototype assumptions, not a prediction of buyer interest. Filter the queue by any of the five statuses.
-The API exposes this label as `priorityStatus`; its existing `status` field records the recommended action.
-**Pursue, Verify, Resolve, Monitor and Blocked** remain separate action labels. Required checks still control
-whether pursuit is allowed. Pursue, Verify and Resolve are actionable; Monitor and Blocked remain below them.
-Scenario confidence continues to measure retention of the top-five / next / waiting / blocked priority band,
-rather than retention of the score-based status label.
-Switch the same candidates between **CRM + public**, **CRM only**, and **Deal value**. The comparison panel
-shows per-row evidence contributions and source-family ablations. Identity labels and explicit mock CRM
-confirmations are held fixed; public need contributions are masked in CRM-only. Catalog reference data is
-shared across those views. Ablation removes the named family's need/catalog evidence, grouping syndicated copies.
-
-**Demo checks** provides duplicate replay, connector failure, an ambiguous entity match, unbounded evidence,
-a clock advance and a healthy empty queue. A failed source refresh preserves the exact last successful
-rows/version/time. An initialized zero-opportunity queue returns `[]`; failed initialization is explicitly distinct.
-No new facts or threshold changes returns the same list/version. Replaying the same event ID/payload is a no-op;
-a conflicting retry or aggregate-version gap is rejected.
-
-## Rules and confidence
-
-The deterministic 100-point rubric weights **need/timing 35, product fit 25, buyer readiness 20,
-annual gross contribution 15, and pursuit effort 5**. These are our own starting assumptions.
-Application code applies gates, points and the stable score/deadline/canonical-ID tiebreak. An LLM never sorts.
-Site serviceability, a product-specific mandatory technical condition and the notice/bid deadline must be checked.
-UNKNOWN produces Verify, confirmed FAIL produces Blocked, and all PASS permits Pursue in an active window.
-A service case can produce Resolve before commercial outreach. Technical requirements are mock, not Singtel SLAs.
-
-Ranking confidence is **scenario stability**, separate from the priority score:
-
-`ranking confidence = 100 x share of ten whole-queue scenarios retaining the displayed priority band`
-
-WORK_NOW is the first five actionable opportunities, followed by NEXT, WAITING and BLOCKED bands.
-**80/100 means eight of ten tested worlds retained the band**, not an 80% chance of winning.
-Show plausible rank range, next-action stability and the fact worth verifying. Shared contribution, effort
-and installation assumptions vary together. Verified facts replace disputed alternatives in all ten worlds.
-If plausible inputs cannot be bounded, show **Insufficient evidence**, including for potentially affected
-competitors; retain numeric stability for bands whose invariance can be established.
-
-## Sources and optional live LLM
-
-The demo bundles **11 curated public snapshots and 11 GeBIZ award records** captured on 15 November 2026.
-The source library exposes exact URLs, dates, excerpts, matched context and claim status. Source families:
-GeBIZ, SGX, company releases/reports, EDB/JTC, IMDA/industry, and Singtel product/case-study material.
-An award establishes supplier/date context; it does not establish a telco expiry or notice deadline.
-A syndicated announcement is one provenance group, not additional need points.
-
-The integrated GeBIZ connector supports complete pagination, schema checks, bounded HTTP retries and failure
-retention. Use Demo checks > Check live GeBIZ connector, or verify the standalone ingestion spike:
-
-```powershell
-node tools/gebiz-connector.mjs docs/evidence/gebiz-live-verification.json
-```
-
-Offline extraction is explicitly labelled **curated snapshot**; it is not represented as a live LLM result.
-To enable the live extraction button, set both `OPENAI_API_KEY` and `OPENAI_MODEL` in a root `.env` or the
-backend process environment, using a model available to your account. No key is sent to the browser.
-The adapter uses the [OpenAI Responses API with structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses),
-checks source IDs and exact supplied spans, handles incomplete responses, and caches outputs by model,
-prompt version and source hash. It returns facts and opportunity hypotheses for review; it cannot pass gates,
-set points, send outreach or silently add an unreviewed account. Live model access is optional and is not
-included in the credential-free validation. The six-event demo uses reviewed fixture candidates.
-
-## Verify
+Verify the lead-ranking module:
 
 ```powershell
 npm --prefix backend run test:ranking
 node --test tools/gebiz-connector.test.mjs
-npm --prefix backend run build
-npm --prefix frontend run build
 npm --prefix backend run verify:ranking-demo
 npm --prefix frontend run test:e2e
 ```
 
-Playwright uses installed Microsoft Edge on Windows, or Chromium on Linux (`npx playwright install chromium`
-from frontend). Its web-server configuration starts local servers if needed. Tests reset the isolated demo;
-finish a recording before running them. `.local/readiness-report.json` records executed replay outcomes,
-and `.local/screenshots/` holds desktop, scenario and mobile captures. GitHub Actions runs the same checks.
-The historical `docs/evidence/planning-validation.json` records earlier arithmetic checks, not application tests.
+The existing backend build and research/deployment tests also apply. Browser tests reset only the ranking
+demo state. Optional live extraction requires `OPENAI_API_KEY` and `OPENAI_MODEL`; the complete replay
+runs from cited snapshots without a paid model call. Hosted research/analysis keeps main's provider settings.
 
-## Implementation map
-
-| Area | Files |
-| --- | --- |
-| Zod contracts and seed | `backend/src/ranking/contracts.ts`, `seed.ts`, `backend/src/fixtures/lead-ranking/` |
-| Rules, gates and ten worlds | `backend/src/ranking/engine.ts` |
-| Replay, refresh, audit and atomic persistence | `backend/src/ranking/service.ts` |
-| Shared source importer / live GeBIZ / optional LLM | `backend/src/ranking/importer.ts`, `extractor.ts` |
-| API and standalone server | `backend/src/routes/ranking.routes.ts`, `backend/src/ranking/demo-server.ts` |
-| Queue, drawer, replay and comparisons | `frontend/src/pages/LeadRankingQueue.tsx`, `lead-ranking.css` |
-| API client and last-successful browser cache | `frontend/src/services/ranking.service.ts`, `frontend/src/hooks/useRankingQueue.ts` |
-| Automated checks | `backend/test/`, `frontend/e2e/`, `tools/gebiz-connector.test.mjs` |
-
-The default demo store is atomic local JSON, serialized through one process. It is deliberately independent
-of MongoDB/Neo4j so a judge can run it immediately. A multi-user production service would need a shared
-transactional store, authentication, real CRM integration and operational approvals; those are not claimed here.
-The frozen clock is 15 November 2026 09:00 SGT. `DEMO_REAL_CLOCK=true` enables periodic real-clock checks;
-otherwise the explicit clock control makes threshold tests reproducible.
-
-- [Original implementation plan and acceptance criteria](docs/lead-ranking-plan.md)
-- [Data contracts and 16-opportunity matrix](docs/lead-ranking-contracts.md)
-- [Source inventory, access checks and refresh cadence](docs/lead-ranking-sources.md)
-- [Seven-minute demo script](docs/lead-ranking-demo.md)
-- [Build verification and implementation notes](docs/lead-ranking-delivery.md)
+- [Implementation plan and acceptance criteria](docs/lead-ranking-plan.md)
+- [Data contracts and seeded opportunities](docs/lead-ranking-contracts.md)
+- [Public source inventory](docs/lead-ranking-sources.md)
+- [Demo script](docs/lead-ranking-demo.md)
+- [Verification and operational scope](docs/lead-ranking-delivery.md)

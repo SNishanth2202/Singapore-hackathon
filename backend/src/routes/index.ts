@@ -3,6 +3,7 @@ import healthRoutes      from './health.routes';
 import companyRoutes     from './company.routes';
 import opportunityRoutes from './opportunity.routes';
 import analyticsRoutes   from './analytics.routes';
+import aiRoutes          from './ai.routes';
 import { createRankingRouter } from './ranking.routes';
 import { RankingService } from '../ranking/service';
 
@@ -12,7 +13,8 @@ router.use('/health',       healthRoutes);
 router.use('/companies',    companyRoutes);
 router.use('/opportunities', opportunityRoutes);
 router.use('/analytics',    analyticsRoutes);
-router.use('/ranking', createRankingRouter(new RankingService()));
+router.use('/ai',           aiRoutes);
+router.use('/ranking',      createRankingRouter(new RankingService()));
 
 // 404 fallback for unmatched /api/v1/* routes
 router.use((_req: Request, res: Response) => {

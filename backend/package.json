@@ -1,35 +1,48 @@
 {
   "name": "enterprise-radar-backend",
   "version": "1.0.0",
-  "description": "Enterprise Radar AI — Backend API (Singtel Hackathon)",
+  "description": "Enterprise Radar AI \u2014 Backend API (Singtel Hackathon)",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/ranking/demo-server.ts",
-    "dev:legacy": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc --project tsconfig.json",
-    "start": "node dist/ranking/demo-server.js",
-    "start:legacy": "node dist/server.js",
+    "test:ai": "npm run build && node --test tests/freellmapi.test.cjs",
+    "test:research": "npm run build && node --test tests/research.test.cjs tests/freellmapi.test.cjs tests/business.test.cjs tests/events.test.cjs",
+    "test:business": "npm run build && node --test tests/business.test.cjs",
+    "test:deployment": "npm run build && node --test tests/deployment.test.cjs",
+    "check:deployment": "npm run build && node dist/scripts/check-deployment.js",
+    "verify:cloud": "npm run build && node dist/scripts/verify-cloud.js",
+    "verify:ai": "npm run build && node dist/scripts/verify-ai.js",
+    "preview:local": "npm run build && node dist/scripts/preview.js",
+    "start": "node dist/server.js",
+    "seed": "ts-node src/scripts/seed.ts",
+    "lint": "eslint src --ext .ts",
     "seed:lead-ranking": "ts-node src/scripts/seed-lead-ranking.ts",
     "test:ranking": "node -r ts-node/register/transpile-only --test test/ranking.test.ts test/api.test.ts test/importer.test.ts",
     "verify:ranking-demo": "ts-node src/scripts/verify-ranking-demo.ts",
-    "seed": "ts-node src/scripts/seed.ts",
-    "lint": "eslint src --ext .ts"
+    "dev:ranking-demo": "ts-node-dev --respawn --transpile-only src/ranking/demo-server.ts",
+    "start:ranking-demo": "node dist/ranking/demo-server.js",
+    "dev:preview": "ts-node-dev --respawn --transpile-only src/scripts/preview.ts"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "cheerio": "^1.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^8.7.4",
+    "fast-xml-parser": "^5.12.0",
     "helmet": "^7.1.0",
+    "ipaddr.js": "^2.5.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.1",
     "neo4j-driver": "^5.21.0",
     "pino": "^9.2.0",
     "pino-http": "^10.2.0",
     "winston": "^3.13.0",
-    "zod": "^3.23.8"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

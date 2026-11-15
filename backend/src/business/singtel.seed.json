@@ -1,0 +1,1121 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "updatedAt": "2026-11-13T00:00:00.000Z",
+  "seller": {
+    "id": "singtel-business",
+    "name": "Singtel Business",
+    "legalName": "Singapore Telecommunications Limited",
+    "aliases": [
+      "Singtel",
+      "SingTel",
+      "Singapore Telecom",
+      "Singapore Telecommunications",
+      "Singapore Telecommunications Ltd"
+    ],
+    "entityIds": [
+      "Q864923"
+    ],
+    "domains": [
+      "singtel.com"
+    ],
+    "businessTypes": [
+      "Enterprise telecommunications",
+      "Network services",
+      "Digital infrastructure",
+      "Managed ICT services"
+    ],
+    "sourceIds": [
+      "singtel-about"
+    ]
+  },
+  "strategy": {
+    "provenance": "team_configured_hypotheses",
+    "workflows": [
+      "HUNT",
+      "FARM"
+    ],
+    "priorityMarkets": [
+      "Singapore",
+      "India",
+      "Cross-border operations in Asia-Pacific"
+    ],
+    "objectives": [
+      {
+        "id": "new-customers",
+        "outcome": "Find relevant new enterprise customers",
+        "measures": [
+          "Evidence-backed discovery conversations",
+          "Sales-accepted opportunities",
+          "Conversion rate measured from actual CRM outcomes"
+        ]
+      },
+      {
+        "id": "customer-value",
+        "outcome": "Grow value for existing customers",
+        "measures": [
+          "Validated unmet needs",
+          "Relevant cross-sell accepted by account owner",
+          "Customer value growth measured from actual account records"
+        ]
+      },
+      {
+        "id": "customer-satisfaction",
+        "outcome": "Improve customer satisfaction",
+        "measures": [
+          "Customer feedback after discovery or service changes",
+          "CSAT measured through actual surveys",
+          "Avoided irrelevant recommendations"
+        ]
+      }
+    ],
+    "segments": [
+      {
+        "id": "enterprise",
+        "name": "Enterprises and multinational businesses",
+        "organizationTypes": [
+          "Large business",
+          "Multinational business",
+          "Multi-site business"
+        ],
+        "exampleIndustries": [
+          "Logistics",
+          "Manufacturing",
+          "Financial services",
+          "Healthcare",
+          "Retail",
+          "Professional services",
+          "Technology"
+        ],
+        "buyerRoles": [
+          "CIO",
+          "CTO",
+          "Head of IT",
+          "Head of network",
+          "CISO",
+          "Operations director"
+        ],
+        "qualificationQuestions": [
+          "Where are the operating sites and users?",
+          "What current technology or service gap is confirmed?",
+          "Who owns the requirement and implementation timeline?"
+        ]
+      },
+      {
+        "id": "smb",
+        "name": "Small and medium businesses",
+        "organizationTypes": [
+          "Small business",
+          "Medium business"
+        ],
+        "exampleIndustries": [
+          "Retail",
+          "Professional services",
+          "Hospitality",
+          "Distribution"
+        ],
+        "buyerRoles": [
+          "Business owner",
+          "IT manager",
+          "Operations manager"
+        ],
+        "qualificationQuestions": [
+          "What is the business size and service location?",
+          "Which connectivity, communications or operational issue needs resolution?",
+          "What support capability exists internally?"
+        ]
+      },
+      {
+        "id": "public-sector",
+        "name": "Public-sector organisations",
+        "organizationTypes": [
+          "Government agency",
+          "Public institution"
+        ],
+        "exampleIndustries": [
+          "Education",
+          "Public healthcare",
+          "Public administration"
+        ],
+        "buyerRoles": [
+          "IT director",
+          "Digital transformation lead",
+          "Procurement lead"
+        ],
+        "qualificationQuestions": [
+          "What procurement and data-handling requirements apply?",
+          "Is there a confirmed requirement or published procurement notice?",
+          "Can the seller provide the service in the required jurisdiction?"
+        ]
+      }
+    ],
+    "exclusions": [
+      "The configured seller itself is not a sales prospect",
+      "Consumer-only purchase needs are outside this enterprise workflow",
+      "A competitor or telecom provider is not automatically a customer or automatically excluded",
+      "No farming or cross-sell claim without verified account/service history",
+      "No confirmed opportunity, buying intent or satisfaction uplift inferred from public news"
+    ]
+  },
+  "evidencePolicy": {
+    "maxSignalAgeDays": 120,
+    "blockedInferenceTerms": [
+      "visa",
+      "tax fraud",
+      "allegation",
+      "controversy",
+      "lawsuit",
+      "litigation",
+      "allegations",
+      "controversies",
+      "lawsuits"
+    ],
+    "securityTerms": [
+      "cyber",
+      "cybersecurity",
+      "ransomware",
+      "phishing",
+      "breach",
+      "security",
+      "secure access",
+      "data protection"
+    ],
+    "discoveryRole": "IT or operations lead to identify",
+    "discoveryQuestion": "Can you confirm which reported business developments are current and whether they create an unmet technology need?"
+  },
+  "sources": [
+    {
+      "id": "singtel-about",
+      "title": "Singtel Business overview",
+      "url": "https://www.singtel.com/business/why-singtel-business/about-singtel",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-connectivity",
+      "title": "Business connectivity",
+      "url": "https://www.singtel.com/business/products-services/connectivity",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-global",
+      "title": "Global connectivity",
+      "url": "https://www.singtel.com/business/products-services/connectivity/global",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-sdwan",
+      "title": "Software-defined WAN",
+      "url": "https://www.singtel.com/business/products-services/connectivity/sd-wan",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-security",
+      "title": "Cyber security",
+      "url": "https://www.singtel.com/business/products-services/cybersecurity",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-cloud",
+      "title": "Cloud solutions",
+      "url": "https://www.singtel.com/business/products-services/cloud",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-managed",
+      "title": "Next-Gen Managed Services",
+      "url": "https://www.singtel.com/business/products-services/managed-services",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-5g",
+      "title": "Enterprise 5G",
+      "url": "https://www.singtel.com/business/products-services/5g",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-iot",
+      "title": "Internet of Things",
+      "url": "https://www.singtel.com/business/products-services/iot",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-mobility",
+      "title": "Business mobility",
+      "url": "https://www.singtel.com/business/products-services/mobility",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-communications",
+      "title": "Communication and Collaboration",
+      "url": "https://www.singtel.com/business/products-services/communication-collaboration",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-datacentre",
+      "title": "Data Centre Services",
+      "url": "https://www.singtel.com/business/products-services/data-centre",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-ai",
+      "title": "AI Infrastructure and Security",
+      "url": "https://www.singtel.com/business/products-services/ai-infrastructure-and-security",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-quantum",
+      "title": "Quantum-Safe Network",
+      "url": "https://www.singtel.com/business/products-services/quantumsafenetwork",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "id": "singtel-satellite",
+      "title": "Satellite Services",
+      "url": "https://www.singtel.com/business/products-services/satellite",
+      "publisher": "Singtel",
+      "checkedAt": "2026-11-13T00:00:00.000Z"
+    }
+  ],
+  "offerings": [
+    {
+      "id": "business-connectivity",
+      "name": "Business connectivity",
+      "category": "Connectivity",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "Business internet access",
+        "Private network connectivity"
+      ],
+      "customerProblems": [
+        "New premises need network access",
+        "Site connectivity or resilience needs assessment"
+      ],
+      "buyerRoles": [
+        "IT manager",
+        "Network lead"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "new office",
+          "new site",
+          "warehouse",
+          "new plant",
+          "new facility",
+          "campus",
+          "branch",
+          "broadband",
+          "network upgrade",
+          "connectivity"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "How will the new site connect to applications and existing sites?",
+        "What current bandwidth and resilience gaps are confirmed?"
+      ],
+      "sourceIds": [
+        "singtel-connectivity"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    },
+    {
+      "id": "international-connectivity",
+      "name": "International connectivity",
+      "category": "Connectivity",
+      "aliases": [
+        "global connectivity"
+      ],
+      "active": true,
+      "capabilities": [
+        "International private circuits",
+        "Global inter-site and cloud connectivity"
+      ],
+      "customerProblems": [
+        "Sites in different countries need communication",
+        "Cross-border application access needs assessment"
+      ],
+      "buyerRoles": [
+        "Head of network",
+        "CIO",
+        "Infrastructure lead"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "international connectivity",
+          "cross-border connectivity",
+          "overseas expansion",
+          "regional expansion",
+          "new office",
+          "new site",
+          "warehouse",
+          "new plant",
+          "new facility",
+          "expansion",
+          "expands",
+          "opens",
+          "global offices"
+        ],
+        "requiredAnyTerms": [
+          "cross-border",
+          "international",
+          "overseas",
+          "global",
+          "singapore",
+          "india"
+        ],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "Which countries and sites need to exchange data?",
+        "What incumbent links, latency and resilience requirements are known?"
+      ],
+      "sourceIds": [
+        "singtel-global"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    },
+    {
+      "id": "sd-wan",
+      "name": "Software-defined WAN",
+      "category": "Connectivity",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "Software-defined enterprise WAN",
+        "Centralised network management"
+      ],
+      "customerProblems": [
+        "Multiple branches complicate WAN management",
+        "Application access performance needs assessment"
+      ],
+      "buyerRoles": [
+        "Network architect",
+        "Head of IT"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "sd-wan",
+          "wan modernisation",
+          "wan modernization",
+          "branch network",
+          "multi-site network",
+          "network transformation"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "What WAN architecture and application-performance problems are confirmed?"
+      ],
+      "sourceIds": [
+        "singtel-sdwan"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    },
+    {
+      "id": "cybersecurity",
+      "name": "Cybersecurity",
+      "category": "Security",
+      "aliases": [
+        "cyber security"
+      ],
+      "active": true,
+      "capabilities": [
+        "Network security",
+        "Managed security services",
+        "Secure access"
+      ],
+      "customerProblems": [
+        "An explicit cyber or access-security need requires assessment"
+      ],
+      "buyerRoles": [
+        "CISO",
+        "Security lead",
+        "IT director"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "cyber",
+          "ransomware",
+          "phishing",
+          "data breach",
+          "security incident",
+          "secure access",
+          "zero trust",
+          "sase",
+          "data protection"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": [
+          "SECURITY_INCIDENT",
+          "TECHNOLOGY_CHANGE"
+        ]
+      },
+      "discoveryQuestions": [
+        "What security requirement is confirmed, and what controls or providers are already in place?"
+      ],
+      "sourceIds": [
+        "singtel-security"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    },
+    {
+      "id": "cloud",
+      "name": "Cloud services",
+      "category": "Cloud",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "Multi-cloud solutions",
+        "Cloud resource and infrastructure services"
+      ],
+      "customerProblems": [
+        "A cloud migration or workload needs assessment"
+      ],
+      "buyerRoles": [
+        "Cloud architect",
+        "CTO",
+        "Infrastructure lead"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "cloud migration",
+          "multi-cloud",
+          "multicloud",
+          "hybrid cloud",
+          "cloud infrastructure",
+          "cloud adoption",
+          "cloud workload"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "Does the reported change create any workload or platform-integration requirement, and are existing cloud services sufficient? If changes are needed, what architecture and residency constraints apply?"
+      ],
+      "sourceIds": [
+        "singtel-cloud"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": [
+        {
+          "eventTypes": [
+            "ACQUISITION"
+          ],
+          "anyTerms": [
+            "ai",
+            "artificial intelligence",
+            "cloud",
+            "software",
+            "platform"
+          ],
+          "requiredAnyTerms": [],
+          "excludeTerms": [],
+          "rationale": "A technology acquisition may create workload or platform-integration questions. Cloud migration, capacity and any unmet requirement must be confirmed."
+        }
+      ]
+    },
+    {
+      "id": "managed-services",
+      "name": "Managed services",
+      "category": "Managed ICT",
+      "aliases": [
+        "next-gen managed services"
+      ],
+      "active": true,
+      "capabilities": [
+        "IT infrastructure management",
+        "Network, hybrid-cloud and workspace operations"
+      ],
+      "customerProblems": [
+        "Infrastructure operations are becoming complex",
+        "An explicit IT outsourcing or monitoring requirement exists"
+      ],
+      "buyerRoles": [
+        "Head of IT operations",
+        "CIO",
+        "Infrastructure lead"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "it outsourcing",
+          "managed services",
+          "infrastructure management",
+          "network monitoring",
+          "hybrid cloud",
+          "it operations",
+          "infrastructure operations"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "Does the reported change create infrastructure-integration or operations work that existing teams and providers cannot cover?"
+      ],
+      "sourceIds": [
+        "singtel-managed"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": [
+        {
+          "eventTypes": [
+            "ACQUISITION"
+          ],
+          "anyTerms": [
+            "ai",
+            "technology",
+            "software",
+            "it systems",
+            "infrastructure"
+          ],
+          "requiredAnyTerms": [],
+          "excludeTerms": [],
+          "rationale": "An acquisition may create infrastructure-integration or operational-ownership questions. Do not assume an outsourcing requirement."
+        }
+      ]
+    },
+    {
+      "id": "enterprise-5g",
+      "name": "Enterprise 5G",
+      "category": "Wireless networks",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "5G-enabled enterprise connectivity",
+        "Enterprise wireless solutions"
+      ],
+      "customerProblems": [
+        "An explicit enterprise wireless or low-latency use case needs assessment"
+      ],
+      "buyerRoles": [
+        "OT lead",
+        "Network architect",
+        "Operations director"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "private 5g",
+          "enterprise 5g",
+          "5g deployment",
+          "5g network",
+          "industrial wireless",
+          "low-latency wireless"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "What on-site wireless use case, coverage and performance requirements are confirmed?"
+      ],
+      "sourceIds": [
+        "singtel-5g"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    },
+    {
+      "id": "iot",
+      "name": "Internet of Things",
+      "category": "IoT",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "Connected-device connectivity",
+        "IoT connectivity orchestration"
+      ],
+      "customerProblems": [
+        "Connected assets need reliable data transport",
+        "Device deployments span sites or countries"
+      ],
+      "buyerRoles": [
+        "IoT lead",
+        "OT manager",
+        "Operations director"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "iot",
+          "internet of things",
+          "connected device",
+          "connected sensor",
+          "asset tracking",
+          "fleet telematics",
+          "smart meter",
+          "remote monitoring"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "Which devices, locations, connectivity and lifecycle-management requirements are confirmed?"
+      ],
+      "sourceIds": [
+        "singtel-iot"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    },
+    {
+      "id": "business-mobility",
+      "name": "Business mobility",
+      "category": "Workforce services",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "Business mobile services",
+        "Mobile device management",
+        "Roaming services"
+      ],
+      "customerProblems": [
+        "A mobile workforce needs connectivity or device management"
+      ],
+      "buyerRoles": [
+        "IT manager",
+        "Workplace technology lead",
+        "Procurement lead"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "mobile workforce",
+          "mobile device management",
+          "business mobile",
+          "corporate mobile",
+          "workforce mobility",
+          "roaming requirement"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "How many staff and devices need managed mobility, and in which countries?"
+      ],
+      "sourceIds": [
+        "singtel-mobility"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    },
+    {
+      "id": "communications-collaboration",
+      "name": "Communication and collaboration",
+      "category": "Workplace services",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "Business telephony",
+        "Unified communications",
+        "Cloud conferencing"
+      ],
+      "customerProblems": [
+        "Business calling or collaboration systems need assessment"
+      ],
+      "buyerRoles": [
+        "Workplace technology lead",
+        "IT manager",
+        "Contact centre lead"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "unified communications",
+          "business telephony",
+          "cloud conferencing",
+          "phone system",
+          "voice migration",
+          "collaboration platform"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "Which calling and collaboration workflows need improvement and how are they delivered today?"
+      ],
+      "sourceIds": [
+        "singtel-communications"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    },
+    {
+      "id": "data-centre",
+      "name": "Data centre services",
+      "category": "Digital infrastructure",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "Data centre infrastructure through Nxera"
+      ],
+      "customerProblems": [
+        "Hosting or compute capacity needs assessment"
+      ],
+      "buyerRoles": [
+        "Infrastructure director",
+        "CTO",
+        "Data centre lead"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "colocation",
+          "data centre capacity",
+          "data center capacity",
+          "hosting infrastructure",
+          "data centre migration",
+          "data center migration"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "What capacity, location, power and connectivity requirements are confirmed?"
+      ],
+      "sourceIds": [
+        "singtel-datacentre"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    },
+    {
+      "id": "ai-infrastructure-security",
+      "name": "AI infrastructure and security",
+      "category": "AI infrastructure",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "Infrastructure for AI workloads",
+        "AI-ready networking",
+        "AI workload and access security"
+      ],
+      "customerProblems": [
+        "AI workloads need suitable compute, networking or protection"
+      ],
+      "buyerRoles": [
+        "CTO",
+        "Head of AI",
+        "Infrastructure lead",
+        "CISO"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "ai infrastructure",
+          "ai workload",
+          "gpu cluster",
+          "ai-ready",
+          "ai deployment",
+          "model security",
+          "ai access security"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "Who operates the AI workloads: this company, its clients or cloud partners? If the company operates them, do any integration, compute, networking or protection requirements exceed existing provider coverage?"
+      ],
+      "sourceIds": [
+        "singtel-ai"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": [
+        {
+          "eventTypes": [
+            "ACQUISITION",
+            "TECHNOLOGY_CHANGE"
+          ],
+          "anyTerms": [
+            "ai",
+            "artificial intelligence",
+            "machine learning",
+            "generative ai"
+          ],
+          "requiredAnyTerms": [],
+          "excludeTerms": [],
+          "rationale": "An AI acquisition or adoption can justify asking about integration, workloads and infrastructure constraints. It does not establish new compute, network or security demand."
+        },
+        {
+          "eventTypes": ["PRODUCT_LAUNCH", "PARTNERSHIP", "TECHNOLOGY_CHANGE"],
+          "anyTerms": ["ai", "artificial intelligence", "open model engineering", "machine learning", "generative ai"],
+          "requiredAnyTerms": ["practice", "venture", "platform", "workload", "model", "deployment", "application modernisation", "application modernization"],
+          "excludeTerms": ["survey", "outlook", "forecast"],
+          "allowProviderContext": true,
+          "rationale": "An AI practice or delivery alliance supports asking whether the company operates AI workloads itself. Confirm workload ownership, existing partners and any capacity gap. A service launch is not a procurement signal."
+        }
+      ]
+    },
+    {
+      "id": "quantum-safe-network",
+      "name": "Quantum-safe network",
+      "category": "Security",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "Quantum-safe network services"
+      ],
+      "customerProblems": [
+        "An explicit post-quantum networking requirement exists"
+      ],
+      "buyerRoles": [
+        "CISO",
+        "Cryptography lead",
+        "Network architect"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "quantum-safe",
+          "quantum safe",
+          "post-quantum",
+          "post quantum",
+          "quantum key distribution"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "Is there a confirmed quantum-safe networking requirement, assessment or transition plan?"
+      ],
+      "sourceIds": [
+        "singtel-quantum"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    },
+    {
+      "id": "satellite-services",
+      "name": "Satellite services",
+      "category": "Specialised connectivity",
+      "aliases": [],
+      "active": true,
+      "capabilities": [
+        "Satellite communications",
+        "Managed satellite services"
+      ],
+      "customerProblems": [
+        "Remote or maritime operations need connectivity assessment"
+      ],
+      "buyerRoles": [
+        "Fleet IT lead",
+        "Operations director",
+        "Network lead"
+      ],
+      "targetSegmentIds": [
+        "enterprise",
+        "smb",
+        "public-sector"
+      ],
+      "signalRules": {
+        "anyTerms": [
+          "satellite connectivity",
+          "satellite communications",
+          "maritime connectivity",
+          "offshore connectivity",
+          "vessel connectivity",
+          "remote-site connectivity"
+        ],
+        "requiredAnyTerms": [],
+        "excludeTerms": [],
+        "allowedEventTypes": []
+      },
+      "discoveryQuestions": [
+        "Which remote sites or vessels need coverage, and what terrestrial options and service constraints apply?"
+      ],
+      "sourceIds": [
+        "singtel-satellite"
+      ],
+      "availability": {
+        "verificationRequired": true,
+        "checks": [
+          "Serviceable country and site",
+          "Technical scope and delivery entity",
+          "Capacity, contract terms and current pricing"
+        ]
+      },
+      "discoveryRules": []
+    }
+  ]
+}

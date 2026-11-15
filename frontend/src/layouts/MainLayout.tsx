@@ -12,7 +12,7 @@ const PAGE_TITLES: Record<string, string> = {
 function getPageTitle(pathname: string): string {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
   if (pathname.startsWith('/companies/')) return 'Company Profile'
-  return 'Enterprise Radar AI'
+  return 'Singtel Scout'
 }
 
 export default function MainLayout() {
