@@ -1,5 +1,9 @@
 # Singtel Enterprise lead-ranking agent: implementation plan
 
+**Customer policy update:** every ranking now checks the mock Singtel customer database before scoring.
+See [the eight-account audit and backend contract](lead-ranking-customer-audit.md). Known relationships
+are excluded from every view and model input; the eligible initial universe is now 11 leads across six accounts.
+
 **Current runtime:** [Active LLM contract](lead-ranking-llm.md) supersedes the original deterministic
 score/threshold/scenario requirements below for the default mode. OpenAI chooses urgency and confidence;
 the UI shows confidence as a percentage with short hover reasons and no separate score. The original

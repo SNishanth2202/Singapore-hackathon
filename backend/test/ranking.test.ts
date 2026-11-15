@@ -26,23 +26,23 @@ test('priority statuses use explicit score boundaries independently of mandatory
 
 test('public trigger creates a specific opportunity; CRM window and site proof reproduce goldens', async () => {
   const s = new RankingService(null);
-  assert.equal(s.get().total, 15);
+  assert.equal(s.get().total, 11);
   await s.apply(replayEvents[0]);
-  assert.equal(s.get().total, 16);
-  assert.equal(etla(s).score, 53); assert.equal(etla(s).rank, 13); assert.equal(etla(s).status, 'Verify');
+  assert.equal(s.get().total, 12);
+  assert.equal(etla(s).score, 53); assert.equal(etla(s).rank, 10); assert.equal(etla(s).status, 'Verify');
   assert.equal(etla(s).priorityStatus, 'Normal priority');
   assert.ok(etla(s).evidence.some(e => e.id === 'S02' && e.url?.startsWith('https://')));
   await s.apply(replayEvents[1]);
   const before = etla(s);
-  assert.equal(before.score, 84); assert.equal(before.rank, 3); assert.equal(before.movement, 10);
+  assert.equal(before.score, 84); assert.equal(before.rank, 2); assert.equal(before.movement, 8);
   assert.equal(before.priorityStatus, 'Urgent');
   assert.equal(before.actionCode, 'VERIFY_SITE'); assert.equal(before.previousDecision?.actionCode, 'VERIFY_BUYING_WINDOW');
   assert.equal(before.rankingConfidence.score, 80); assert.equal(before.rankingConfidence.actionScore, 30);
-  assert.deepEqual(before.rankingConfidence.scenarios.map(w => w.rank), [3,1,1,1,15,15,3,1,3,1]);
-  assert.equal(before.rankingConfidence.minRank, 1); assert.equal(before.rankingConfidence.maxRank, 15);
+  assert.deepEqual(before.rankingConfidence.scenarios.map(w => w.rank), [2,1,1,1,12,12,2,1,2,1]);
+  assert.equal(before.rankingConfidence.minRank, 1); assert.equal(before.rankingConfidence.maxRank, 12);
   await s.apply(replayEvents[2]); await s.apply(replayEvents[3]);
   const after = etla(s);
-  assert.equal(after.score, 89); assert.equal(after.rank, 1); assert.equal(after.movement, 2);
+  assert.equal(after.score, 89); assert.equal(after.rank, 1); assert.equal(after.movement, 1);
   assert.equal(after.status, 'Pursue'); assert.equal(after.rankingConfidence.score, 100);
   assert.equal(after.priorityStatus, 'Very urgent');
   assert.equal(after.rankingConfidence.actionScore, 100);
@@ -86,10 +86,10 @@ test('mandatory gates independently enforce unknown/failure/pass and latency is 
   assert.equal(gates(private5g, T0)[0].state, 'PASS'); // WAN/site availability alone never passes its latency gate.
 });
 test('service case controls next action, and all mandatory failures take precedence', async () => {
-  const s = await through(2), o = s.get().items.find(r => r.id === 'O02')!;
-  assert.equal(o.status, 'Resolve'); assert.equal(o.score, 88);
-  await s.apply({ eventId: 'test-fail', aggregateId: 'O02', aggregateVersion: 2, eventType: 'SiteAssessmentCompleted', payload: { state: 'FAIL' } });
-  assert.equal(s.get().items.find(r => r.id === 'O02')?.status, 'Blocked');
+  const s = await through(2), o = s.get().items.find(r => r.id === 'O03')!;
+  assert.equal(o.status, 'Resolve'); assert.equal(o.score, 86);
+  await s.apply({ eventId: 'test-fail', aggregateId: 'O03', aggregateVersion: 2, eventType: 'SiteAssessmentCompleted', payload: { state: 'FAIL' } });
+  assert.equal(s.get().items.find(r => r.id === 'O03')?.status, 'Blocked');
 });
 test('ambiguous entity matches are retained for verification and unbounded inputs propagate conservatively', async () => {
   const s = await through(1);
@@ -98,7 +98,8 @@ test('ambiguous entity matches are retained for verification and unbounded input
   await s.apply({ eventId: 'unbounded', aggregateId: 'O01', aggregateVersion: 3, eventType: 'AssumptionBoundsRemoved', payload: {} });
   assert.equal(etla(s).rankingConfidence.score, null);
   assert.ok(s.get().items.some(r => r.id !== 'O01' && r.rankingConfidence.score === null));
-  assert.equal(s.get().items.find(r => r.id === 'O16')?.rankingConfidence.score, 100);
+  await s.apply({ eventId: 'isolated-failure', aggregateId: 'O15', aggregateVersion: 1, eventType: 'TechnicalAssessmentCompleted', payload: { state: 'FAIL', latencyMs: 28 } });
+  assert.equal(s.get().items.find(r => r.id === 'O15')?.rankingConfidence.score, 100);
 });
 test('clock boundaries, stale assessments and no-op ticks are explicit', async () => {
   const due = (days: number) => new Date(Date.parse(T0) + days * DAY).toISOString();
@@ -108,16 +109,16 @@ test('clock boundaries, stale assessments and no-op ticks are explicit', async (
   const s = await through(3), before = s.get();
   await s.advance(new Date(Date.parse(T0) + 1000).toISOString());
   assert.deepEqual(s.get().items, before.items); assert.equal(s.get().queueVersion, before.queueVersion);
-  await s.advance(due(6)); assert.equal(s.get().items.find(r => r.id === 'O02')?.status, 'Blocked');
+  await s.advance(due(11)); assert.equal(s.get().items.find(r => r.id === 'O03')?.status, 'Blocked');
   const candidate = fixtureOpportunities().find(o => o.id === 'O12')!;
   assert.equal(gates(candidate, due(31))[0].state, 'UNKNOWN');
 });
 test('comparison uses the same candidate universe and public facts contribute precisely 15 need points', async () => {
   const s = await through(3), c = s.comparison();
-  assert.equal(c.universe.length, 16); assert.equal(new Set(c.universe).size, 16);
-  assert.deepEqual(c.summaries.deal_value.topFive, ['O15', 'O12', 'O09', 'O16', 'O08']);
+  assert.equal(c.universe.length, 12); assert.equal(new Set(c.universe).size, 12);
+  assert.deepEqual(c.summaries.deal_value.topFive, ['O15', 'O12', 'O08', 'O05', 'O11']);
   assert.equal(c.rows.find(r => r.id === 'O01')?.addedPoints, 15);
-  assert.ok(c.rows.find(r => r.id === 'O01')!.crmRank > 5);
+  assert.ok(c.rows.find(r => r.id === 'O01')!.crmRank > c.rows.find(r => r.id === 'O01')!.publicRank);
   assert.equal(s.get('crm_only').items.find(r => r.id === 'O01')?.deadline, etla(s).deadline);
   assert.ok(s.get('crm_only').items.every(r => r.evidence.every(e => e.origin !== 'public')));
   assert.equal(c.ablations.length, 6);
@@ -149,11 +150,13 @@ test('saved queues gain priority labels without resetting replay, movement or so
   } finally { if (fs.existsSync(location)) fs.unlinkSync(location); }
 });
 
-test('stable tiebreak uses deadline then canonical ID and waiting/blocked stay below actionable rows', () => {
+test('stable tiebreak uses deadline then canonical ID and waiting/blocked stay below actionable rows', async () => {
   const seed = makeSeed(), a = clone(seed.opportunities.find(o => o.id === 'O03')!), b = { ...clone(a), id: 'ZZZ' };
   const q = rankQueue([b, a], seed.evidence, T0); // Both need evidence IDs retained from the original fixture.
   assert.deepEqual(q.map(r => r.id), ['O03', 'ZZZ']);
-  const s = new RankingService(null); assert.equal(s.get().items.at(-1)?.status, 'Blocked');
+  const s = new RankingService(null);
+  await s.apply({ eventId: 'block-visible', aggregateId: 'O15', aggregateVersion: 1, eventType: 'TechnicalAssessmentCompleted', payload: { state: 'FAIL', latencyMs: 28 } });
+  assert.equal(s.get().items.at(-1)?.status, 'Blocked');
 });
 test('failed first initialization is distinct from a healthy empty list', () => {
   const service = new RankingService(null, () => { throw new Error('Source seed unreadable'); });
@@ -164,6 +167,6 @@ test('failed first initialization is distinct from a healthy empty list', () => 
 test('technical events require a consistent measured result; unknown clears previous measurements', async () => {
   const service = await through(3);
   await assert.rejects(service.apply({ eventId: 'invalid-measurement', aggregateId: 'O15', aggregateVersion: 1, eventType: 'TechnicalAssessmentCompleted', payload: { state: 'PASS', latencyMs: 28 } }), /conflicts/);
-  await service.apply({ eventId: 'unknown-route', aggregateId: 'O03', aggregateVersion: 1, eventType: 'TechnicalAssessmentCompleted', payload: { state: 'UNKNOWN' } });
+  await service.apply({ eventId: 'unknown-route', aggregateId: 'O03', aggregateVersion: 2, eventType: 'TechnicalAssessmentCompleted', payload: { state: 'UNKNOWN' } });
   assert.equal(service.get().items.find(o => o.id === 'O03')?.status, 'Verify');
 });

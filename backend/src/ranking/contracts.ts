@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { CustomerCheck, CustomerEligibility } from './customer-eligibility';
 
 export const StatusSchema = z.enum(['Pursue', 'Verify', 'Resolve', 'Monitor', 'Blocked']);
 export const PriorityStatusSchema = z.enum(['Very urgent', 'Urgent', 'Normal priority', 'Low priority', 'Irrelevant']);
@@ -61,6 +62,7 @@ export interface Decision {
 export interface ScenarioResult { id: string; name: string; rank: number; band: Band; score: number;
   status: Status; actionCode: string; }
 export interface QueueRow extends Opportunity {
+  customerCheck?: CustomerCheck;
   rank: number; previousRank: number | null; movement: number | 'NEW'; score: number;
   status: Status; priorityStatus: PriorityStatus; priorityBand: Band; actionCode: string; nextAction: string; taskDueAt: string;
   gates: GateResult[]; components: Component[]; strongestEvidence: Evidence;
@@ -74,6 +76,7 @@ export interface QueueRow extends Opportunity {
   publicContribution: number; originalCrmDiscovery: boolean;
 }
 export interface QueueSnapshot {
+  customerEligibility?: CustomerEligibility;
   items: QueueRow[]; total: number; view: View; queueVersion: string; queueComputedAt: string;
   asOf: string; eventCursor: number; initialized: boolean; degraded: boolean;
   lastSuccessfulRefreshAt: string | null; lastAttemptAt: string; sourceError: string | null;

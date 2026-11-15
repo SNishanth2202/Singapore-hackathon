@@ -23,12 +23,12 @@
     "description": "Mock Salesforce · confirm the buying window"
   },
   {
-    "eventId": "E2-case-micron",
-    "aggregateId": "O02",
+    "eventId": "E2-case-umc",
+    "aggregateId": "O03",
     "aggregateVersion": 1,
     "eventType": "ServiceCaseOpened",
     "payload": {},
-    "description": "Mock Salesforce · open Micron service case"
+    "description": "Mock Salesforce · open UMC pre-sales serviceability case"
   },
   {
     "eventId": "E3-site-etla",
@@ -52,11 +52,11 @@
     "description": "Mock engineering · private 5G latency fails"
   },
   {
-    "eventId": "E5-case-resolved",
-    "aggregateId": "O02",
+    "eventId": "E5-case-umc-resolved",
+    "aggregateId": "O03",
     "aggregateVersion": 2,
     "eventType": "ServiceCaseResolved",
     "payload": {},
-    "description": "Mock Salesforce · resolve Micron service case"
+    "description": "Mock Salesforce · resolve UMC pre-sales serviceability case"
   }
 ]

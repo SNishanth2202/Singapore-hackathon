@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Comparison, Meta, Queue, View, rankingRequest } from '../services/ranking.service'
+import { Comparison, Meta, Queue, View, rankingRequest, RankingRequestError } from '../services/ranking.service'
 
 export function useRankingQueue(view: View) {
   const [queue, setQueue] = useState<Queue | null>(null)
@@ -8,6 +8,10 @@ export function useRankingQueue(view: View) {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const requestId = useRef(0)
+  const discardUncheckedQueue = useCallback((err: unknown) => {
+    if (!(err instanceof RankingRequestError) || err.code !== 'CUSTOMER_DATABASE_UNAVAILABLE') return false
+    setQueue(null); setComparison(null); localStorage.removeItem(`ranking-last-${view}`); return true
+  }, [view])
   const refresh = useCallback(async () => {
     const id = ++requestId.current
     setBusy(true)
@@ -20,20 +24,21 @@ export function useRankingQueue(view: View) {
     } catch (err) {
       if (id !== requestId.current) return
       setError((err as Error).message)
+      if (discardUncheckedQueue(err)) return
       const saved = localStorage.getItem(`ranking-last-${view}`)
       if (saved) { try { setQueue(JSON.parse(saved) as Queue) } catch { /* An invalid cache is never a fallback dataset. */ } }
     } finally { if (id === requestId.current) setBusy(false) }
-  }, [view])
+  }, [view, discardUncheckedQueue])
   useEffect(() => { setQueue(previous => previous?.view === view ? previous : null); void refresh(); return () => { requestId.current++ } }, [refresh, view])
   const mutate = useCallback(async (path: string, body: unknown) => {
     setBusy(true); setError(null)
     try { await rankingRequest(`${path}${path.includes('?') ? '&' : '?'}view=${view}`, body); await refresh(); return true }
-    catch (err) { setError((err as Error).message); setBusy(false); return false }
-  }, [refresh, view])
+    catch (err) { setError((err as Error).message); discardUncheckedQueue(err); setBusy(false); return false }
+  }, [refresh, view, discardUncheckedQueue])
   const loadComparison = useCallback(async () => {
     setComparison(null)
     try { setComparison(await rankingRequest<Comparison>('/comparison')) }
-    catch (error) { setError((error as Error).message) }
-  }, [])
+    catch (error) { setError((error as Error).message); discardUncheckedQueue(error) }
+  }, [discardUncheckedQueue])
   return { queue, meta, comparison, error, busy, refresh, mutate, loadComparison }
 }

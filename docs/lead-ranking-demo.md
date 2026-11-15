@@ -2,6 +2,13 @@
 
 ## Current live OpenAI demo
 
+Customer exclusion now leaves **11** initial leads and **12** after ETLA discovery. Micron and Singapore
+Customs are excluded before ranking. The service-case replay now concerns UMC pre-sales serviceability.
+Retained WAN renewals are competitive prospects involving a synthetic incumbent. See the
+[customer audit](lead-ranking-customer-audit.md); absence from the mock register is not proof of real
+non-customer status. The offline reference ranks below predate this filter; current ETLA ranks are
+10 -> 2 -> 1, with reference confidence 20% -> 80% -> 100%.
+
 The default mode now uses active OpenAI assessments. See [the current runtime contract](lead-ranking-llm.md)
 for key setup and data flow. Open http://localhost:3000/lead-ranking after `npm run dev`. If the key popup
 appears, enter an OpenAI project key. All CRM and engineering facts remain synthetic; AI assessments
@@ -16,7 +23,7 @@ promising the old exact fixture scores. Confidence represents model-assessed evi
 | 0:45-1:30 | Demo checks: replay public ETLA trigger | SGX/EDB citations create the ETLA / Kaki Bukit / new-site connectivity lead, previously absent from mock CRM. The public fact does not prove buying timing or feasibility. |
 | 1:30-2:25 | Replay mock buying-window confirmation | OpenAI reassesses all candidates using the confirmed window and notice date. Inspect ETLA's new urgency, confidence, rank and previous/new action. Site proof remains mandatory. |
 | 2:25-3:00 | Hover the urgency/confidence; open Confidence details | Short descriptors explain each assessment. The detail panel shows full rationale, verification task, model and assessment time. This percentage is not win probability or scenario frequency. |
-| 3:00-3:30 | Replay Micron service case | Required action becomes Resolve; show the synthetic incident owner and previous pursuit task. |
+| 3:00-3:30 | Replay UMC pre-sales case | Required action becomes Resolve; show the synthetic case owner and previous pursuit task. |
 | 3:30-4:25 | Replay ETLA site assessment | Exact site passes, technical diversity passes and notice remains future. Gate action becomes Pursue. Inspect changed model rank/urgency/confidence and the deciding synthetic assessment. |
 | 4:25-5:10 | CRM only, CRM + public, Deal value; Compare evidence | Same candidates, different supplied evidence or ordering. Show rank differences and contributed public evidence IDs. Source-family ablations are labelled rules-reference diagnostics. |
 | 5:10-5:40 | Replay private 5G latency failure | Required p95 <=20ms, measured 28ms: Blocked. The model cannot override the gate; ordinary WAN serviceability is insufficient. |

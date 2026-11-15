@@ -33,11 +33,13 @@ export function createRankingRouter(service: RankingService, options: RankingRou
     const state = service.inspect(); res.setHeader('Cache-Control', 'no-store');
     res.json({ events: replayEvents, appliedEventIds: Object.keys(state.appliedEvents), aggregateVersions: state.versions,
       history: mode === 'llm' ? llm.history(keys.resolve(req)) : [...state.history].reverse(),
-      sources: state.sources, evidence: state.evidence, crm: mockSalesforceProjection(state), scenarios: mode === 'rules' ? SCENARIOS : [],
+      sources: state.sources, evidence: state.evidence, crm: mockSalesforceProjection(state, service.customerDatabase()), scenarios: mode === 'rules' ? SCENARIOS : [],
       liveExtractionConfigured: !!(process.env.OPENAI_API_KEY && process.env.OPENAI_MODEL),
       rankingMode: mode, openAi: mode === 'llm' ? keys.status(req) : null,
+      customerEligibility: service.get().customerEligibility,
       clockMode: process.env.DEMO_REAL_CLOCK === 'true' ? 'real' : 'frozen', persistence: 'Atomic local JSON; no real Salesforce connection' });
   });
+  router.get('/customers', (_req, res) => { res.setHeader('Cache-Control', 'no-store'); res.json(service.customerDatabase()); });
   router.get('/comparison', asyncRoute(async (req, res) => res.json(mode === 'rules' ? service.comparison() : await llm.comparison(keys.resolve(req)))));
 
   const keyLimit = rateLimit({ windowMs: 60000, limit: 10, standardHeaders: 'draft-8', legacyHeaders: false,

@@ -26,7 +26,7 @@ const result = (q: QueueSnapshot) => ({ rows: assessments(q), model: 'test-model
 
 test('LLM input contains raw facts without deterministic scores and CRM-only excludes public evidence', () => {
   const rules = new RankingService(null), input = modelInput(rules.get());
-  assert.equal(input.leads.length, 15);
+  assert.equal(input.leads.length, 11);
   for (const row of input.leads) {
     assert.ok(row.gates.length); assert.ok(row.evidence.length);
     for (const key of ['score', 'priorityStatus', 'rankingConfidence', 'components']) assert.equal(key in row, false);
@@ -36,7 +36,7 @@ test('LLM input contains raw facts without deterministic scores and CRM-only exc
 
 test('structured assessment validation rejects missing, duplicate, invented or cross-lead claims and long descriptors', () => {
   const q = new RankingService(null).get(), leads = assessments(q);
-  assert.equal(validateAssessments({ leads }, q).length, 15);
+  assert.equal(validateAssessments({ leads }, q).length, 11);
   assert.throws(() => validateAssessments({ leads: leads.slice(1) }, q));
   assert.throws(() => validateAssessments({ leads: [...leads.slice(1), leads[1]] }, q));
   const change = (patch: Partial<LeadAssessment>) => ({ leads: [{ ...leads[0], ...patch }, ...leads.slice(1)] });
@@ -81,7 +81,7 @@ test('model chooses urgency and confidence independently; fulfilment gates and d
     assert.equal(row.rankingConfidence.method, 'llm_assessment'); assert.deepEqual(row.rankingConfidence.scenarios, []);
     assert.equal(row.rankingConfidence.actionScore, null); assert.deepEqual(row.components, []);
   }
-  assert.equal(q.items.at(-1)?.status, 'Blocked');
+  assert.equal(q.items.at(-1)?.status, 'Monitor');
   // Private 5G's high model score cannot erase its mandatory Verify action.
   assert.equal(q.items.find(r => r.id === 'O15')?.status, 'Verify');
   const equal = q.items.filter(r => r.status !== 'Blocked' && r.status !== 'Monitor' && r.id !== 'O15');
@@ -111,7 +111,7 @@ test('provider failure preserves previous assessment, stays stale on refresh, an
   assert.equal((await llm.get('crm_plus_public', credential)).llm?.status, 'stale');
   assert.ok(!JSON.stringify(stale).includes(credential.apiKey));
   const missing = await llm.get('crm_plus_public', null);
-  assert.equal(missing.llm?.status, 'needs_key'); assert.equal(missing.total, 15);
+  assert.equal(missing.llm?.status, 'needs_key'); assert.equal(missing.total, 11);
   assert.ok(missing.items.every(r => r.assessment?.pending && r.rankingConfidence.score === null));
   const neverSucceeded = await llm.get('crm_plus_public', { ...credential, namespace: 'new-session' });
   assert.equal(neverSucceeded.llm?.status, 'failed'); assert.ok(neverSucceeded.items.every(r => r.assessment?.pending));

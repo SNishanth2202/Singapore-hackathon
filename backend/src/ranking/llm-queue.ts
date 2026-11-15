@@ -48,7 +48,21 @@ export class LlmQueueService {
   history(credential: OpenAiCredential | null) { return credential ? clone([...this.client(credential).history].reverse()) : []; }
   private unavailable(base: QueueSnapshot, credential: OpenAiCredential | null, previous: QueueSnapshot | undefined,
     message: string, code: string, fingerprint = ''): QueueSnapshot {
+    // Recheck at the failure boundary, including database changes during an in-flight model call.
+    base = this.rules.get(base.view);
     const q = clone(previous || base);
+    const eligible = new Map(base.items.map(row => [row.id, row]));
+    q.items = q.items.filter(row => eligible.has(row.id));
+    q.customerEligibility = clone(base.customerEligibility);
+    let working = 0;
+    q.items.forEach((row, index) => {
+      row.customerCheck = clone(eligible.get(row.id)!.customerCheck); row.rank = index + 1;
+      if (tier(row) === 0) working++;
+      row.priorityBand = row.status === 'Blocked' ? 'BLOCKED' : row.status === 'Monitor' ? 'WAITING' : working <= 5 ? 'WORK_NOW' : 'NEXT';
+    });
+    q.total = q.items.length;
+    if (previous && q.items.length !== previous.items.length) q.queueVersion = hash({ previous: previous.queueVersion,
+      customerDatabase: base.customerEligibility?.databaseVersion, ids: q.items.map(r => r.id) });
     if (!previous) q.items = q.items.map(row => ({ ...row, assessment: { pending: true, model: null, responseId: null,
       evaluatedAt: null, reason: message, urgencyReasons: ['Awaiting AI assessment'], confidenceReasons: ['Awaiting AI assessment'], evidenceIds: [] },
       rankingConfidence: { method: 'llm_assessment', reason: message, score: null, retainedScenarios: null, scenarioCount: 0,

@@ -121,11 +121,11 @@ test('a backend-only build initializes ranked leads with its bundled cited snaps
   try {
     const packagedBackend = path.join(temporaryRoot, 'backend');
     fs.cpSync(path.resolve(__dirname, '../dist'), path.join(packagedBackend, 'dist'), { recursive: true });
-    const script = `const {RankingService}=require(process.argv[1]);const service=new RankingService(null);const queue=service.get();process.stdout.write(JSON.stringify({total:queue.total,initialized:queue.initialized,degraded:queue.degraded,sources:service.inspect().sources.length}));`;
+    const script = `const {RankingService}=require(process.argv[1]);const service=new RankingService(null);const queue=service.get();process.stdout.write(JSON.stringify({total:queue.total,initialized:queue.initialized,degraded:queue.degraded,sources:service.inspect().sources.length,excluded:queue.customerEligibility.excluded.length}));`;
     const result = execFileSync(process.execPath, ['-e', script, path.join(packagedBackend, 'dist/ranking/service.js')], {
       cwd: packagedBackend, encoding: 'utf8', env: { ...process.env, NODE_PATH: path.resolve(__dirname, '../node_modules') },
     });
-    assert.deepEqual(JSON.parse(result), {total:15,initialized:true,degraded:false,sources:22});
+    assert.deepEqual(JSON.parse(result), {total:11,initialized:true,degraded:false,sources:22,excluded:4});
     assert.equal(fs.existsSync(path.join(temporaryRoot, 'docs')), false);
   } finally {
     // Limit recursive cleanup to the exact temporary test directory just created.
