@@ -23,6 +23,7 @@ export const OfferingSchema = z.object({
   discoveryRules: z.array(z.object({
     eventTypes: z.array(z.enum(EVENT_TYPES)).min(1).max(8),
     anyTerms: list.min(1), requiredAnyTerms: list, excludeTerms: list,
+    allowProviderContext: z.boolean().default(false),
     rationale: text,
   }).strict()).max(10).default([]),
   discoveryQuestions: list.min(1), sourceIds: ids.min(1),

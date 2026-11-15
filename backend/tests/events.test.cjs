@@ -85,6 +85,71 @@ test('a current cyber incident supports discovery while a security-provider laun
   assert.ok(!matchOfferings(k, researchEvidence(launch)).some(m => m.offeringId === 'cybersecurity'));
 });
 
+test('product names, partner remuneration and former-employer mentions do not become operational changes', () => {
+  const launch = classifySource(source('open', 'Deloitte launches the Open Model Engineering practice in India and other key global markets'), company);
+  assert.equal(launch.eventType, 'PRODUCT_LAUNCH');
+  assert.equal(launch.businessRole, 'PROVIDER');
+  const pay = classifySource(source('pay', 'Deloitte partner pay rises as firm cuts staff'), company);
+  assert.equal(pay.relevance, 'AMBIGUOUS');
+  assert.notEqual(pay.eventType, 'PARTNERSHIP');
+  assert.equal(classifySource(source('hire', 'Lucid Hires Deloitte Veteran as Chief Accounting Officer'), company).relevance, 'AMBIGUOUS');
+  assert.equal(classifySource(source('report', 'Murdoch gives Deloitte university merger report a fail'), company).relevance, 'COMMENTARY');
+});
+
+test('contract wins describe provider delivery, while awarding a supplier contract does not', () => {
+  for (const title of ['Deloitte wins FAA application modernization contract', 'FAA Awards Deloitte a Contract to Modernize Legacy Applications']) {
+    assert.equal(classifySource(source('contract', title), company).businessRole, 'PROVIDER');
+  }
+  assert.equal(classifySource(source('buyer', 'Deloitte awards IBM a contract to modernize its internal applications'), company).businessRole, 'OPERATIONS');
+});
+
+test('roundup headlines retain only the selected company action', () => {
+  const r = { company, sources: [source('roundup', 'At Your Service: Oppenheimer opens new headquarters, Deloitte launches enterprise AI venture')] };
+  const overview = buildResearchOverview(r);
+  assert.equal(overview.events[0].eventType, 'PRODUCT_LAUNCH');
+  assert.equal(overview.events[0].title, 'Deloitte launches enterprise AI venture');
+  assert.doesNotMatch(researchEvidence(r)[0].text, /Oppenheimer|headquarters/);
+  assert.ok(!matchOfferings(getSeedKnowledge(), researchEvidence(r)).some(m => m.offeringId === 'business-connectivity'));
+});
+
+test('an explicit provider discovery rule permits an AI question, never a direct buying signal', () => {
+  const r = { company, sources: [source('practice', 'Deloitte launches Open Model Engineering practice')] };
+  const knowledge = getSeedKnowledge();
+  const evidence = researchEvidence(r);
+  const matches = matchOfferings(knowledge, evidence);
+  assert.deepEqual(matches.map(m => m.offeringId), ['ai-infrastructure-security']);
+  assert.equal(matches[0].fitLevel, 'EXPLORATORY');
+  const result = groundAnalysis(brief('ai-infrastructure-security', ['practice']), evidence, knowledge);
+  assert.equal(result.analysis.readiness, 'DISCOVERY_READY');
+  assert.match(result.analysis.possibleNeeds[0].need, /if any/);
+  assert.match(result.analysis.nextAction.question, /Who operates the AI workloads/);
+  assert.equal(result.matchingAssessment.serviceCandidateCount, 1);
+  assert.equal(result.matchingAssessment.providerEventCount, 1);
+  knowledge.offerings.find(o => o.id === 'ai-infrastructure-security').discoveryRules.forEach(rule => { rule.allowProviderContext = false; });
+  assert.deepEqual(matchOfferings(knowledge, evidence), []);
+});
+
+test('a useful catalogue question remains available when the model omits a valid hypothesis', () => {
+  const r = { company, sources: [source('practice', 'Deloitte launches Open Model Engineering practice')] };
+  const input = { ...brief('cloud', ['practice']), possibleNeeds: [], recommendedCapability: null };
+  const result = groundAnalysis(input, researchEvidence(r), getSeedKnowledge());
+  assert.equal(result.analysis.readiness, 'NEEDS_RESEARCH');
+  assert.deepEqual(result.analysis.possibleNeeds, []);
+  assert.equal(result.discoveryPrompts[0].origin, 'catalogue_rule');
+  assert.deepEqual(result.discoveryPrompts[0].evidenceIds, ['practice']);
+  assert.match(result.statusReason, /potential service connection/);
+  assert.match(result.analysis.nextAction.question, /Who operates the AI workloads/);
+});
+
+test('client modernization does not imply the provider is migrating its own systems', () => {
+  const r = { company, sources: [source('contract', 'FAA Awards Deloitte a Contract to Modernize Legacy Applications')] };
+  const result = groundAnalysis(brief('cloud', ['contract']), researchEvidence(r), getSeedKnowledge());
+  assert.deepEqual(result.analysis.possibleNeeds, []);
+  assert.equal(result.rejections[0].code, 'PROVIDER_CONTEXT_NOT_SUPPORTED');
+  assert.equal(result.matchingAssessment.serviceCandidateCount, 0);
+  assert.match(result.statusReason, /none match the current service discovery rules/);
+});
+
 test('valid discovery is not blocked just because confirmation details are still unknown', () => {
   const k = getSeedKnowledge();
   const grounded = groundAnalysis(brief('ai-infrastructure-security', ['acq-1', 'acq-2']), researchEvidence(record()), k);
@@ -153,7 +218,14 @@ test('analysis rebuilds facts from approved events and exposes coverage and sour
   client.generateText = async messages => {
     assert.match(messages[1].content, /EXPLORATORY/);
     assert.match(messages[1].content, /distinctEvents/);
-    return { reply: JSON.stringify(brief('ai-infrastructure-security', ['acq-1'])), model: 'test-model' };
+    assert.match(messages[1].content, /Return observedFacts: \[\]/);
+    const promptData = JSON.parse(messages[1].content.split('COMPANY DATA:\n')[1]);
+    assert.match(promptData.sourceSnapshots[0]._id, /^E\d+$/);
+    const acquisition = promptData.distinctEvents.find(e => e.eventType === 'ACQUISITION');
+    const proposed = brief('ai-infrastructure-security', [acquisition.id]);
+    proposed.observedFacts = [{ text: 'A model observation with a wrong citation.', evidenceIds: ['foreign'] }];
+    proposed.possibleNeeds.push({ ...proposed.possibleNeeds[0], evidenceIds: ['foreign-event'] });
+    return { reply: JSON.stringify(proposed), model: 'test-model' };
   };
   const result = await analyzeCompany('research-test');
   assert.equal(result.analysis.readiness, 'DISCOVERY_READY');
@@ -163,4 +235,9 @@ test('analysis rebuilds facts from approved events and exposes coverage and sour
   assert.ok(result.evidenceAssessment.sourceLimitations.length);
   assert.doesNotMatch(result.analysis.summary, /US economy|US economic|Deloitte is investing/);
   assert.equal(result.analysis.observedFacts.length, 3);
+  assert.equal(result.analysis.possibleNeeds.length, 1);
+  assert.deepEqual(new Set(result.analysis.possibleNeeds[0].evidenceIds), new Set(['acq-1', 'acq-2', 'acq-3']));
+  assert.equal(result.evidenceAssessment.rejections[0].code, 'UNRECOGNIZED_CITATION');
+  assert.ok(result.validationWarnings.some(w => /source-based company report remains available/.test(w)));
+  assert.ok(result.analysis.observedFacts.every(f => !f.evidenceIds.includes('foreign')));
 });

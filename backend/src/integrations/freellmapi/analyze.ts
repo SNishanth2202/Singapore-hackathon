@@ -11,6 +11,8 @@ import { businessKnowledgeStore, getSeedKnowledge } from '../../business/store';
 import { BusinessKnowledge } from '../../business/schema';
 import { BusinessEvidence, CompanyIdentityInput, identifySeller, matchOfferings } from '../../business/matching';
 import { buildBusinessContext } from '../../business/prompt';
+import { createEvidenceReferences, EvidenceReferences } from './citations';
+import type { Rejection } from '../research/grounding';
 
 export const AnalysisSchema = z.object({
   summary: z.string().min(1).max(1600),
@@ -22,23 +24,59 @@ export const AnalysisSchema = z.object({
   readiness: z.enum(['DISCOVERY_READY', 'NEEDS_RESEARCH', 'HOLD']),
 });
 
-export function parseAnalysis(reply: string, allowedEvidence: Set<string>, knowledge: BusinessKnowledge = getSeedKnowledge()) {
+function readAnalysis(reply: string, sourceFactsOnly = false) {
   let value: unknown;
   try { value = JSON.parse(reply.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')); }
   catch { throw new AppError('The model returned invalid analysis JSON. Please retry.', 502, 'AI_INVALID_ANALYSIS'); }
+  // Public facts are rebuilt from retrieved sources, so unused model observations must not block them.
+  if (sourceFactsOnly && value && typeof value === 'object' && !Array.isArray(value)) value = { ...value, observedFacts: [] };
   const parsed = AnalysisSchema.safeParse(value);
   if (!parsed.success) throw new AppError('The model returned an incomplete analysis. Please retry.', 502, 'AI_INVALID_ANALYSIS');
-  if (parsed.data.observedFacts.some((fact) => fact.evidenceIds.some((id) => !allowedEvidence.has(id)))) {
-    throw new AppError('The model cited evidence outside this company. Please retry.', 502, 'AI_UNSUPPORTED_EVIDENCE');
+  return parsed.data;
+}
+
+export function parseAnalysis(reply: string, allowedEvidence: Set<string>, knowledge: BusinessKnowledge = getSeedKnowledge()) {
+  const analysis = readAnalysis(reply);
+  if (analysis.observedFacts.some((fact) => fact.evidenceIds.some((id) => !allowedEvidence.has(id)))) {
+    throw new AppError('The AI returned a citation that does not match the supplied source list. Please retry.', 502, 'AI_UNSUPPORTED_EVIDENCE');
   }
-  const proposedIds = [...parsed.data.possibleNeeds.flatMap((n) => n.evidenceIds), ...(parsed.data.recommendedCapability?.evidenceIds ?? [])];
+  const proposedIds = [...analysis.possibleNeeds.flatMap((n) => n.evidenceIds), ...(analysis.recommendedCapability?.evidenceIds ?? [])];
   if (proposedIds.some((id) => !allowedEvidence.has(id))) throw new AppError('A proposed need cites unsupported evidence.', 502, 'AI_UNSUPPORTED_EVIDENCE');
   const catalogue = new Map(knowledge.offerings.filter((o) => o.active).map((o) => [o.id, o]));
-  const offeringIds = [...parsed.data.possibleNeeds.map((n) => n.offeringId), ...(parsed.data.recommendedCapability ? [parsed.data.recommendedCapability.offeringId] : [])];
+  const offeringIds = [...analysis.possibleNeeds.map((n) => n.offeringId), ...(analysis.recommendedCapability ? [analysis.recommendedCapability.offeringId] : [])];
   if (offeringIds.some((id) => !catalogue.has(id))) throw new AppError('The model proposed a service outside the active seller catalogue. Please retry.', 502, 'AI_UNSUPPORTED_OFFERING');
-  if (parsed.data.recommendedCapability) parsed.data.recommendedCapability.name = catalogue.get(parsed.data.recommendedCapability.offeringId)!.name;
-  if (!allowedEvidence.size) return { ...parsed.data, observedFacts: [], possibleNeeds: [], recommendedCapability: null, readiness: 'HOLD' as const };
-  return parsed.data;
+  if (analysis.recommendedCapability) analysis.recommendedCapability.name = catalogue.get(analysis.recommendedCapability.offeringId)!.name;
+  if (!allowedEvidence.size) return { ...analysis, observedFacts: [], possibleNeeds: [], recommendedCapability: null, readiness: 'HOLD' as const };
+  return analysis;
+}
+
+export function parseResearchAnalysis(reply: string, references: EvidenceReferences, knowledge: BusinessKnowledge = getSeedKnowledge()) {
+  const analysis = readAnalysis(reply, true);
+  const catalogue = new Map(knowledge.offerings.filter(o => o.active).map(o => [o.id, o]));
+  const rejections: Rejection[] = [];
+  function normalize<T extends { offeringId: string; evidenceIds: string[] }>(suggestion: T, item: Rejection['item']): T | null {
+    const ids = references.resolve(suggestion.evidenceIds);
+    const offering = catalogue.get(suggestion.offeringId);
+    if (!ids || !offering) {
+      rejections.push({ offeringId: suggestion.offeringId, offeringName: offering?.name ?? suggestion.offeringId,
+        item, code: offering ? 'UNRECOGNIZED_CITATION' : 'UNSUPPORTED_OFFERING', evidenceIds: suggestion.evidenceIds,
+        reason: offering ? 'Withheld the entire suggestion because at least one citation does not match an approved source or event in this snapshot.'
+          : 'Withheld the suggestion because its service is not in the active seller catalogue.' });
+      return null;
+    }
+    return { ...suggestion, evidenceIds: ids };
+  }
+  analysis.possibleNeeds = analysis.possibleNeeds.flatMap(need => { const valid = normalize(need, 'need'); return valid ? [valid] : []; });
+  analysis.recommendedCapability = analysis.recommendedCapability ? normalize(analysis.recommendedCapability, 'capability') : null;
+  if (analysis.recommendedCapability) analysis.recommendedCapability.name = catalogue.get(analysis.recommendedCapability.offeringId)!.name;
+  if (rejections.length) {
+    // Do not carry a discovery question based on a discarded claim into the usable report.
+    analysis.nextAction = { role: knowledge.evidencePolicy.discoveryRole, question: knowledge.evidencePolicy.discoveryQuestion,
+      whyNow: 'Review the approved company event and validate any unmet requirement.' };
+  }
+  return { analysis, rejections, validationWarnings: rejections.length ? [
+    `${rejections.length} AI suggestion(s) withheld because their citations or services could not be validated. The source-based company report remains available.`,
+  ] : [] };
 }
 
 export async function analyzeCompany(id: string) {
@@ -103,16 +141,20 @@ export async function analyzeCompany(id: string) {
       },
     };
   }
+  const references = createEvidenceReferences(signals.map(s => String(s._id)), overview?.events);
   const prompt = `Return JSON only with these exact fields:
 summary: string; observedFacts: [{text:string,evidenceIds:string[]}];
 possibleNeeds: [{offeringId:string,need:string,reason:string,evidenceIds:string[]}]; recommendedCapability: {offeringId:string,name:string,reason:string,evidenceIds:string[]} or null;
 nextAction: {role:string,question:string,whyNow:string}; unknowns:string[]; readiness:"DISCOVERY_READY", "NEEDS_RESEARCH" or "HOLD".
-Use only the supplied company signals for factual statements. Cite their _id values exactly.
+Use only the supplied company signals for factual statements. Cite their _id values exactly (short references such as E1, E2).
+${research ? 'Return observedFacts: []. The server builds public observations from the approved source inventory.' : ''}
 Source snapshots are also evidence. News headlines are NOT verified article bodies: attribute them as headlines and require verification.
 Background profiles do not establish a current buying need. Retrieval dates are not publication or event dates.
 Every possible need and capability match MUST cite dated, relevant non-profile evidence IDs. Do not use historical background or legal/visa/tax controversies to infer a cybersecurity need.
 Assess the company as a potential CUSTOMER of the configured SELLER. Never recommend procurement for the seller itself.
 Choose offeringId only from SELLER_CONTEXT.candidateMatches, citing that candidate's evidenceIds. Match the customer's operations and needs, not unrelated supplier news.
+If candidateMatches is empty, return possibleNeeds: [] and recommendedCapability: null. Never substitute an uncited catalogue service.
+For a PROVIDER event, only an explicit candidate discovery rule can support an EXPLORATORY question. Ask whether this company operates the workloads, its clients or existing partners do. A client contract is not the company's own IT-modernisation project. Do not assume new offices from an Open Model product name or a procurement gap from a service launch.
 Use distinctEvents as the factual event inventory. Several sources in one event are repeated coverage, not separate developments or proof of independent corroboration.
 Excluded commentary, publisher bylines, forecasts and surveys do not establish this company's own investment, adoption or procurement. Never turn a market article published by the company into that company's spending.
 DIRECT_SIGNAL means an event contains a service-related signal, not confirmed customer demand. EXPLORATORY means a plausible question based on the event and catalogue discovery rule, not an observed requirement.
@@ -133,16 +175,27 @@ Give a stakeholder ROLE to identify, not a person's name. Ask a specific questio
 Unknowns must be relevant to your proposed services. Do not insert generic cybersecurity concerns into an unrelated acquisition case. No sales qualification or purchase probability.
 Keep the entire response concise (about 350 words). Sample data must be called fictional.
 Current date: ${new Date().toISOString().slice(0, 10)}. Explain whether an event's timing needs verification.
-SELLER_CONTEXT (structured configuration, not customer evidence):\n${JSON.stringify(buildBusinessContext(knowledge, candidates))}
-COMPANY DATA:\n${JSON.stringify(context)}`;
+SELLER_CONTEXT (structured configuration, not customer evidence):\n${references.forPrompt(buildBusinessContext(knowledge, candidates))}
+COMPANY DATA:\n${references.forPrompt(context)}`;
   const result = await freeLlmClient.generateText([
     { role: 'system', content: 'You help enterprise sales staff assess evidence and prepare discovery questions. Follow the required JSON schema.' },
     { role: 'user', content: prompt },
   ], 2200);
-  let analysis = parseAnalysis(result.reply, new Set(signals.map((s) => String(s._id))), knowledge);
-  let validationWarnings: string[] = [];
+  const parsedResearch = research ? parseResearchAnalysis(result.reply, references, knowledge) : null;
+  let analysis: z.infer<typeof AnalysisSchema>;
+  if (parsedResearch) analysis = parsedResearch.analysis;
+  else {
+    // Account/sample prompts use the same short references; preserve strict rejection of unknown IDs.
+    const value = readAnalysis(result.reply);
+    const normalize = (ids: string[]) => references.resolve(ids) ?? ids;
+    value.observedFacts.forEach(f => { f.evidenceIds = normalize(f.evidenceIds); });
+    value.possibleNeeds.forEach(n => { n.evidenceIds = normalize(n.evidenceIds); });
+    if (value.recommendedCapability) value.recommendedCapability.evidenceIds = normalize(value.recommendedCapability.evidenceIds);
+    analysis = parseAnalysis(JSON.stringify(value), references.allowed, knowledge);
+  }
   const grounded = groundAnalysis(analysis, evidence, knowledge);
-  analysis = grounded.analysis; validationWarnings = grounded.validationWarnings;
+  analysis = grounded.analysis;
+  const validationWarnings = [...(parsedResearch?.validationWarnings ?? []), ...grounded.validationWarnings];
   if (research && overview) {
     const identitySource = research.sources.find(s => s.kind === 'company_profile');
     // Facts come from the approved event inventory; model interpretations stay in the hypothesis fields.
@@ -152,12 +205,13 @@ COMPANY DATA:\n${JSON.stringify(context)}`;
     ] };
   }
   const evidenceAssessment = {
-    ...overview, statusReason: grounded.statusReason, rejections: grounded.rejections,
+    ...overview, statusReason: grounded.statusReason, rejections: [...(parsedResearch?.rejections ?? []), ...grounded.rejections],
     sourceLimitations: [
       ...(overview?.headlineOnlyEventCount ? [`${overview.headlineOnlyEventCount} company event(s) are supported by headlines only; full article details have not been retrieved.`] : []),
       ...(!evidence.some(e => e.publishedAt) ? ['No source publication/event dates are available. A retrieval or detection date does not establish when the event occurred.'] : []),
     ],
-    discoveryQuestions: [...new Set(grounded.analysis.possibleNeeds.map(n => n.validationQuestion))],
+    discoveryQuestions: [...new Set([...grounded.analysis.possibleNeeds.map(n => n.validationQuestion), ...grounded.discoveryPrompts.map(p => p.question)])],
+    discoveryPrompts: grounded.discoveryPrompts, matchingAssessment: grounded.matchingAssessment,
     demandConfirmed: false,
   };
   return { ...metadata, generatedAt: new Date().toISOString(), analysisOrigin: 'model', analysis, evidenceAssessment, validationWarnings, model: result.model };

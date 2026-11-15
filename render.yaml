@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: enterprise-radar-api-priyanshu
+    runtime: node
+    plan: free
+    region: singapore
+    branch: priyanshu
+    rootDir: backend
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/v1/health/ready
+    autoDeployTrigger: off
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 24.16.0
+      - key: HOST
+        value: 0.0.0.0
+      - key: LOCAL_DEMO_MODE
+        value: "false"
+      - key: STORAGE_MODE
+        value: cloud
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: AI_REQUESTS_PER_MINUTE
+        value: "6"
+      - key: CORS_ORIGIN
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: enterprise_radar
+      - key: NEO4J_URI
+        sync: false
+      - key: NEO4J_USERNAME
+        value: neo4j
+      - key: NEO4J_PASSWORD
+        sync: false
+      - key: NEO4J_DATABASE
+        value: neo4j
+      - key: AI_BASE_URL
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        sync: false
+      - key: AI_PROTOCOL
+        value: chat_completions
+      - key: AI_TIMEOUT_MS
+        value: "90000"

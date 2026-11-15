@@ -1,7 +1,20 @@
 import { Request, Response, NextFunction } from 'express';
-import { isMongoDBConnected } from '../integrations/mongodb/connection';
+import { isMongoDBConnected, verifyMongoConnectivity } from '../integrations/mongodb/connection';
 import { verifyConnectivity } from '../integrations/neo4j/graphService';
 import { sendSuccess } from '../utils/apiResponse';
+import { env } from '../config/env';
+
+export async function getReadiness(_req: Request, res: Response): Promise<void> {
+  if (env.STORAGE_MODE === 'memory' && env.NODE_ENV !== 'production' && env.LOCAL_DEMO_MODE) {
+    res.json({ success: true, status: 'ready', storageMode: 'temporary_preview' }); return;
+  }
+  const checks = Promise.all([verifyMongoConnectivity(), verifyConnectivity()]);
+  let timer: NodeJS.Timeout | undefined;
+  const timeout = new Promise<boolean[]>(resolve => { timer = setTimeout(() => resolve([false, false]), 3500); });
+  const [mongo, graph] = await Promise.race([checks, timeout]).finally(() => clearTimeout(timer));
+  res.status(mongo && graph ? 200 : 503).json({ success: mongo && graph, status: mongo && graph ? 'ready' : 'unavailable',
+    services: { mongodb: mongo ? 'up' : 'down', neo4j: graph ? 'up' : 'down' } });
+}
 
 export async function getOverallHealth(
   _req: Request,

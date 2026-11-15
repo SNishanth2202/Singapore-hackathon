@@ -6,7 +6,7 @@ import CompanyAnalysis from './CompanyAnalysis'
 
 interface Candidate { entityId: string; name: string; description: string; website: string | null; identitySource: string }
 interface Source { id: string; title: string; url: string; publisher: string; excerpt: string; publishedAt: string | null; retrievedAt: string; kind: string; verification: string }
-interface Research { id: string; company: Candidate; sources: Source[]; warnings: string[]; createdAt: string; quality?: { companyEventCount: number; duplicateReportCount: number; commentaryCount: number; sourceAssessments: { sourceId: string; relevance: string; reason: string }[] } }
+interface Research { id: string; company: Candidate; sources: Source[]; warnings: string[]; createdAt: string; persistence?: { mode: string; durable: boolean }; quality?: { companyEventCount: number; duplicateReportCount: number; commentaryCount: number; sourceAssessments: { sourceId: string; relevance: string; reason: string }[] } }
 
 export default function CompanyResearch() {
   const [name, setName] = useState('')
@@ -28,7 +28,7 @@ export default function CompanyResearch() {
     if (name.trim().length < 2 || phase !== 'idle') return
     setPhase('finding'); setError(''); setNote(''); setResearch(null); setCandidates([])
     try {
-      const response = await api.post('/api/v1/ai/research/search', { name: name.trim() }, { timeout: 45000 })
+      const response = await api.post('/api/v1/ai/research/search', { name: name.trim() }, { timeout: 90000 })
       const data = response.data.data as { candidates: Candidate[]; autoSelectId: string | null; note: string }
       const automatic = data.candidates.find((c) => c.entityId === data.autoSelectId)
       if (automatic) { await collect(automatic); return }
@@ -58,7 +58,7 @@ export default function CompanyResearch() {
         <h3 className="text-sm font-semibold mt-5 mb-3">Collected sources · {research.sources.length}</h3>
         {research.quality && <p className="text-xs text-gray-600 mb-3">{research.quality.companyEventCount} distinct company events · {research.quality.duplicateReportCount} repeated reports grouped · {research.quality.commentaryCount} commentary items kept separate</p>}
         <div className="space-y-2 max-h-96 overflow-y-auto pr-1">{research.sources.map((s)=><details key={s.id} className="border border-gray-200 rounded-lg p-3"><summary className="cursor-pointer text-sm font-medium text-gray-800">{s.title}<span className="block font-normal text-xs text-gray-500 mt-1">{s.kind === 'news_headline' ? 'Headline only · article unverified' : s.kind === 'official_page' ? 'Retrieved company page' : 'Background / identity profile'} · {s.publisher}</span></summary><p className="text-sm text-gray-600 mt-3">{s.excerpt}</p><p className="text-xs text-gray-500 mt-2">Published: {s.publishedAt ? new Date(s.publishedAt).toLocaleDateString() : 'Unknown'} · Retrieved: {new Date(s.retrievedAt).toLocaleString()}</p><a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex gap-1 items-center text-xs text-teal-700 underline mt-2">Open source <ExternalLinkIcon className="w-3 h-3" /></a><p className="text-xs text-gray-400 mt-1">{s.id}</p></details>)}</div>
-        <p className="text-xs text-gray-400 mt-4">Sources saved locally with retrieval times and content hashes. Snapshot: {research.id}</p>
+        <p className="text-xs text-gray-400 mt-4">{research.persistence?.durable ? 'Sources saved in cloud storage' : 'Temporary preview snapshot'} with retrieval times and content hashes. Snapshot: {research.id}</p>
       </div>
       <CompanyAnalysis key={research.id} companyId={research.id} sources={research.sources} autoRun />
     </div>}

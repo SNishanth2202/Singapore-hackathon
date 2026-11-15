@@ -1,10 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs/promises');
-const os = require('node:os');
-const path = require('node:path');
 const { KnowledgeSchema } = require('../dist/business/schema');
-const { getSeedKnowledge, createKnowledgeStore, businessKnowledgeStore } = require('../dist/business/store');
+const { getSeedKnowledge, createKnowledgeStore, createMemoryKnowledgeRepository, businessKnowledgeStore } = require('../dist/business/store');
 const { identifySeller, matchOfferings } = require('../dist/business/matching');
 const { buildBusinessContext } = require('../dist/business/prompt');
 const { groundAnalysis } = require('../dist/integrations/research/grounding');
@@ -99,23 +96,20 @@ test('configuration rejects duplicate IDs, missing references, unknown keys and 
   }
 });
 
-test('configuration persists across store instances, versions edits and rejects stale saves', async t => {
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'singtel-knowledge-test-'));
-  assert.ok(path.resolve(directory).startsWith(path.resolve(os.tmpdir()) + path.sep));
-  t.after(() => fs.rm(directory, { recursive: true, force: true }));
-  const store = createKnowledgeStore(directory);
+test('stores sharing a repository see versioned edits and reject stale saves and invalid documents', async () => {
+  const repository = createMemoryKnowledgeRepository();
+  const store = createKnowledgeStore(repository);
   const first = await store.read(); first.strategy.priorityMarkets = ['Test market'];
   const next = await store.update(1, first);
   assert.equal(next.version, 2);
-  const reopened = await createKnowledgeStore(directory).read();
+  const reopened = await createKnowledgeStore(repository).read();
   assert.deepEqual(reopened.strategy.priorityMarkets, ['Test market']);
   await assert.rejects(store.update(1, first), { code: 'KNOWLEDGE_CONFLICT' });
   const invalid = structuredClone(next); invalid.offerings[0].sourceIds = ['missing-source'];
   await assert.rejects(store.update(2, invalid));
   assert.equal((await store.read()).version, 2);
-  assert.equal((await fs.readdir(path.join(directory, 'versions'))).length, 2);
-  await fs.writeFile(path.join(directory, 'current.json'), '{broken');
-  await assert.rejects(store.read(), { code: 'KNOWLEDGE_UNAVAILABLE' });
+  const corruptStore = createKnowledgeStore({ ...repository, read: async () => ({ invalid: true }) });
+  await assert.rejects(corruptStore.read(), { code: 'KNOWLEDGE_UNAVAILABLE' });
 });
 
 test('self-company analysis holds before calling the AI and identifies the knowledge version', async t => {

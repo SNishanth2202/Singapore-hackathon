@@ -1,6 +1,6 @@
-import path from 'node:path';
-import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { AppError } from '../../utils/errors';
+import { env } from '../../config/env';
+import { ResearchSnapshot, requireCloudMongo } from '../../models/CloudStorage';
 
 export interface CompanyIdentity {
   entityId: string; name: string; description: string; website: string | null;
@@ -15,19 +15,35 @@ export interface ResearchSource {
 export interface ResearchRecord {
   id: string; company: CompanyIdentity; sources: ResearchSource[]; warnings: string[]; createdAt: string;
   quality?: import('./events').ResearchOverview;
+  persistence?: { mode: 'cloud' | 'memory'; durable: boolean };
 }
-const directory = path.resolve(__dirname, '..', '..', '..', 'data', 'research');
+const previewRecords = new Map<string, ResearchRecord>();
 export function validResearchId(id: string): boolean { return /^research-[0-9a-f-]{36}$/.test(id); }
 export async function saveResearch(record: ResearchRecord) {
-  if (!validResearchId(record.id)) throw new Error('Invalid generated research ID');
-  await mkdir(directory, { recursive: true });
-  await writeFile(path.join(directory, `${record.id}.json`), JSON.stringify(record, null, 2), { flag: 'wx' });
+  if (!validResearchId(record.id)) throw new AppError('Invalid research ID.', 400, 'VALIDATION_ERROR');
+  record.persistence = { mode: env.STORAGE_MODE, durable: env.STORAGE_MODE === 'cloud' };
+  if (env.STORAGE_MODE === 'memory') {
+    // Bounded, explicitly temporary sample preview; never silently used by cloud startup.
+    if (previewRecords.size >= 100) previewRecords.delete(previewRecords.keys().next().value!);
+    previewRecords.set(record.id, structuredClone(record));
+    return;
+  }
+  requireCloudMongo();
+  // The immutable snapshot and pending graph-sync state are committed in one MongoDB insert.
+  await ResearchSnapshot.create({ _id: record.id, entityId: record.company.entityId, record,
+    graphStatus: 'PENDING', graphAttempts: 0, graphRetryAt: new Date(), graphLeaseUntil: new Date(0) });
 }
 export async function loadResearch(id: string): Promise<ResearchRecord> {
   if (!validResearchId(id)) throw new AppError('Research not found.', 404, 'NOT_FOUND');
-  try {
-    const record = JSON.parse(await readFile(path.join(directory, `${id}.json`), 'utf8')) as ResearchRecord;
-    if (record.id !== id || !Array.isArray(record.sources)) throw new Error('Invalid record');
-    return record;
-  } catch { throw new AppError('Research not found. Search for the company again.', 404, 'NOT_FOUND'); }
+  let record: ResearchRecord | undefined;
+  if (env.STORAGE_MODE === 'memory') record = previewRecords.get(id);
+  else { requireCloudMongo(); record = (await ResearchSnapshot.findById(id).lean())?.record as ResearchRecord | undefined; }
+  if (!record || record.id !== id || !Array.isArray(record.sources)) throw new AppError('Research not found. Search for the company again.', 404, 'NOT_FOUND');
+  return structuredClone(record);
+}
+export async function listResearch(limit = 25) {
+  if (env.STORAGE_MODE === 'memory') return [...previewRecords.values()].reverse().slice(0, limit).map(({ id, company, createdAt, persistence }) => ({ id, company, createdAt, persistence, graphStatus: 'NOT_CONNECTED' }));
+  requireCloudMongo();
+  return (await ResearchSnapshot.find().sort({ createdAt: -1 }).limit(limit).select('record.id record.company record.createdAt record.persistence graphStatus').lean())
+    .map(row => ({ id: row.record.id, company: row.record.company, createdAt: row.record.createdAt, persistence: row.record.persistence, graphStatus: row.graphStatus }));
 }

@@ -24,17 +24,19 @@ export default function BusinessKnowledge() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [editable, setEditable] = useState(false)
 
   async function load() {
     setBusy(true); setError(''); setMessage('')
     try {
       const response = await api.get('/api/v1/ai/business-knowledge')
       setKnowledge(response.data.data); setDraft(JSON.stringify(response.data.data, null, 2))
+      setEditable(response.headers['x-knowledge-editable'] === 'true')
     } catch (e) { setError(errorMessage(e)) }
     finally { setBusy(false) }
   }
   async function save() {
-    if (!knowledge) return
+    if (!knowledge || !editable) return
     setBusy(true); setError(''); setMessage('')
     try {
       const response = await api.put('/api/v1/ai/business-knowledge', { expectedVersion: knowledge.version, knowledge: JSON.parse(draft) })
@@ -67,12 +69,12 @@ export default function BusinessKnowledge() {
           <p className="text-xs text-teal-700 mt-2">{o.sourceIds.map(id => { const source = knowledge.sources.find(s => s.id === id); return source && <a key={id} href={source.url} target="_blank" rel="noopener noreferrer" className="underline mr-2">Official reference</a> })}</p>
         </div>)}</div>
       </details>
-      <details><summary className="text-sm font-medium text-gray-700 cursor-pointer">Edit structured business knowledge</summary>
+      {editable ? <details><summary className="text-sm font-medium text-gray-700 cursor-pointer">Edit structured business knowledge</summary>
         <p className="text-xs text-gray-500 my-3">Update lists, service rules, roles, segments or objectives below. Keep IDs and source references consistent. Saving applies to new analyses; versions are managed automatically.</p>
         <label htmlFor="business-knowledge-json" className="text-sm font-medium">Business configuration (JSON)</label>
         <textarea id="business-knowledge-json" value={draft} onChange={e => { setDraft(e.target.value); setMessage('') }} spellCheck={false} rows={20} className="mt-2 w-full font-mono text-xs p-3 rounded-lg border focus:ring-2 focus:ring-teal-500" />
         <button disabled={busy || !draft.trim()} onClick={() => void save()} className="mt-3 bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50">Save business knowledge</button>
-      </details>
+      </details> : <p className="text-xs text-gray-500">Business configuration is view-only in the hosted prototype. Update it from the local development workspace until administrator access is added.</p>}
     </div>}
   </section>
 }

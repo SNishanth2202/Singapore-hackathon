@@ -7,22 +7,16 @@ import { z } from 'zod';
 import { analyzeCompany } from '../integrations/freellmapi/analyze';
 import researchRoutes from './research.routes';
 import businessRoutes from './business.routes';
+import { requireLocalDevelopment } from '../middleware/localDevelopment';
+import { rateLimit } from 'express-rate-limit';
 
 const router = Router();
 
-// Temporary local diagnostics, not a public inference gateway.
-router.use((req, _res, next) => {
-  const local = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '');
-  const origin = req.get('origin');
-  const allowedOrigins = ['http://localhost:3000', 'http://localhost:5173', 'http://127.0.0.1:3000', 'http://127.0.0.1:5173', env.CORS_ORIGIN];
-  if (env.NODE_ENV === 'production' || !local || (origin && !allowedOrigins.includes(origin))) {
-    next(new AppError('AI diagnostics are available only in local development.', 403, 'AI_DIAGNOSTICS_DISABLED'));
-    return;
-  }
-  next();
-});
+router.use(rateLimit({ windowMs: 60_000, limit: env.AI_REQUESTS_PER_MINUTE, standardHeaders: 'draft-8', legacyHeaders: false,
+  skip: req => req.method !== 'POST' || env.NODE_ENV !== 'production',
+  message: { success: false, message: 'Too many research requests. Wait a minute before trying again.', code: 'RESEARCH_RATE_LIMITED' } }));
 
-router.get('/models', async (_req, res, next) => {
+router.get('/models', requireLocalDevelopment, async (_req, res, next) => {
   try {
     const models = await freeLlmClient.listModels();
     sendSuccess(res, { models, count: models.length });
@@ -45,7 +39,7 @@ router.post('/analyze', async (req, res, next) => {
 
 let testing = false;
 let lastStarted = 0;
-router.post('/test', async (_req, res, next) => {
+router.post('/test', requireLocalDevelopment, async (_req, res, next) => {
   if (testing || Date.now() - lastStarted < 10000) {
     next(new AppError('Wait a few seconds before another AI test.', 429, 'AI_TEST_BUSY'));
     return;

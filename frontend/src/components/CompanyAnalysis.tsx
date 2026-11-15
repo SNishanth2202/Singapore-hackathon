@@ -10,6 +10,8 @@ interface AnalysisResult {
   evidenceAssessment?: {
     sourceCount?: number; companyEventCount?: number; duplicateReportCount?: number; commentaryCount?: number
     statusReason: string; sourceLimitations: string[]; discoveryQuestions: string[]
+    matchingAssessment?: { serviceCandidateCount: number; acceptedHypothesisCount: number; providerEventCount: number }
+    discoveryPrompts?: { offeringId: string; offeringName: string; question: string; basis: string; evidenceIds: string[]; origin: 'catalogue_rule' }[]
     rejections: { offeringId: string; offeringName: string; item: string; reason: string }[]
     sourceAssessments?: { sourceId: string; relevance: string; reason: string }[]
   }
@@ -38,7 +40,7 @@ export default function CompanyAnalysis({ companyId, sources = [], autoRun = fal
       setResult(response.data.data)
     } catch (e) {
       setResult(null)
-      setError(axios.isAxiosError(e) ? e.response?.data?.message ?? 'The analysis request failed. Check the backend and FreeLLMAPI.' : 'Could not analyze this company.')
+      setError(axios.isAxiosError(e) ? e.response?.data?.message ?? 'The analysis request failed. Check the backend and AI provider.' : 'Could not analyze this company.')
     } finally { setLoading(false) }
   }
   const a = result?.analysis
@@ -60,8 +62,8 @@ export default function CompanyAnalysis({ companyId, sources = [], autoRun = fal
         {loading ? 'Analyzing…' : result ? 'Analyze again' : 'Analyze with AI'}
       </button>
     </div>
-    {!result && !loading && !error && <p className="text-sm text-gray-500 mt-5 bg-gray-50 p-4 rounded-lg">Run a live analysis through your local FreeLLMAPI. The key stays in the backend. No outreach is sent.</p>}
-    {loading && <p role="status" className="text-sm text-teal-700 mt-5 bg-teal-50 p-4 rounded-lg">Reading the supplied signals and preparing the brief. Free-provider responses can take up to 90 seconds.</p>}
+    {!result && !loading && !error && <p className="text-sm text-gray-500 mt-5 bg-gray-50 p-4 rounded-lg">Generate a brief using the configured AI provider. The key stays in the backend. No outreach is sent.</p>}
+    {loading && <p role="status" className="text-sm text-teal-700 mt-5 bg-teal-50 p-4 rounded-lg">Reading the supplied signals and preparing the brief. The first request may take longer while the backend starts.</p>}
     {error && <div role="alert" className="mt-5 p-4 bg-red-50 text-red-700 rounded-lg flex gap-2"><AlertCircleIcon className="w-5 h-5 shrink-0" />{error}</div>}
     {result && a && <div className="mt-6 space-y-5" aria-live="polite">
       <div className="flex flex-wrap gap-2 text-xs"><span className="bg-teal-50 text-teal-700 px-2 py-1 rounded">{result.analysisOrigin === 'seller_check' ? 'Seller identity check' : `Live AI · ${result.model}`}</span><span className="bg-amber-50 text-amber-800 px-2 py-1 rounded">{result.dataMode === 'sample' ? 'Fictional scenario' : result.dataMode === 'research' ? 'Public research · verify sources' : 'Supplied account data'}</span><span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">{a.readiness === 'DISCOVERY_READY' ? 'Ready for targeted discovery' : a.readiness === 'NEEDS_RESEARCH' ? 'Service connection needs review' : 'Hold for research'}</span></div>
@@ -70,11 +72,12 @@ export default function CompanyAnalysis({ companyId, sources = [], autoRun = fal
       {assessment && <div className="bg-teal-50 border border-teal-100 rounded-lg p-4 text-sm text-teal-900">
         <h3 className="font-semibold">Why this result</h3><p className="mt-2">{assessment.statusReason}</p>
         {assessment.sourceCount !== undefined && <p className="text-xs mt-2">{assessment.sourceCount} sources · {assessment.companyEventCount} distinct company events · {assessment.duplicateReportCount} repeated reports grouped · {assessment.commentaryCount} commentary items excluded from company activity</p>}
+        {assessment.matchingAssessment && <p className="text-xs mt-2">{assessment.matchingAssessment.serviceCandidateCount} potential service connections screened · {assessment.matchingAssessment.acceptedHypothesisCount} AI hypotheses retained. Source counts describe coverage; they do not confirm customer demand.</p>}
       </div>}
       {!!result.validationWarnings?.length && <div className="text-xs text-amber-900 bg-amber-50 p-3 rounded-lg">{result.validationWarnings.map((w,i)=><p key={i}>{w}</p>)}</div>}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-gray-50 rounded-lg p-4"><h3 className="font-semibold text-sm mb-3">Company context and reported events</h3>{a.observedFacts.length ? a.observedFacts.map((f, i) => <div key={i} className="text-sm mb-3"><p>{f.text}</p><p className="text-xs text-teal-700 mt-1">Evidence: {citations(f.evidenceIds)}</p></div>) : <p className="text-sm text-gray-500">No supported event available in this snapshot.</p>}</div>
-        <div className="bg-blue-50 rounded-lg p-4"><h3 className="font-semibold text-sm mb-3">Service hypotheses to validate</h3>{a.possibleNeeds.map((n, i) => <div key={i} className="text-sm mb-4"><p className="font-medium">{n.need}</p>{n.fitLevel && <p className="text-xs text-blue-800 mt-1">{n.fitLevel === 'EXPLORATORY' ? 'Exploratory connection · requirement unconfirmed' : 'Service-related signal · demand unconfirmed'}</p>}<p className="text-gray-600 mt-2">{n.reason}</p>{n.basis && <p className="text-xs text-gray-500 mt-2">Basis: {n.basis}</p>}<p className="text-xs text-teal-700 mt-2">Evidence: {citations(n.evidenceIds ?? [])}</p>{n.validationQuestion && <p className="text-xs text-blue-900 mt-2">To confirm: {n.validationQuestion}</p>}</div>)}{!a.possibleNeeds.length && <p className="text-sm text-gray-600">{emptyNeeds}</p>}</div>
+        <div className="bg-blue-50 rounded-lg p-4"><h3 className="font-semibold text-sm mb-3">Service hypotheses to validate</h3>{a.possibleNeeds.map((n, i) => <div key={i} className="text-sm mb-4"><p className="font-medium">{n.need}</p>{n.fitLevel && <p className="text-xs text-blue-800 mt-1">{n.fitLevel === 'EXPLORATORY' ? 'Exploratory connection · requirement unconfirmed' : 'Service-related signal · demand unconfirmed'}</p>}<p className="text-gray-600 mt-2">{n.reason}</p>{n.basis && <p className="text-xs text-gray-500 mt-2">Basis: {n.basis}</p>}<p className="text-xs text-teal-700 mt-2">Evidence: {citations(n.evidenceIds ?? [])}</p>{n.validationQuestion && <p className="text-xs text-blue-900 mt-2">To confirm: {n.validationQuestion}</p>}</div>)}{!a.possibleNeeds.length && (assessment?.discoveryPrompts?.length ? <div><p className="text-xs text-blue-800 mb-3">No AI hypothesis passed validation. These questions come from configured catalogue rules and the cited events; they are not confirmed requirements.</p>{assessment.discoveryPrompts.map(p => <div key={p.offeringId} className="text-sm mb-4"><p className="font-medium">{p.offeringName} · question to explore</p><p className="mt-2">{p.question}</p><p className="text-xs text-gray-600 mt-2">{p.basis}</p><p className="text-xs text-teal-700 mt-2">Evidence: {citations(p.evidenceIds)}</p></div>)}</div> : <p className="text-sm text-gray-600">{emptyNeeds}</p>)}</div>
       </div>
       <div className="border border-teal-100 rounded-lg p-4"><h3 className="text-sm font-semibold text-teal-800">{a.recommendedCapability?.name ?? (a.possibleNeeds.length ? 'Service options for discovery' : 'No supported service connection yet')}</h3><p className="text-sm text-gray-600 mt-2">{a.recommendedCapability?.reason ?? (a.possibleNeeds.length ? 'Validate the hypotheses above before choosing a service.' : assessment?.statusReason ?? emptyNeeds)}</p><p className="text-xs text-gray-400 mt-2">Discovery guidance. Customer requirements, existing-provider gaps and service availability need confirmation.</p></div>
       <div className="rounded-lg bg-navy-50 p-4"><h3 className="text-sm font-semibold">Recommended next action</h3><p className="text-sm mt-2"><strong>Role to identify:</strong> {a.nextAction.role}</p><p className="text-sm mt-2"><strong>Ask:</strong> {a.nextAction.question}</p><p className="text-sm mt-2 text-gray-600"><strong>Timing:</strong> {a.nextAction.whyNow}</p></div>

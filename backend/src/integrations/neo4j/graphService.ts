@@ -1,6 +1,7 @@
 import { Session, QueryResult, RecordShape } from 'neo4j-driver';
 import { getDriver, isNeo4jConnected } from './connection';
 import { logger } from '../../utils/logger';
+import { env } from '../../config/env';
 
 export interface CompanyNodeProps {
   companyId: string;
@@ -28,13 +29,13 @@ export async function runQuery<T extends RecordShape = RecordShape>(
     throw new Error('Neo4j is not connected');
   }
 
-  const session: Session = getDriver().session();
+  const session: Session = getDriver().session({ database: env.NEO4J_DATABASE });
   try {
     const result = await session.run<T>(cypher, params);
     return result;
   } catch (error) {
     const err = error as Error;
-    logger.error('Neo4j query error', { error: err.message, cypher });
+    logger.error('Neo4j query failed');
     throw error;
   } finally {
     await session.close();
@@ -84,6 +85,9 @@ export async function createRelationship(
   type: string,
   props: RelationshipProps = {}
 ): Promise<void> {
+  if (!/^[A-Z][A-Z0-9_]{0,63}$/.test(type) || Object.keys(props).some(key => !/^[a-zA-Z_][a-zA-Z0-9_]{0,63}$/.test(key))) {
+    throw new Error('Invalid graph relationship type or property name');
+  }
   const setParts = Object.keys(props)
     .map((k) => `r.${k} = $${k}`)
     .join(', ');
@@ -105,7 +109,9 @@ export async function createRelationship(
 export async function verifyConnectivity(): Promise<boolean> {
   if (!isNeo4jConnected()) return false;
   try {
-    await getDriver().verifyConnectivity();
+    const session = getDriver().session({ database: env.NEO4J_DATABASE, defaultAccessMode: 'READ' });
+    try { await session.executeRead(tx => tx.run('RETURN 1 AS ready')); }
+    finally { await session.close(); }
     return true;
   } catch {
     return false;
@@ -121,14 +127,17 @@ export async function applyConstraints(): Promise<void> {
     'CREATE CONSTRAINT company_id_unique IF NOT EXISTS FOR (c:Company) REQUIRE c.companyId IS UNIQUE',
     'CREATE CONSTRAINT country_name_unique IF NOT EXISTS FOR (c:Country) REQUIRE c.name IS UNIQUE',
     'CREATE CONSTRAINT industry_name_unique IF NOT EXISTS FOR (i:Industry) REQUIRE i.name IS UNIQUE',
+    'CREATE CONSTRAINT snapshot_id_unique IF NOT EXISTS FOR (s:ResearchSnapshot) REQUIRE s.id IS UNIQUE',
+    'CREATE CONSTRAINT source_revision_unique IF NOT EXISTS FOR (s:EvidenceSource) REQUIRE s.id IS UNIQUE',
+    'CREATE CONSTRAINT event_revision_unique IF NOT EXISTS FOR (e:BusinessEvent) REQUIRE e.id IS UNIQUE',
   ];
 
   for (const cypher of constraints) {
     try {
       await runQuery(cypher);
     } catch (error) {
-      const err = error as Error;
-      logger.warn('Could not apply Neo4j constraint', { cypher, error: err.message });
+      logger.error('Could not apply required Neo4j constraints');
+      throw error;
     }
   }
 }

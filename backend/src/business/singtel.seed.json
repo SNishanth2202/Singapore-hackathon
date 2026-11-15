@@ -976,7 +976,7 @@
         "allowedEventTypes": []
       },
       "discoveryQuestions": [
-        "Does the reported AI change create any integration, compute, networking or protection requirements that existing providers cannot cover?"
+        "Who operates the AI workloads: this company, its clients or cloud partners? If the company operates them, do any integration, compute, networking or protection requirements exceed existing provider coverage?"
       ],
       "sourceIds": [
         "singtel-ai"
@@ -1004,6 +1004,14 @@
           "requiredAnyTerms": [],
           "excludeTerms": [],
           "rationale": "An AI acquisition or adoption can justify asking about integration, workloads and infrastructure constraints. It does not establish new compute, network or security demand."
+        },
+        {
+          "eventTypes": ["PRODUCT_LAUNCH", "PARTNERSHIP", "TECHNOLOGY_CHANGE"],
+          "anyTerms": ["ai", "artificial intelligence", "open model engineering", "machine learning", "generative ai"],
+          "requiredAnyTerms": ["practice", "venture", "platform", "workload", "model", "deployment", "application modernisation", "application modernization"],
+          "excludeTerms": ["survey", "outlook", "forecast"],
+          "allowProviderContext": true,
+          "rationale": "An AI practice or delivery alliance supports asking whether the company operates AI workloads itself. Confirm workload ownership, existing partners and any capacity gap. A service launch is not a procurement signal."
         }
       ]
     },

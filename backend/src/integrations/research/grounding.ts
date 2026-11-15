@@ -15,7 +15,7 @@ export function researchEvidence(record: ResearchRecord, overview = buildResearc
   return record.sources.map(s => {
     const assessment = assessments.get(s.id)!;
     const event = assessment.eventId ? events.get(assessment.eventId) : undefined;
-    return { id: s.id, title: event?.title ?? s.title, text: s.excerpt ?? '',
+    return { id: s.id, title: event?.title ?? s.title, text: s.kind === 'news_headline' && event ? event.title : s.excerpt ?? '',
       kind: s.kind === 'company_profile' ? 'profile' : 'public', publishedAt: s.publishedAt,
       relevance: assessment.relevance, eventType: assessment.eventType, eventId: assessment.eventId, businessRole: assessment.businessRole };
   });
@@ -26,6 +26,11 @@ export function groundAnalysis(analysis: Analysis, evidence: BusinessEvidence[],
   const actionable = new Map(eligibleEvidence(evidence, knowledge).map(s => [s.id, s]));
   const matches = matchOfferings(knowledge, evidence);
   const catalogue = new Map(knowledge.offerings.map(o => [o.id, o]));
+  // These are explicit catalogue questions, not AI-generated requirements or qualified leads.
+  const discoveryPrompts = [...matches].sort((a, b) => Number(b.fitLevel === 'DIRECT_SIGNAL') - Number(a.fitLevel === 'DIRECT_SIGNAL'))
+    .slice(0, 2).map(match => ({ offeringId: match.offeringId, offeringName: catalogue.get(match.offeringId)!.name,
+      question: catalogue.get(match.offeringId)!.discoveryQuestions[0], basis: match.basis,
+      evidenceIds: match.evidenceIds, fitLevel: match.fitLevel, origin: 'catalogue_rule' as const }));
   const blocked = (text: string) => containsAny(text, knowledge.evidencePolicy.blockedInferenceTerms);
   const rejections: Rejection[] = [];
   const warnings: string[] = [];
@@ -36,8 +41,9 @@ export function groundAnalysis(analysis: Analysis, evidence: BusinessEvidence[],
   const explain = (offeringId: string, item: Rejection['item'], ids: string[], unsafe = false) => {
     const sources = ids.map(id => evidence.find(e => e.id === id)).filter(Boolean);
     const noCurrent = !ids.some(id => actionable.has(id));
-    const code = unsafe ? 'UNSUPPORTED_INFERENCE' : sources.some(s => s?.relevance === 'COMMENTARY') && noCurrent ? 'COMMENTARY_NOT_COMPANY_EVENT' : noCurrent ? 'NO_DATED_COMPANY_EVENT' : 'NO_SERVICE_CONNECTION';
-    const reason = unsafe ? 'The suggestion inferred an unsupported incident or legal-risk requirement.' : code === 'COMMENTARY_NOT_COMPANY_EVENT' ? 'The cited material is commentary or a publisher byline, not a change in this company.' : code === 'NO_DATED_COMPANY_EVENT' ? 'The cited items are background, undated, stale or not clearly about a company action.' : 'The cited company event does not support this service under the active catalogue rules.';
+    const providerOnly = sources.length > 0 && sources.every(s => s?.businessRole === 'PROVIDER');
+    const code = unsafe ? 'UNSUPPORTED_INFERENCE' : sources.some(s => s?.relevance === 'COMMENTARY') && noCurrent ? 'COMMENTARY_NOT_COMPANY_EVENT' : noCurrent ? 'NO_DATED_COMPANY_EVENT' : providerOnly ? 'PROVIDER_CONTEXT_NOT_SUPPORTED' : 'NO_SERVICE_CONNECTION';
+    const reason = unsafe ? 'The suggestion inferred an unsupported incident or legal-risk requirement.' : code === 'COMMENTARY_NOT_COMPANY_EVENT' ? 'The cited material is commentary or a publisher byline, not a change in this company.' : code === 'NO_DATED_COMPANY_EVENT' ? 'The cited items are background, undated, stale or not clearly about a company action.' : providerOnly ? `The report describes the company delivering services to others. No configured ${catalogue.get(offeringId)?.name ?? 'service'} discovery rule supports inferring its own requirement from this event.` : 'The cited company event does not support this service under the active catalogue rules.';
     rejections.push({ offeringId, offeringName: catalogue.get(offeringId)?.name ?? offeringId, item, code, reason, evidenceIds: ids });
   };
   const validatedNeeds = analysis.possibleNeeds.flatMap(need => {
@@ -51,7 +57,9 @@ export function groundAnalysis(analysis: Analysis, evidence: BusinessEvidence[],
     if (ids.length !== new Set(need.evidenceIds).size) warnings.push(`Kept ${catalogue.get(need.offeringId)?.name} with relevant citations; excluded unrelated/background citations.`);
     const citedMatches = sources.map(s => offeringEvidenceMatch(s, catalogue.get(need.offeringId)!, knowledge)!);
     const fit = citedMatches.find(m => m.fitLevel === 'DIRECT_SIGNAL') ?? citedMatches[0];
-    return [{ ...need, evidenceIds: ids, fitLevel: fit.fitLevel, basis: fit.basis,
+    const providerOnly = sources.every(s => s.businessRole === 'PROVIDER');
+    return [{ ...need, ...(providerOnly ? { need: `Explore ${catalogue.get(need.offeringId)!.name} for company-operated workloads, if any.`, reason: fit.basis } : {}),
+      evidenceIds: ids, fitLevel: fit.fitLevel, basis: fit.basis,
       validationQuestion: catalogue.get(need.offeringId)!.discoveryQuestions[0] }];
   });
   // Enforce the brief limit even when a model ignores the requested response length.
@@ -64,15 +72,17 @@ export function groundAnalysis(analysis: Analysis, evidence: BusinessEvidence[],
     const ids = supportedIds(capability.offeringId, capability.evidenceIds);
     if (!ids.length || !needs.some(n => n.offeringId === capability?.offeringId) || blocked(capability.reason)) {
       explain(capability.offeringId, 'capability', capability.evidenceIds, blocked(capability.reason)); capability = null;
-    } else capability = { ...capability, name: catalogue.get(capability.offeringId)!.name, evidenceIds: ids };
+    } else capability = { ...capability, name: catalogue.get(capability.offeringId)!.name, evidenceIds: ids,
+      ...(ids.every(id => actionable.get(id)?.businessRole === 'PROVIDER') ? { reason: needs.find(n => n.offeringId === capability!.offeringId)!.reason } : {}) };
   }
   // A valid need can still support discovery when the model omits its preferred service.
-  const preferredId = capability?.offeringId ?? needs[0]?.offeringId;
+  const preferredId = capability?.offeringId ?? needs[0]?.offeringId ?? discoveryPrompts[0]?.offeringId;
   const preferred = preferredId ? matches.find(c => c.offeringId === preferredId) : undefined;
   const offering = preferredId ? catalogue.get(preferredId) : undefined;
-  const firstSource = preferred ? actionable.get(preferred.evidenceIds[0]) : actionable.values().next().value as BusinessEvidence | undefined;
+  const citedId = needs.find(n => n.offeringId === preferredId)?.evidenceIds[0] ?? preferred?.evidenceIds[0];
+  const firstSource = citedId ? actionable.get(citedId) : actionable.values().next().value as BusinessEvidence | undefined;
   const eventLabel = firstSource?.eventType?.toLowerCase().replace(/_/g, ' ') ?? 'company development';
-  const question = blocked(JSON.stringify(analysis.nextAction)) || /reported business developments|unmet technology need\?|which.*technology needs/i.test(analysis.nextAction.question)
+  const question = !needs.length || firstSource?.businessRole === 'PROVIDER' || blocked(JSON.stringify(analysis.nextAction)) || /reported business developments|unmet technology need\?|which.*technology needs/i.test(analysis.nextAction.question)
     ? offering?.discoveryQuestions[0] ?? knowledge.evidencePolicy.discoveryQuestion : analysis.nextAction.question;
   const nextAction = firstSource ? {
     role: offering?.buyerRoles[0] ?? knowledge.evidencePolicy.discoveryRole,
@@ -83,7 +93,8 @@ export function groundAnalysis(analysis: Analysis, evidence: BusinessEvidence[],
   const readiness = needs.length ? 'DISCOVERY_READY' as const : actionable.size ? 'NEEDS_RESEARCH' as const : 'HOLD' as const;
   const statusReason = needs.length
     ? `${needs.length} service ${needs.length === 1 ? 'hypothesis' : 'hypotheses'} supported for targeted discovery. Customer demand and supplier gaps are not yet confirmed.`
-    : actionable.size ? 'Current company events were found, but no generated service hypothesis passed the relevance checks. Review the event and the specific rejection reasons.'
+    : matches.length ? `${matches.length} potential service connection(s) match the configured discovery rules, but no AI suggestion passed validation. Use the source-linked catalogue questions below; no customer requirement is confirmed.`
+    : actionable.size ? 'Dated company events were found, but none match the current service discovery rules. Providing a service to others does not establish this company\'s own buying need. Check workload ownership or add direct customer context.'
     : 'The snapshot contains no dated, eligible company event. Background, commentary and repeated coverage do not establish an operational need.';
   const securityRelevant = needs.some(n => catalogue.get(n.offeringId)?.category === 'Security');
   const unknowns = analysis.unknowns.filter(u => securityRelevant || !/cybersecurity concerns|current security concerns|cyber.?attack|ransomware/i.test(u));
@@ -91,7 +102,10 @@ export function groundAnalysis(analysis: Analysis, evidence: BusinessEvidence[],
   if (rejections.length) warnings.push(`${rejections.length} unsupported suggestion${rejections.length === 1 ? '' : 's'} withheld; specific reasons are listed below.`);
   return { analysis: { ...analysis, summary: blocked(analysis.summary) ? 'The source material requires verification before discussing a service.' : analysis.summary,
     possibleNeeds: needs, recommendedCapability: capability, nextAction, unknowns, readiness },
-    validationWarnings: [...new Set(warnings)], rejections, statusReason };
+    validationWarnings: [...new Set(warnings)], rejections, statusReason, discoveryPrompts,
+    matchingAssessment: { eligibleEventCount: new Set([...actionable.values()].map(e => e.eventId ?? e.id)).size,
+      providerEventCount: new Set([...actionable.values()].filter(e => e.businessRole === 'PROVIDER').map(e => e.eventId ?? e.id)).size,
+      serviceCandidateCount: matches.length, generatedHypothesisCount: analysis.possibleNeeds.length, acceptedHypothesisCount: needs.length } };
 }
 
 export function factualResearchSummary(record: ResearchRecord, overview: ResearchOverview): string {

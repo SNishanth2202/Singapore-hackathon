@@ -52,7 +52,8 @@ export function offeringEvidenceMatch(evidence: BusinessEvidence, offering: Offe
     && (!offering.signalRules.requiredAnyTerms.length || containsAny(text, offering.signalRules.requiredAnyTerms))
     && !containsAny(text, offering.signalRules.excludeTerms);
   if (direct) return { fitLevel: 'DIRECT_SIGNAL', basis: 'The dated company event contains a configured service-related signal; customer demand is still unconfirmed.' };
-  const discovery = offering.discoveryRules.find(rule => rule.eventTypes.includes(type) && containsAny(text, rule.anyTerms)
+  const discovery = offering.discoveryRules.find(rule => (evidence.businessRole !== 'PROVIDER' || rule.allowProviderContext)
+    && rule.eventTypes.includes(type) && containsAny(text, rule.anyTerms)
     && (!rule.requiredAnyTerms.length || containsAny(text, rule.requiredAnyTerms)) && !containsAny(text, rule.excludeTerms));
   return discovery ? { fitLevel: 'EXPLORATORY', basis: discovery.rationale } : null;
 }
