@@ -13,7 +13,10 @@ export interface Opportunity extends Omit<Decision, 'confidence'> {
   gates: { gate: string; state: string; condition: string; actual: string; reason: string; evidenceIds: string[] }[];
   components: { name: string; points: number; max: number; reason: string; evidenceIds: string[] }[];
   strongestEvidence: Evidence; evidence: Evidence[]; previousDecision: Decision | null; changedFact: string | null;
-  rankingConfidence: { score: number | null; retainedScenarios: number | null; scenarioCount: number;
+  assessment?: { model: string | null; responseId: string | null; evaluatedAt: string | null; reason: string;
+    urgencyReasons: string[]; confidenceReasons: string[]; evidenceIds: string[]; pending?: boolean };
+  rankingConfidence: { method?: 'llm_assessment' | 'scenario_stability'; reason?: string;
+    score: number | null; retainedScenarios: number | null; scenarioCount: number;
     minRank: number | null; maxRank: number | null; actionScore: number | null; verifyNext: string;
     insufficientEvidenceReason: string | null; scenarios: { id: string; name: string; rank: number; band: string; score: number; status: Status; actionCode: string }[] };
   publicContribution: number; originalCrmDiscovery: boolean;
@@ -21,7 +24,9 @@ export interface Opportunity extends Omit<Decision, 'confidence'> {
 export interface Queue { items: Opportunity[]; total: number; view: View; queueVersion: string;
   asOf: string; queueComputedAt: string; eventCursor: number; initialized: boolean; degraded: boolean;
   lastSuccessfulRefreshAt: string | null; lastAttemptAt: string; sourceError: string | null;
-  rubricVersion: string; scenarioVersion: string; fixtureVersion: string }
+  rubricVersion: string; scenarioVersion: string; fixtureVersion: string;
+  llm?: { mode: 'llm' | 'rules_preview'; status: 'ready' | 'needs_key' | 'failed' | 'stale'; model: string | null;
+    evaluatedAt: string | null; attemptedAt: string; inputHash: string; error: string | null; code: string | null; promptVersion: string; responseId: string | null } }
 export interface ReplayEvent { eventId: string; eventType: string; aggregateId: string;
   aggregateVersion: number; payload: Record<string, unknown>; description?: string }
 export interface Source { id: string; sourceFamily: string; sourceUrl: string; excerpt: string;
@@ -31,7 +36,8 @@ export interface Meta { events: ReplayEvent[]; appliedEventIds: string[];
   history: { eventId: string; eventType: string; fact: string; at: string;
     changes: { id: string; before: Decision | null; after: Decision }[] }[];
   sources: Source[]; evidence: Evidence[]; crm: Record<string, unknown[]>;
-  liveExtractionConfigured: boolean; clockMode: string; persistence: string }
+  liveExtractionConfigured: boolean; clockMode: string; persistence: string;
+  rankingMode?: 'llm' | 'rules'; openAi?: { configured: boolean; source: 'environment' | 'session' | null; model: string } | null }
 export interface Comparison {
   note: string; universe: string[]; eventCursor: number; asOf: string;
   summaries: Record<View, { topFive: string[]; pursueInTopFive: number; verifyOrResolveInTopFive: number }>;
@@ -40,8 +46,8 @@ export interface Comparison {
 }
 export async function rankingRequest<T>(path: string, body?: unknown): Promise<T> {
   const response = await fetch(`${(import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')}/api/v1/ranking${path}`, {
-    method: body === undefined ? 'GET' : 'POST', headers: { 'Content-Type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(45000),
+    method: body === undefined ? 'GET' : 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(120000),
   })
   const result = await response.json()
   if (!response.ok) throw new Error(result.message || `Request failed (${response.status})`)

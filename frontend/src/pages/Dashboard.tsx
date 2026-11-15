@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircleIcon, BarChart3Icon, Building2Icon, MailIcon, RefreshCwIcon, UsersIcon, TrendingUpIcon, TargetIcon } from 'lucide-react'
+import { AlertCircleIcon, Building2Icon, MailIcon, RefreshCwIcon, UsersIcon, TrendingUpIcon, TargetIcon } from 'lucide-react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar, BarChart as RechartsBarChart, Cell } from 'recharts'
 import { analyticsService, SalesAnalyticsDashboard } from '../services/analytics.service'
 import { PageHeader } from '../components/ui/PageHeader'

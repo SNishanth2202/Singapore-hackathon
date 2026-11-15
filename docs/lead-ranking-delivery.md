@@ -3,13 +3,33 @@
 Built locally on `Lead-Ranking-Agent`, 15 November 2026. Start from the root with `npm run dev` after
 `npm --prefix backend ci` and `npm --prefix frontend ci`. Open http://localhost:3000/lead-ranking.
 
+## Current OpenAI assessment update
+
+The default calls OpenAI for internal ordering score, urgency and confidence. The table displays urgency
+and one confidence percentage; hover/focus/tap reveals 2-5-word reasons. Gate actions remain enforced
+by application code. A missing-key popup keeps a browser-provided key in backend memory and returns
+only an opaque HttpOnly session cookie. The local environment key remains ignored by git.
+See [current runtime and acceptance checks](lead-ranking-llm.md) and [demo script](lead-ranking-demo.md).
+A real 15-candidate assessment succeeded on 15 Nov 2026 with `gpt-4.1-mini-2025-04-14`.
+Model confidence is subjective evidence support, not the reference engine's scenario frequency.
+
+Current verification: 66 existing app tests, 32 ranking/importer/API/model tests, 6 connector tests and
+5 browser tests passed. The browser suite includes the missing-key popup, percentage-only display,
+short hover/focus/tap reasons and no browser key storage. Both package builds and the offline replay
+verifier passed. A separate live-model browser smoke check returned 15 assessed leads with no page errors;
+screenshots are under ignored `.local/screenshots/live-openai-*.png`.
+
+The implementation inventory and exact-score tables below document the **earlier deterministic baseline**.
+They remain applicable in `LEAD_RANKING_MODE=rules`, rather than describing default live-model judgments.
+The original main integration was completed before this follow-up.
+
 ## Integration with main
 
 Integrated main's Singtel Scout branding, company research, AI configuration and deployment work from
 `5065eba`. Lead Ranking uses the shared sidebar, navbar and PageHeader, with the app's navy/teal palette,
 standard type sizes and responsive spacing. `/` stays the dashboard; `/opportunities` redirects to
 `/lead-ranking`. The removed summary/replay banners stay removed; compact page actions open Demo checks.
-Score and numeric ranking confidence sit together before the longer next-action and evidence columns.
+Urgency and confidence percentage sit before the next-action and evidence columns; the ordering score is hidden.
 
 The root development launcher runs the full app's memory preview alongside Vite. The normal backend
 `start` command retains main's cloud/hosted entry point; `dev:ranking-demo` and `start:ranking-demo`
@@ -87,10 +107,11 @@ behavior is defined by `engine.ts`, the fixtures and their tests.
 This is a single-process local hackathon demo. The default authoritative store is `.local/lead-ranking-state.json`,
 not MongoDB, so it starts without infrastructure. MongoDB/Neo4j and the older app are retained separately.
 No real Salesforce authentication, production deployment, live customer data, automatic outreach, or real
-Singtel engineering/SLA verification is claimed. Live LLM extraction needs an account key and configured
-model and was not validated against a paid model endpoint. Source-family polling policies in the inventory
+Singtel engineering/SLA verification is claimed. Live extraction remains optional. Active lead assessment
+uses a configured or browser-provided OpenAI key and was verified against the live Responses endpoint.
+The original deterministic checks remain offline. Source-family polling policies in the inventory
 are proposed operational policies; the demo refresh is explicit, and clock checks are replayable.
 
 Reset uses only the demo's own isolated state. To reproduce checks, use the commands in the root README.
-The tests mutate that isolated demo state; finish any recording before running browser tests.
+Browser tests use separate ports 3010/5010 and a separate rules fixture store, preserving the running demo.
 Screenshots are generated under `.local/screenshots/`, and CI preserves readiness reports and traces as artifacts.

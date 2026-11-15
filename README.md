@@ -318,10 +318,9 @@ Analysis distinguishes a service-related signal from an exploratory event-to-ser
 ## Lead ranking
 
 Lead ranking combines cited public signals with synthetic Salesforce-style CRM and engineering facts.
-It ranks each account, buying unit, product/use case and buying window using deterministic rules.
+It ranks each account, buying unit, product/use case and buying window. **OpenAI actively assesses
+urgency and confidence**; application code enforces site, technical and deadline requirements.
 Open **Lead Ranking** in the app navigation (`/lead-ranking`); `/opportunities` redirects there.
-
-For a credential-free local preview of the full app:
 
 ```powershell
 npm --prefix backend ci
@@ -329,24 +328,33 @@ npm --prefix frontend ci
 npm run dev
 ```
 
-Open http://localhost:3000/lead-ranking. The default home page remains the dashboard.
-The local launcher uses the app's memory preview for company/research features and a separate atomic
-JSON store under `.local/` for lead ranking. No real Salesforce connection is claimed.
-The cloud backend keeps its existing `npm --prefix backend start` entry point and deployment settings.
-The explicit hosted preview enables the synthetic ranking demo controls; its file state is temporary.
+Open http://localhost:3000/lead-ranking. If no OpenAI key is configured, the app opens a popup to enter
+one. Alternatively set `OPENAI_API_KEY` in the ignored project-root `.env`; the default ranking model
+is `gpt-4.1-mini`, configurable with `OPENAI_MODEL`. Browser-entered keys stay in backend memory for
+the session; the browser receives an opaque HttpOnly cookie. Keys are never saved in browser storage
+or returned by the API. OpenAI API usage is billed to the key's account. Restarting the server clears
+browser key sessions. Company research retains its existing, separate provider settings.
 
-Status labels are **Very urgent** (85-100), **Urgent** (70-84), **Normal priority** (50-69),
-**Low priority** (25-49) and **Irrelevant** (0-24). The separate next-action labels are Pursue,
-Verify, Resolve, Monitor and Blocked. Mandatory site, technical and deadline checks control pursuit.
-Priority score and ranking confidence are separate: confidence measures priority-band stability
-across ten whole-queue scenarios, with Insufficient evidence when plausible inputs cannot be bounded.
+Urgency labels are **Very urgent**, **Urgent**, **Normal priority**, **Low priority** and **Irrelevant**.
+The table shows one **confidence percentage**, with no separate numeric priority score. Hover, focus
+or tap either urgency or confidence for short evidence-based reasons. Confidence is the model's
+assessment of the evidence supporting its urgency judgment, not a calibrated probability of winning
+or a scenario frequency. Unbounded decisive evidence shows **Insufficient evidence**. Required actions
+remain Pursue, Verify, Resolve, Monitor and Blocked; failed or unknown mandatory gates prevent pursuit.
 
-The worklist opens directly onto the ranked leads. Use **Demo checks** for replay/reset, connector failure,
-ambiguous matches, clock changes and an empty list. Source refresh failures retain the last successful queue.
-The initial 15 candidates become 16 when the cited ETLA trigger is replayed. All buyer dates, contacts,
-commercial estimates, service cases and engineering assessments in this module are synthetic.
+The worklist opens directly onto the ranked leads. **Reassess leads** requests a fresh model assessment;
+unchanged evidence normally reuses the successful result. **Demo checks** opens replay/reset,
+connector failure, ambiguous matching, clock changes and an empty list. The initial 15 candidates
+become 16 when the cited ETLA trigger is replayed. All buyer dates, contacts, commercial estimates,
+service cases and engineering assessments are synthetic. Source/model failures preserve the last
+successful result with its time and warning. Before a successful model call, the queue is labelled
+Awaiting AI. A healthy empty queue stays empty without a model call.
 
-Verify the lead-ranking module:
+The local launcher uses the app's memory preview and a separate atomic JSON store under `.local/`
+for ranking. The default home page remains the dashboard. No real Salesforce connection is claimed.
+The cloud backend retains its existing start entry point; hosted preview file state is temporary.
+
+Verify the module without paid model calls:
 
 ```powershell
 npm --prefix backend run test:ranking
@@ -355,10 +363,12 @@ npm --prefix backend run verify:ranking-demo
 npm --prefix frontend run test:e2e
 ```
 
-The existing backend build and research/deployment tests also apply. Browser tests reset only the ranking
-demo state. Optional live extraction requires `OPENAI_API_KEY` and `OPENAI_MODEL`; the complete replay
-runs from cited snapshots without a paid model call. Hosted research/analysis keeps main's provider settings.
+Browser tests use isolated ports and fixture state. The replay verifier checks the deterministic
+reference engine; set `LEAD_RANKING_MODE=rules` before starting the backend to use that offline mode.
+Its fixed weights and ten-scenario confidence are reference behavior rather than the live AI assessment.
+Both package builds and the existing research/deployment tests also apply.
 
+- [Active LLM architecture, keys and acceptance checks](docs/lead-ranking-llm.md)
 - [Implementation plan and acceptance criteria](docs/lead-ranking-plan.md)
 - [Data contracts and seeded opportunities](docs/lead-ranking-contracts.md)
 - [Public source inventory](docs/lead-ranking-sources.md)

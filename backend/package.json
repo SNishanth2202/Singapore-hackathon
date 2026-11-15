@@ -18,7 +18,7 @@
     "seed": "ts-node src/scripts/seed.ts",
     "lint": "eslint src --ext .ts",
     "seed:lead-ranking": "ts-node src/scripts/seed-lead-ranking.ts",
-    "test:ranking": "node -r ts-node/register/transpile-only --test test/ranking.test.ts test/api.test.ts test/importer.test.ts test/discovery-handoff.test.ts",
+    "test:ranking": "node -r ts-node/register/transpile-only --test test/ranking.test.ts test/api.test.ts test/importer.test.ts test/discovery-handoff.test.ts test/llm-ranking.test.ts",
     "verify:ranking-demo": "ts-node src/scripts/verify-ranking-demo.ts",
     "dev:ranking-demo": "ts-node-dev --respawn --transpile-only src/ranking/demo-server.ts",
     "start:ranking-demo": "node dist/ranking/demo-server.js",

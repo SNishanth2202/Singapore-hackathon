@@ -10,7 +10,7 @@ export class DomainError extends Error { constructor(message: string, public sta
 export class RankingService {
   private state: DemoState;
   private serial: Promise<unknown> = Promise.resolve();
-  constructor(private storePath: string | null = path.join(REPO_ROOT, '.local/lead-ranking-state.json'), seedFactory: () => DemoState = makeSeed) {
+  constructor(private storePath: string | null = process.env.LEAD_RANKING_STATE_PATH || path.join(REPO_ROOT, '.local/lead-ranking-state.json'), seedFactory: () => DemoState = makeSeed) {
     if (storePath && fs.existsSync(storePath)) {
       const saved = JSON.parse(fs.readFileSync(storePath, 'utf8')) as DemoState;
       if (saved.schemaVersion !== 1 || !Array.isArray(saved.evidence) || !saved.snapshots) throw new Error('Invalid local ranking state; restore a valid file or run seed:lead-ranking');

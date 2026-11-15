@@ -1,8 +1,13 @@
 # Data contracts and deterministic demo fixtures
 
+**Current runtime:** [Active LLM contract](lead-ranking-llm.md) supersedes the original deterministic
+score/threshold/scenario requirements below for the default mode. OpenAI chooses urgency and confidence;
+the UI shows confidence as a percentage with short hover reasons and no separate score. The original
+rubric and scenarios remain the offline rules baseline. All mandatory gates remain application-enforced.
+
 Implementation update: the local demo is now built. See [delivery notes](lead-ranking-delivery.md) and the root README for executed commands and the current file-store architecture. The original specification below remains the design baseline.
 
-Current queue responses add `priorityStatus`: `Very urgent` (score 85+), `Urgent` (70?84),
+Rules-baseline queue responses use `priorityStatus`: `Very urgent` (score 85+), `Urgent` (70?84),
 `Normal priority` (50?69), `Low priority` (25?49), or `Irrelevant` (below 25). The existing `status`
 field describes the recommended action: Pursue, Verify, Resolve, Monitor or Blocked. UI status filters
 use `priorityStatus`. Priority bands used by ranking confidence remain WORK_NOW, NEXT, WAITING and BLOCKED.

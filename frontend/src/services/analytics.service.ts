@@ -25,6 +25,7 @@ export interface SalesAnalyticsDashboard {
   period: { startDate: string; endDate: string; timezone: string }
   dataMode: string
   containsSyntheticData: boolean
+  funnelDenominator: string
   metrics: Record<string, number | null>
   funnel: { name: string; companies: number; conversionPct: number; dropoffPct: number; previousPeriodCompanies: number }[]
   timeline: { date: string; type: string; count: number }[]
@@ -51,7 +52,7 @@ export interface HealthStatus {
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
 
-const MOCK_OVERVIEW: AnalyticsOverview = {
+export const MOCK_OVERVIEW: AnalyticsOverview = {
   totalCompanies: 247,
   newThisWeek: 12,
   openOpportunities: 38,

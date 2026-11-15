@@ -6,7 +6,7 @@ import { PageHeader } from '../components/ui/PageHeader'
 import api from '../services/api'
 import { formatDate } from '../utils/formatters'
 
-interface Event { eventId: string; type: string; companyId: string; companyName: string; researchId?: string; contactName?: string; contactEmail?: string; reason?: string; priority?: string; status?: string; assignedTo?: string; createdAt: string; payload: Record<string, unknown> }
+interface Event { eventId: string; type: string; companyId: string; companyName: string; researchId?: string; contactName?: string; contactEmail?: string; reason?: string; priority?: string; status?: string; assignedTo?: string; createdAt: string; payload: Record<string, string | number | boolean | null | undefined> }
 interface Page<T> { data: T[]; meta?: { total: number; page: number; limit: number } }
 
 function errorText(error: unknown) { return axios.isAxiosError(error) ? error.response?.data?.message ?? 'The sales workflow request failed.' : 'The sales workflow request failed.' }
