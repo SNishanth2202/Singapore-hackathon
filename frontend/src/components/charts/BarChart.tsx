@@ -24,8 +24,8 @@ export function BarChart({ data, title, color, isSample }: BarChartProps) {
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
         {isSample && (
-          <span className="px-1.5 py-0.5 rounded text-xs bg-amber-50 text-amber-600 border border-amber-200">
-            sample
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-50 text-gray-500 border border-gray-200">
+            Demo
           </span>
         )}
       </div>

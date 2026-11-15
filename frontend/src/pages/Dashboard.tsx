@@ -9,17 +9,6 @@ import { ErrorState } from '../components/ui/ErrorState'
 import { PageHeader } from '../components/ui/PageHeader'
 import { formatDate, formatNumber } from '../utils/formatters'
 
-function MockDataBanner() {
-  return (
-    <div className="mb-6 flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-      <AlertCircleIcon className="w-4 h-4 flex-shrink-0" />
-      <span>
-        <strong>Sample Data Mode</strong> — Backend unavailable. Showing illustrative placeholder data only.
-      </span>
-    </div>
-  )
-}
-
 export default function Dashboard() {
   const { overview, loading: analyticsLoading, error: analyticsError, isMockData, refetch } = useAnalytics()
   const { companies: recentCompanies, loading: companiesLoading } = useCompanies({ limit: 5 })
@@ -51,8 +40,6 @@ export default function Dashboard() {
           </button>
         }
       />
-
-      {isMockData && <MockDataBanner />}
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
@@ -103,8 +90,8 @@ export default function Dashboard() {
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <h3 className="text-sm font-semibold text-gray-700">Recent Companies</h3>
           {isMockData && (
-            <span className="px-1.5 py-0.5 rounded text-xs bg-amber-50 text-amber-600 border border-amber-200">
-              sample
+            <span className="px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-500 border border-gray-200">
+              Demo
             </span>
           )}
         </div>

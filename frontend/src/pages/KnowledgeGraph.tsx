@@ -146,17 +146,6 @@ export default function KnowledgeGraph() {
             </ul>
           </div>
 
-          {/* TODO Integration Points */}
-          <div className="card p-5 border-dashed border-amber-200 bg-amber-50">
-            <p className="text-xs font-semibold text-amber-700 mb-2">🔧 TODO Integration Points</p>
-            <ul className="text-xs text-amber-700 space-y-1 list-disc list-inside">
-              <li>Connect Neo4j driver in backend graphService</li>
-              <li>Expose graph REST endpoints under /api/v1/graph</li>
-              <li>Add react-force-graph package</li>
-              <li>Wire node click → Company Profile navigation</li>
-              <li>Add fullscreen graph modal</li>
-            </ul>
-          </div>
         </div>
       </div>
     </div>

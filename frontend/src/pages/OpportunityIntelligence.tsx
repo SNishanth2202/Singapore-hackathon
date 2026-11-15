@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { AlertCircleIcon } from 'lucide-react'
 import { useOpportunities } from '../hooks/useOpportunities'
 import { DataTable, Column } from '../components/ui/DataTable'
 import { FilterBar, FilterConfig } from '../components/ui/FilterBar'
@@ -125,14 +124,8 @@ export default function OpportunityIntelligence() {
       <PageHeader
         title="Opportunity Intelligence"
         subtitle="Track and prioritise potential Singtel service opportunities across the portfolio"
+        badge={isMockData ? <Badge label="Demo" variant="sample" /> : undefined}
       />
-
-      {isMockData && (
-        <div className="mb-5 flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-          <AlertCircleIcon className="w-4 h-4 flex-shrink-0" />
-          <span><strong>Sample Data Mode</strong> — Backend unavailable. Showing placeholder data.</span>
-        </div>
-      )}
 
       <div className="mb-5">
         <FilterBar filters={filters} onChange={handleFilterChange} onReset={handleReset} />

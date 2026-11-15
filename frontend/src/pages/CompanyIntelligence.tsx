@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircleIcon } from 'lucide-react'
 import { useCompanies } from '../hooks/useCompanies'
 import { DataTable } from '../components/ui/DataTable'
 import { SearchBar } from '../components/ui/SearchBar'
@@ -127,13 +126,10 @@ export default function CompanyIntelligence() {
 
       <CompanyResearch />
 
-      <h2 className="text-base font-semibold text-gray-700 mb-4">Tracked company workspace</h2>
-      {isMockData && (
-        <div className="mb-5 flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-          <AlertCircleIcon className="w-4 h-4 flex-shrink-0" />
-          <span><strong>Sample accounts</strong> — The table below contains illustrative data. Use the research box above for public company research.</span>
-        </div>
-      )}
+      <div className="flex items-center gap-2 mb-4">
+        <h2 className="text-base font-semibold text-gray-700">Tracked company workspace</h2>
+        {isMockData && <Badge label="Demo" variant="sample" />}
+      </div>
 
       {/* Search + Filter */}
       <div className="flex flex-col gap-3 mb-5">

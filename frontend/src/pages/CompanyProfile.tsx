@@ -7,7 +7,6 @@ import {
   CalendarIcon,
   UsersIcon,
   LayersIcon,
-  AlertCircleIcon,
   ZapIcon,
   TargetIcon,
 } from 'lucide-react'
@@ -78,13 +77,6 @@ export default function CompanyProfile() {
         Back to Company Intelligence
       </button>
 
-      {company.isMockData && (
-        <div className="mb-5 flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-          <AlertCircleIcon className="w-4 h-4 flex-shrink-0" />
-          <span><strong>Sample company data</strong> — Fictional scenario for the local preview. AI analysis is live.</span>
-        </div>
-      )}
-
       {/* Company Card */}
       <div className="card p-6 mb-5">
         <div className="flex items-start justify-between mb-4">
@@ -97,6 +89,7 @@ export default function CompanyProfile() {
             <div>
               <h1 className="text-xl font-semibold text-gray-900">{company.companyName}</h1>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {company.isMockData && <Badge label="Demo" variant="sample" />}
                 {company.industry && <Badge label={company.industry} variant="industry" />}
                 {company.companyStage && <Badge label={company.companyStage} />}
               </div>
