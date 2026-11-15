@@ -1,0 +1,62 @@
+[
+  {
+    "eventId": "E0-public-etla",
+    "aggregateId": "O01",
+    "aggregateVersion": 1,
+    "eventType": "PublicTriggerImported",
+    "payload": {
+      "sourceIds": [
+        "S01",
+        "S02"
+      ]
+    },
+    "description": "Public trigger · discover ETLA's new facility"
+  },
+  {
+    "eventId": "E1-window-etla",
+    "aggregateId": "O01",
+    "aggregateVersion": 2,
+    "eventType": "BuyingWindowConfirmed",
+    "payload": {
+      "deadline": "2026-11-23T01:00:00.000Z"
+    },
+    "description": "Mock Salesforce · confirm the buying window"
+  },
+  {
+    "eventId": "E2-case-micron",
+    "aggregateId": "O02",
+    "aggregateVersion": 1,
+    "eventType": "ServiceCaseOpened",
+    "payload": {},
+    "description": "Mock Salesforce · open Micron service case"
+  },
+  {
+    "eventId": "E3-site-etla",
+    "aggregateId": "O01",
+    "aggregateVersion": 3,
+    "eventType": "SiteAssessmentCompleted",
+    "payload": {
+      "state": "PASS"
+    },
+    "description": "Mock engineering · verify ETLA serviceability"
+  },
+  {
+    "eventId": "E4-5g-latency-fail",
+    "aggregateId": "O15",
+    "aggregateVersion": 1,
+    "eventType": "TechnicalAssessmentCompleted",
+    "payload": {
+      "state": "FAIL",
+      "latencyMs": 28
+    },
+    "description": "Mock engineering · private 5G latency fails"
+  },
+  {
+    "eventId": "E5-case-resolved",
+    "aggregateId": "O02",
+    "aggregateVersion": 2,
+    "eventType": "ServiceCaseResolved",
+    "payload": {},
+    "description": "Mock Salesforce · resolve Micron service case"
+  }
+]

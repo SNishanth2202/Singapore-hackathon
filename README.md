@@ -1,242 +1,158 @@
-# Enterprise Radar AI 🚀
+# Singtel Enterprise lead-ranking agent
 
-> **Singtel Hackathon Project** — AI-powered enterprise intelligence platform that identifies and surfaces business opportunities across the APAC region.
+A local, evidence-led sales worklist for **account x buying unit x product/use case x buying window**.
+It combines cited public observations with clearly synthetic Salesforce records, scores opportunities with
+transparent rules, and replays the facts that change a rep's next action.
 
----
+**Branch:** `Lead-Ranking-Agent`. This is a working prototype, with local persistence and mock CRM / engineering.
+No real Salesforce account is connected. All buyer contacts, telco contracts, buying dates, assessments,
+commercial values and Singtel customer relationships in the demo are synthetic.
 
-## Table of Contents
+## Run locally
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Prerequisites](#prerequisites)
-- [Quick Start (Docker)](#quick-start-docker)
-- [Local Development](#local-development)
-- [API Reference](#api-reference)
-- [Environment Variables](#environment-variables)
-- [Seed Data](#seed-data)
-- [Project Structure](#project-structure)
+Requires Node.js 20+ and npm. From the repository root:
 
----
-
-## Overview
-
-Enterprise Radar AI aggregates public signals about companies (funding rounds, hiring trends, tech adoption, partnerships) and uses a knowledge graph to surface high-priority sales and partnership opportunities for Singtel's enterprise teams.
-
-**Tech Stack**
-
-| Layer | Technology |
-|-------|-----------|
-| Backend | Node.js · Express · TypeScript |
-| Primary DB | MongoDB (Mongoose) |
-| Graph DB | Neo4j |
-| Validation | Zod |
-| Logging | Winston |
-| Container | Docker / Docker Compose |
-
----
-
-## Architecture
-
-```
-+---------------------------------------------------------+
-|                     Frontend (React)                    |
-+---------------------+-----------------------------------+
-                      | HTTP  /api/v1
-+---------------------v-----------------------------------+
-|               Express API (backend:5000)                |
-|  Routes -> Controllers -> Repositories -> Models        |
-+------------+------------------------+-------------------+
-             |                        |
-  +----------v---------+   +-----------v-----------+
-  |  MongoDB :27017    |   |  Neo4j      :7687     |
-  |  (Mongoose)        |   |  (Graph DB)           |
-  +--------------------+   +-----------------------+
+```powershell
+npm --prefix backend ci
+npm --prefix frontend ci
+npm run dev
 ```
 
----
+Open **http://localhost:3000**. The API runs at **http://127.0.0.1:5000/api/v1/ranking**.
+No Docker, database, API key or `.env` is required for the full replay.
+Stop the dev launcher with Ctrl+C. The demo state is saved under `.local/` and survives reloads/restarts.
+Use the in-app Reset button to replay from the same initial state.
 
-## Prerequisites
+For a built, single-server preview:
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) >= 24
-- [Node.js](https://nodejs.org/) >= 20 (for local dev)
-- [pnpm](https://pnpm.io/) >= 9 (`npm i -g pnpm`)
-
----
-
-## Quick Start (Docker)
-
-```bash
-# 1. Clone the repo
-git clone <repo-url>
-cd Singapore-hackathon
-
-# 2. Create your .env file
-cp .env.example .env
-# Edit .env -- set NEO4J_PASSWORD and JWT_SECRET at minimum
-
-# 3. Start all services
-docker compose up --build -d
-
-# 4. Check health
-curl http://localhost:5000/api/v1/health
+```powershell
+npm --prefix backend run build
+npm --prefix frontend run build
+npm start
 ```
 
-Services will be available at:
-- **Backend API**: http://localhost:5000
-- **Neo4j Browser**: http://localhost:7474
-- **Frontend**: http://localhost:3000
+Then open http://localhost:5000. Keep ports 3000 and 5000 free before starting another instance.
+The Docker Compose configuration also builds the demo frontend and API with an isolated `ranking_data`
+volume: `docker compose up --build`. MongoDB and Neo4j remain under the optional `legacy` profile.
+The legacy app is retained at `/dashboard`, `/companies`, `/graph`, `/legacy-opportunities` and `/settings`;
+its original database-backed API uses `npm --prefix backend run dev:legacy` and the legacy environment settings.
 
----
+## The demo
 
-## Local Development
+Open **Demo checks > Replay next event**; inspect any row for scoring, mandatory conditions, scenario stability and evidence.
+The initial queue has 15 opportunities; the public trigger creates the sixteenth.
 
-```bash
-# Install backend dependencies
-cd backend
-pnpm install
+| Step | Fact arriving | Visible result |
+| --- | --- | --- |
+| 1 | Cited SGX/EDB ETLA facility trigger | O01 created: 53 points, rank 13, Verify |
+| 2 | Mock Salesforce confirms buying window | 84 points, rank 3, Verify, 80/100 ranking confidence |
+| 3 | Mock Micron service case opens | Resolve replaces renewal outreach |
+| 4 | Mock site assessment verifies ETLA serviceability | 89 points, rank 1, Pursue, 100/100 ranking and action confidence |
+| 5 | Private 5G latency measured at 28ms | Fails mock <=20ms requirement; Blocked |
+| 6 | Micron case is resolved | Renewal pursuit resumes after all gates pass |
 
-# Start MongoDB + Neo4j only via Docker
-docker compose up mongodb neo4j -d
+The single queue shows rank, movement, opportunity, status, next action, owner, deadline, strongest evidence
+and ranking confidence. **Status** uses the priority score: **Very urgent** (85?100), **Urgent** (70?84),
+**Normal priority** (50?69), **Low priority** (25?49), and **Irrelevant** (0?24). These thresholds are our
+prototype assumptions, not a prediction of buyer interest. Filter the queue by any of the five statuses.
+The API exposes this label as `priorityStatus`; its existing `status` field records the recommended action.
+**Pursue, Verify, Resolve, Monitor and Blocked** remain separate action labels. Required checks still control
+whether pursuit is allowed. Pursue, Verify and Resolve are actionable; Monitor and Blocked remain below them.
+Scenario confidence continues to measure retention of the top-five / next / waiting / blocked priority band,
+rather than retention of the score-based status label.
+Switch the same candidates between **CRM + public**, **CRM only**, and **Deal value**. The comparison panel
+shows per-row evidence contributions and source-family ablations. Identity labels and explicit mock CRM
+confirmations are held fixed; public need contributions are masked in CRM-only. Catalog reference data is
+shared across those views. Ablation removes the named family's need/catalog evidence, grouping syndicated copies.
 
-# Run dev server (hot-reload)
-pnpm run dev
+**Demo checks** provides duplicate replay, connector failure, an ambiguous entity match, unbounded evidence,
+a clock advance and a healthy empty queue. A failed source refresh preserves the exact last successful
+rows/version/time. An initialized zero-opportunity queue returns `[]`; failed initialization is explicitly distinct.
+No new facts or threshold changes returns the same list/version. Replaying the same event ID/payload is a no-op;
+a conflicting retry or aggregate-version gap is rejected.
 
-# Build TypeScript
-pnpm run build
+## Rules and confidence
 
-# Seed sample data
-pnpm run seed
+The deterministic 100-point rubric weights **need/timing 35, product fit 25, buyer readiness 20,
+annual gross contribution 15, and pursuit effort 5**. These are our own starting assumptions.
+Application code applies gates, points and the stable score/deadline/canonical-ID tiebreak. An LLM never sorts.
+Site serviceability, a product-specific mandatory technical condition and the notice/bid deadline must be checked.
+UNKNOWN produces Verify, confirmed FAIL produces Blocked, and all PASS permits Pursue in an active window.
+A service case can produce Resolve before commercial outreach. Technical requirements are mock, not Singtel SLAs.
+
+Ranking confidence is **scenario stability**, separate from the priority score:
+
+`ranking confidence = 100 x share of ten whole-queue scenarios retaining the displayed priority band`
+
+WORK_NOW is the first five actionable opportunities, followed by NEXT, WAITING and BLOCKED bands.
+**80/100 means eight of ten tested worlds retained the band**, not an 80% chance of winning.
+Show plausible rank range, next-action stability and the fact worth verifying. Shared contribution, effort
+and installation assumptions vary together. Verified facts replace disputed alternatives in all ten worlds.
+If plausible inputs cannot be bounded, show **Insufficient evidence**, including for potentially affected
+competitors; retain numeric stability for bands whose invariance can be established.
+
+## Sources and optional live LLM
+
+The demo bundles **11 curated public snapshots and 11 GeBIZ award records** captured on 15 November 2026.
+The source library exposes exact URLs, dates, excerpts, matched context and claim status. Source families:
+GeBIZ, SGX, company releases/reports, EDB/JTC, IMDA/industry, and Singtel product/case-study material.
+An award establishes supplier/date context; it does not establish a telco expiry or notice deadline.
+A syndicated announcement is one provenance group, not additional need points.
+
+The integrated GeBIZ connector supports complete pagination, schema checks, bounded HTTP retries and failure
+retention. Use Demo checks > Check live GeBIZ connector, or verify the standalone ingestion spike:
+
+```powershell
+node tools/gebiz-connector.mjs docs/evidence/gebiz-live-verification.json
 ```
 
----
+Offline extraction is explicitly labelled **curated snapshot**; it is not represented as a live LLM result.
+To enable the live extraction button, set both `OPENAI_API_KEY` and `OPENAI_MODEL` in a root `.env` or the
+backend process environment, using a model available to your account. No key is sent to the browser.
+The adapter uses the [OpenAI Responses API with structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses),
+checks source IDs and exact supplied spans, handles incomplete responses, and caches outputs by model,
+prompt version and source hash. It returns facts and opportunity hypotheses for review; it cannot pass gates,
+set points, send outreach or silently add an unreviewed account. Live model access is optional and is not
+included in the credential-free validation. The six-event demo uses reviewed fixture candidates.
 
-## API Reference
+## Verify
 
-### Health
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/health` | Overall health + all services |
-| GET | `/api/v1/health/mongodb` | MongoDB latency check |
-| GET | `/api/v1/health/neo4j` | Neo4j latency check |
-
-### Companies
-
-| Method | Endpoint | Query Params |
-|--------|----------|-------------|
-| GET | `/api/v1/companies` | `country`, `industry`, `stage`, `search`, `page`, `limit` |
-| GET | `/api/v1/companies/:id` | -- |
-
-### Opportunities
-
-| Method | Endpoint | Query Params |
-|--------|----------|-------------|
-| GET | `/api/v1/opportunities` | `status`, `priority`, `page`, `limit` |
-
-### Analytics
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/analytics/overview` | Dashboard KPIs |
-
----
-
-## Environment Variables
-
-See [.env.example](.env.example) for a full list with descriptions.
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `MONGODB_URI` | Yes | MongoDB connection string |
-| `NEO4J_URI` | Yes | Neo4j Bolt URI |
-| `NEO4J_USERNAME` | Yes | Neo4j username |
-| `NEO4J_PASSWORD` | Yes | Neo4j password |
-| `JWT_SECRET` | Yes | Secret for JWT signing |
-| `PORT` | No | API port (default 5000) |
-| `CORS_ORIGIN` | No | Allowed CORS origin |
-
----
-
-## Seed Data
-
-```bash
-cd backend
-pnpm run seed
+```powershell
+npm --prefix backend run test:ranking
+node --test tools/gebiz-connector.test.mjs
+npm --prefix backend run build
+npm --prefix frontend run build
+npm --prefix backend run verify:ranking-demo
+npm --prefix frontend run test:e2e
 ```
 
-Inserts **5 fictional sample companies** (clearly labelled) with associated opportunities and intelligence signals into both MongoDB and Neo4j. **This data is not real.**
+Playwright uses installed Microsoft Edge on Windows, or Chromium on Linux (`npx playwright install chromium`
+from frontend). Its web-server configuration starts local servers if needed. Tests reset the isolated demo;
+finish a recording before running them. `.local/readiness-report.json` records executed replay outcomes,
+and `.local/screenshots/` holds desktop, scenario and mobile captures. GitHub Actions runs the same checks.
+The historical `docs/evidence/planning-validation.json` records earlier arithmetic checks, not application tests.
 
----
+## Implementation map
 
-## Project Structure
+| Area | Files |
+| --- | --- |
+| Zod contracts and seed | `backend/src/ranking/contracts.ts`, `seed.ts`, `backend/src/fixtures/lead-ranking/` |
+| Rules, gates and ten worlds | `backend/src/ranking/engine.ts` |
+| Replay, refresh, audit and atomic persistence | `backend/src/ranking/service.ts` |
+| Shared source importer / live GeBIZ / optional LLM | `backend/src/ranking/importer.ts`, `extractor.ts` |
+| API and standalone server | `backend/src/routes/ranking.routes.ts`, `backend/src/ranking/demo-server.ts` |
+| Queue, drawer, replay and comparisons | `frontend/src/pages/LeadRankingQueue.tsx`, `lead-ranking.css` |
+| API client and last-successful browser cache | `frontend/src/services/ranking.service.ts`, `frontend/src/hooks/useRankingQueue.ts` |
+| Automated checks | `backend/test/`, `frontend/e2e/`, `tools/gebiz-connector.test.mjs` |
 
-```
-Singapore-hackathon/
-├── .env.example
-├── .gitignore
-├── docker-compose.yml
-├── README.md
-├── backend/
-│   ├── Dockerfile
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── src/
-│       ├── app.ts
-│       ├── server.ts
-│       ├── config/
-│       ├── controllers/
-│       ├── integrations/
-│       │   ├── mongodb/
-│       │   └── neo4j/
-│       ├── middleware/
-│       ├── models/
-│       ├── repositories/
-│       ├── routes/
-│       ├── scripts/
-│       │   └── seed.ts
-│       ├── utils/
-│       └── validators/
-└── frontend/
-    ├── Dockerfile
-    ├── nginx.conf
-    ├── index.html
-    ├── package.json
-    ├── tsconfig.json
-    ├── vite.config.ts
-    └── src/
-        ├── App.tsx
-        ├── main.tsx
-        ├── components/
-        │   ├── charts/
-        │   ├── layout/
-        │   └── ui/
-        ├── context/
-        ├── hooks/
-        ├── layouts/
-        ├── pages/
-        │   ├── Dashboard.tsx
-        │   ├── CompanyIntelligence.tsx
-        │   ├── CompanyProfile.tsx
-        │   ├── KnowledgeGraph.tsx
-        │   ├── OpportunityIntelligence.tsx
-        │   └── Settings.tsx
-        ├── services/
-        └── utils/
-```
+The default demo store is atomic local JSON, serialized through one process. It is deliberately independent
+of MongoDB/Neo4j so a judge can run it immediately. A multi-user production service would need a shared
+transactional store, authentication, real CRM integration and operational approvals; those are not claimed here.
+The frozen clock is 15 November 2026 09:00 SGT. `DEMO_REAL_CLOCK=true` enables periodic real-clock checks;
+otherwise the explicit clock control makes threshold tests reproducible.
 
----
-
-## Frontend Development
-
-```bash
-cd frontend
-npm install # or pnpm install
-npm run dev # runs Vite on http://localhost:3000 with API proxy to port 5000
-npm run build # TypeScript compilation & optimized production bundle
-```
-
----
-
-## License
-
-MIT -- built for the Singtel Hackathon 2026.
+- [Original implementation plan and acceptance criteria](docs/lead-ranking-plan.md)
+- [Data contracts and 16-opportunity matrix](docs/lead-ranking-contracts.md)
+- [Source inventory, access checks and refresh cadence](docs/lead-ranking-sources.md)
+- [Seven-minute demo script](docs/lead-ranking-demo.md)
+- [Build verification and implementation notes](docs/lead-ranking-delivery.md)

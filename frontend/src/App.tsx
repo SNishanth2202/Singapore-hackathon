@@ -6,6 +6,7 @@ import CompanyIntelligence from './pages/CompanyIntelligence'
 import CompanyProfile from './pages/CompanyProfile'
 import KnowledgeGraph from './pages/KnowledgeGraph'
 import OpportunityIntelligence from './pages/OpportunityIntelligence'
+import LeadRankingQueue from './pages/LeadRankingQueue'
 import Settings from './pages/Settings'
 
 function App() {
@@ -13,12 +14,14 @@ function App() {
     <AppProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<LeadRankingQueue />} />
+          <Route path="/opportunities" element={<LeadRankingQueue />} />
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/companies" element={<CompanyIntelligence />} />
             <Route path="/companies/:id" element={<CompanyProfile />} />
             <Route path="/graph" element={<KnowledgeGraph />} />
-            <Route path="/opportunities" element={<OpportunityIntelligence />} />
+            <Route path="/legacy-opportunities" element={<OpportunityIntelligence />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
         </Routes>

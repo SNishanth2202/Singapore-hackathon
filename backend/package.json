@@ -4,9 +4,14 @@
   "description": "Enterprise Radar AI — Backend API (Singtel Hackathon)",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/ranking/demo-server.ts",
+    "dev:legacy": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc --project tsconfig.json",
-    "start": "node dist/server.js",
+    "start": "node dist/ranking/demo-server.js",
+    "start:legacy": "node dist/server.js",
+    "seed:lead-ranking": "ts-node src/scripts/seed-lead-ranking.ts",
+    "test:ranking": "node -r ts-node/register/transpile-only --test test/ranking.test.ts test/api.test.ts test/importer.test.ts",
+    "verify:ranking-demo": "ts-node src/scripts/verify-ranking-demo.ts",
     "seed": "ts-node src/scripts/seed.ts",
     "lint": "eslint src --ext .ts"
   },
