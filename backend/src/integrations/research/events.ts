@@ -31,6 +31,7 @@ export function companyHeadlineBody(source: ResearchSource, company: Pick<Compan
   return selected.length ? selected.join('; ') : body;
 }
 export function detectEventType(text: string): EventType {
+  if (/\b(?:breaks?|broke|breaking) ground\b.{0,160}\b(?:facility|plant|factory|campus|site)\b|\bnew\b.{0,60}\b(?:manufacturing|production|distribution)\b.{0,30}\b(?:facility|plant|factory|centre|center)\b/i.test(text)) return 'EXPANSION';
   if (/\bacquir(?:e[sd]?|ing)|\bacquisition\b|\bmerg(?:er|es?|ing)\b/i.test(text)) return 'ACQUISITION';
   if (/\bbreach\b|\bransomware\b|\bcyber.?attack\b|\bsecurity incident\b|\bdata leak\b/i.test(text)) return 'SECURITY_INCIDENT';
   if (/\bexpand(?:s|ed|ing)?\b|\bexpansion\b|\bopens\b|\bopen\s+(?:an?\s+|the\s+|its\s+)?(?:new\s+)?(?:office|warehouse|site|plant|facility|branch|store|campus)\b|\bnew (?:office|warehouse|site|plant|facility)\b/i.test(text)) return 'EXPANSION';

@@ -65,7 +65,10 @@ async function main() {
     children.delete(build);
     if (code !== 0) throw new Error('Backend preparation failed. Check the messages above.');
     console.log('Starting the backend...');
-    const service = start([path.join(backend, 'dist/scripts/preview.js')], backend);
+    const configuration = require(path.join(backend, 'node_modules/dotenv')).parse(fs.readFileSync(path.join(root, '.env')));
+    const storageMode = process.env.STORAGE_MODE || configuration.STORAGE_MODE || 'cloud';
+    const entry = storageMode === 'cloud' ? 'dist/server.js' : 'dist/scripts/preview.js';
+    const service = start([path.join(backend, entry)], backend);
     service.once('exit', code => { children.delete(service); if (!stopping) { console.error('The backend stopped.'); stop(code || 1); } });
   }
   if (!web.up) {

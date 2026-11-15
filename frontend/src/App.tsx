@@ -6,7 +6,8 @@ import CompanyIntelligence from './pages/CompanyIntelligence'
 import CompanyProfile from './pages/CompanyProfile'
 import CustomerGraph from './pages/CustomerGraph'
 import OpportunityIntelligence from './pages/OpportunityIntelligence'
-import LeadRankingQueue from './pages/LeadRankingQueue'
+import LeadRankingQueue from './pages/RealLeadRanking'
+import ReferenceRanking from './pages/LeadRankingQueue'
 import Settings from './pages/Settings'
 import SalesWorkbench from './pages/SalesWorkbench'
 import SalesWorkflowPage from './pages/SalesWorkflowPage'
@@ -27,6 +28,7 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/lead-ranking" element={<LeadRankingQueue />} />
+            {import.meta.env.DEV && <Route path="/lead-ranking/reference" element={<ReferenceRanking />} />}
             <Route path="/sales" element={<SalesWorkbench />} />
             <Route path="/sales/companies/:companyId" element={<SalesWorkflowPage />} />
             <Route path="/ai-management" element={<AiManagementPage />} />

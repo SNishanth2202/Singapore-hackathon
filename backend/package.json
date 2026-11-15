@@ -1,7 +1,7 @@
 {
   "name": "enterprise-radar-backend",
   "version": "1.0.0",
-  "description": "Enterprise Radar AI \u2014 Backend API (Singtel Hackathon)",
+  "description": "Enterprise Radar AI — Backend API (Singtel Hackathon)",
   "main": "dist/server.js",
   "scripts": {
     "ingest:customer-graph": "ts-node src/scripts/ingest-customer-graph.ts",
@@ -27,7 +27,9 @@
     "verify:ranking-demo": "ts-node src/scripts/verify-ranking-demo.ts",
     "dev:ranking-demo": "ts-node-dev --respawn --transpile-only src/ranking/demo-server.ts",
     "start:ranking-demo": "node dist/ranking/demo-server.js",
-    "dev:preview": "ts-node-dev --respawn --transpile-only src/scripts/preview.ts"
+    "dev:preview": "ts-node-dev --respawn --transpile-only src/scripts/preview.ts",
+    "test:prospecting": "npm run build && node -r ts-node/register/transpile-only --test test/prospecting.test.ts test/prospecting-api.test.ts",
+    "start:research-worker": "node dist/scripts/prospecting-worker.js"
   },
   "engines": {
     "node": ">=20.0.0"

@@ -17,7 +17,7 @@ import { useState } from 'react'
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboardIcon, exact: true },
   { label: 'Company Intelligence', path: '/companies', icon: Building2Icon, exact: false },
-  { label: 'Customer Graph', path: '/graph', icon: NetworkIcon, exact: false },
+  { label: 'Knowledge Graph', path: '/graph', icon: NetworkIcon, exact: false },
   { label: 'Evidence Graph', path: '/research-graph', icon: NetworkIcon, exact: false },
   { label: 'Lead Ranking', path: '/lead-ranking', icon: TargetIcon, exact: false },
   { label: 'AI Management', path: '/ai-management', icon: BotIcon, exact: false },

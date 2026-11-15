@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { env } from '../../config/env';
 import { AppError } from '../../utils/errors';
-import { resolveAiConfiguration } from '../../config/ai';
+import { resolveAiConfiguration, resolveAiFallbackConfiguration } from '../../config/ai';
 
 export interface FreeLlmConfig {
   baseUrl: string;
@@ -11,6 +11,8 @@ export interface FreeLlmConfig {
   protocol?: 'chat_completions' | 'responses';
   modelsUrl?: string;
   reasoningEffort?: 'none' | 'low' | 'medium' | 'high';
+  reasoningFormat?: 'openrouter' | 'openai';
+  structuredTools?: boolean;
 }
 
 export interface ChatMessage {
@@ -84,6 +86,7 @@ export function createFreeLlmClient(config: FreeLlmConfig, transport: typeof fet
   }
 
   async function supportedParameters(): Promise<string[]> {
+    if (config.structuredTools === false) return [];
     const parsed = ModelsResponse.safeParse(await request('/models', undefined, config.modelsUrl));
     if (!parsed.success) throw new AppError('The AI provider returned an invalid model list.', 502, 'AI_INVALID_RESPONSE');
     return parsed.data.data.find(model => model.id === config.model)?.supported_parameters ?? [];
@@ -107,7 +110,8 @@ export function createFreeLlmClient(config: FreeLlmConfig, transport: typeof fet
     }
     const parsed = CompletionResponse.safeParse(await request('/chat/completions', {
       model: config.model, messages, max_tokens: maxTokens, stream: false,
-      ...(config.reasoningEffort ? { reasoning: { effort: config.reasoningEffort } } : {}),
+      ...(config.reasoningEffort ? config.reasoningFormat === 'openai'
+        ? { reasoning_effort: config.reasoningEffort } : { reasoning: { effort: config.reasoningEffort } } : {}),
       ...(options.structuredTool ? {
         tools: [{ type: 'function', function: { name: options.structuredTool.name,
           description: 'Return the complete assessment as structured data. This executes no actions.', parameters: options.structuredTool.schema } }],
@@ -132,4 +136,69 @@ export function createFreeLlmClient(config: FreeLlmConfig, transport: typeof fet
   return { listModels, supportedParameters, generateText };
 }
 
-export const freeLlmClient = createFreeLlmClient(resolveAiConfiguration(env));
+/** Each provider receives only its own configured credential. Quota failures cool
+ * down that provider, without blocking a healthy explicitly enabled fallback. */
+export function createFailoverClient(primaryConfig: FreeLlmConfig, fallbackConfig?: FreeLlmConfig,
+  transport: typeof fetch = fetch, now = () => Date.now()) {
+  const primary = createFreeLlmClient(primaryConfig, transport);
+  const fallback = fallbackConfig ? createFreeLlmClient(fallbackConfig, transport) : undefined;
+  const failoverCodes = new Set(['AI_RATE_LIMITED', 'AI_CREDITS_REQUIRED', 'AI_UNAVAILABLE', 'AI_TIMEOUT',
+    'AI_UPSTREAM_ERROR', 'AI_MODEL_UNAVAILABLE', 'AI_AUTHENTICATION_FAILED', 'AI_NOT_CONFIGURED',
+    'AI_INVALID_RESPONSE', 'AI_INCOMPLETE_RESPONSE', 'AI_EMPTY_RESPONSE']);
+  let primaryRetryAt = 0;
+  let primaryFailure: AppError | undefined;
+  let fallbackQuota: { retryAt: number; error: AppError } | undefined;
+  let fallbackParameters: { until: number; values: string[] } | undefined;
+  async function useFallback<T>(work: () => Promise<T>): Promise<T> {
+    if (fallbackQuota && fallbackQuota.retryAt > now()) throw fallbackQuota.error;
+    try { return await work(); }
+    catch (error) {
+      const safeError = error instanceof AppError
+        ? new AppError(`FreeLLM fallback: ${error.message}`, error.statusCode, error.code) : error;
+      if (error instanceof AppError && ['AI_RATE_LIMITED', 'AI_CREDITS_REQUIRED'].includes(error.code)) {
+        fallbackQuota = { retryAt: now() + 120000, error: safeError as AppError };
+      }
+      throw safeError;
+    }
+  }
+  async function route<T>(first: () => Promise<T>, second: () => Promise<T>): Promise<T> {
+    if (primaryRetryAt > now()) {
+      if (fallback) return useFallback(second);
+      throw primaryFailure;
+    }
+    try { return await first(); }
+    catch (error) {
+      if (!(error instanceof AppError) || !failoverCodes.has(error.code)) throw error;
+      if (!fallback && !['AI_RATE_LIMITED', 'AI_CREDITS_REQUIRED'].includes(error.code)) throw error;
+      primaryRetryAt = now() + 120000; primaryFailure = error;
+      if (!fallback) throw error;
+      return useFallback(second);
+    }
+  }
+  async function parameters() {
+    if (fallbackConfig?.structuredTools === false) return [];
+    if (fallbackParameters && fallbackParameters.until > now()) return fallbackParameters.values;
+    const values = await fallback!.supportedParameters();
+    fallbackParameters = { until: now() + 300000, values };
+    return values;
+  }
+  return {
+    listModels: () => route(() => primary.listModels(), () => fallback!.listModels()),
+    supportedParameters: () => route(() => primary.supportedParameters(), parameters),
+    generateText: async (...args: Parameters<typeof primary.generateText>) => route(
+      async () => ({ ...await primary.generateText(...args), provider: 'primary' as string, fallbackUsed: false }),
+      async () => {
+        let [messages, maxTokens, options] = args;
+        if (options?.structuredTool) {
+          const capabilities = await parameters();
+          if (!capabilities.includes('tools') || !capabilities.includes('tool_choice')) {
+            messages = [{ role: 'system', content: 'Return only JSON matching this schema: ' + JSON.stringify(options.structuredTool.schema) }, ...messages];
+            options = { ...options, structuredTool: undefined };
+          }
+        }
+        return { ...await fallback!.generateText(messages, maxTokens, options), provider: 'freellmapi', fallbackUsed: true };
+      }),
+  };
+}
+
+export const freeLlmClient = createFailoverClient(resolveAiConfiguration(env), resolveAiFallbackConfiguration(env));

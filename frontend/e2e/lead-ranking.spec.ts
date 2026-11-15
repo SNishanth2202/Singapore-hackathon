@@ -12,7 +12,7 @@ async function replayNext(page: Page) {
 test.beforeEach(async ({ request }) => { expect((await request.post(`${api}/demo/reset`, { data: {} })).ok()).toBeTruthy() })
 test('public discovery, CRM event, site verification and persisted queue work through the actual UI', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message))
-  await page.goto('/lead-ranking')
+  await page.goto('/lead-ranking/reference')
   await expect(page.getByRole('heading', { name: 'Lead Ranking', level: 1 })).toBeVisible()
   await expect(page.locator('tr[data-testid]')).toHaveCount(11)
   await expect(page.getByTestId('opportunity-O02')).toHaveCount(0)
@@ -63,7 +63,7 @@ test('public discovery, CRM event, site verification and persisted queue work th
   expect(errors).toEqual([])
 })
 test('source failure, unbounded confidence and healthy empty queue are visible controls', async ({ page }) => {
-  await page.goto('/lead-ranking')
+  await page.goto('/lead-ranking/reference')
   for (let i = 0; i < 2; i++) { await replayNext(page); await expect(page.getByRole('dialog')).toBeVisible(); await close(page) }
   await page.getByRole('button', { name: 'Demo checks', exact: true }).click()
   await page.getByRole('button', { name: /Fail public-source refresh/ }).click()
@@ -83,7 +83,7 @@ test('source failure, unbounded confidence and healthy empty queue are visible c
 test('mobile layout contains overflow, sources work, and keyboard closes and restores focus', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.goto('/lead-ranking')
+  await page.goto('/lead-ranking/reference')
   await expect(page.locator('tr[data-testid]')).toHaveCount(11)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
   await page.screenshot({ path: '../.local/screenshots/mobile-queue.png', fullPage: true })
@@ -101,7 +101,7 @@ test('customer-register failure discards the saved ranking instead of displaying
   await page.route('**/api/v1/ranking/queue**', route => failureCode
     ? route.fulfill({ status: 503, json: { code: failureCode, message: 'Customer eligibility cannot be checked.' } })
     : route.continue())
-  await page.goto('/lead-ranking')
+  await page.goto('/lead-ranking/reference')
   await expect(page.locator('tr[data-testid]')).toHaveCount(11)
   expect(await page.evaluate(() => !!localStorage.getItem('ranking-last-crm_plus_public'))).toBeTruthy()
   failureCode = 'CUSTOMER_DATABASE_UNAVAILABLE'
@@ -149,7 +149,7 @@ test('missing-key popup connects without browser key storage; AI urgency and per
     } })
     return route.continue()
   })
-  await page.goto('/lead-ranking')
+  await page.goto('/lead-ranking/reference')
   const dialog = page.getByRole('dialog', { name: 'Connect AI' })
   await expect(dialog).toBeVisible()
   const input = dialog.getByLabel('OpenAI API key', { exact: true })
@@ -181,13 +181,13 @@ test('missing-key popup connects without browser key storage; AI urgency and per
 
 test('lead ranking uses the shared app shell, keeps dashboard home and redirects older links', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: /Sales Intelligence Command Centre/, level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Singtel Scout — Sales Intelligence', level: 1 })).toBeVisible()
   const navigation = page.getByRole('navigation', { name: 'Main navigation' })
   await navigation.getByRole('link', { name: 'Lead Ranking', exact: true }).click()
   await expect(page).toHaveURL(/\/lead-ranking$/)
   await expect(page.getByRole('heading', { name: 'Lead Ranking', level: 1 })).toBeVisible()
   await expect(navigation.getByRole('link', { name: 'Lead Ranking', exact: true })).toHaveAttribute('aria-current', 'page')
-  await expect(page.locator('tr[data-testid]')).toHaveCount(11)
+  await expect(page.getByRole('heading', { name: 'Research settings' })).toBeVisible()
   await navigation.getByRole('link', { name: 'Company Intelligence', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Company Intelligence', level: 1 })).toBeVisible()
   await page.screenshot({ path: '../.local/screenshots/shared-app-companies.png' })

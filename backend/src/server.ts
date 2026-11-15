@@ -12,6 +12,7 @@ import { runDueFollowups } from './sales/workflow';
 import { resolveSalesContext } from './sales/context';
 import { runDailyRankingSchedulerTick } from './ai-management/scheduler';
 import { runAiManagementWorkerTick } from './ai-management/orchestrator';
+import { startProspectingWorker } from './prospecting/service';
 
 const PORT = env.PORT;
 
@@ -29,6 +30,7 @@ async function start(): Promise<void> {
     await businessKnowledgeStore.read();
   }
   const stopGraphSync = env.STORAGE_MODE === 'cloud' ? startGraphSyncWorker() : async () => {};
+  const stopProspectingWorker = startProspectingWorker();
 
   const server = app.listen(PORT, env.HOST, () => {
     logger.info(`Singtel Scout backend started`, {
@@ -60,6 +62,7 @@ async function start(): Promise<void> {
     logger.info(`${signal} received — shutting down gracefully`);
     clearInterval(followupTimer);
     clearInterval(aiManagementTimer);
+    stopProspectingWorker();
 
     server.close(async () => {
       await stopGraphSync();

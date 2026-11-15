@@ -71,6 +71,11 @@ test('mobile contains graph overflow and keyboard activation opens evidence', as
 })
 
 test('ingestion failure keeps the existing intelligence visible', async ({ page }) => {
+  await page.route('**/api/v1/customer-graph', async route => {
+    const response = await route.fetch()
+    const snapshot = await response.json()
+    await route.fulfill({ json: { ...snapshot, ingestionConfigured: true } })
+  })
   await page.goto('/customer-graph')
   await expect(page.locator('.cg-fact-card').first()).toBeVisible()
   const count = await page.locator('.cg-fact-card').count()

@@ -58,12 +58,13 @@ function source(kind: ResearchSource['kind'], title: string, url: string, excerp
     verification: kind === 'news_headline' ? 'headline_only' : kind === 'official_page' ? 'retrieved_official_page' : 'retrieved_profile' };
 }
 
-export function parseNews(xml: string, company: CompanyIdentity): ResearchSource[] {
+export function parseNews(xml: string, company: CompanyIdentity, strictNames = false): ResearchSource[] {
   const parser = new XMLParser({ ignoreAttributes: false, processEntities: false, isArray: (_name, jpath) => jpath === 'rss.channel.item' });
   const data = parser.parse(xml);
   const items = data?.rss?.channel?.item ?? [];
   if (!Array.isArray(items)) return [];
-  const aliases = [company.name, ...company.aliases].map(normalizedName).filter((a) => a.length >= 3);
+  const compare = strictNames ? (value: string) => value.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim() : normalizedName;
+  const aliases = [company.name, ...company.aliases].map(compare).filter((a) => a.length >= 3);
   const seen = new Set<string>();
   const sources: ResearchSource[] = [];
   const relevance = (item: any) => {
@@ -77,7 +78,7 @@ export function parseNews(xml: string, company: CompanyIdentity): ResearchSource
     if (sources.length >= 12) break;
     const title = textOnly(String(item.title ?? ''));
     const normalized = normalizedName(title);
-    if (!aliases.some((a) => ` ${normalized} `.includes(` ${a} `))) continue;
+    if (!aliases.some((a) => ` ${compare(title)} `.includes(` ${a} `))) continue;
     const url = String(item.link ?? '');
     try { if (new URL(url).hostname !== 'news.google.com' || new URL(url).protocol !== 'https:') continue; } catch { continue; }
     if (seen.has(normalized)) continue;
@@ -110,15 +111,23 @@ export function extractOfficialPage(html: string, url: string) {
   return { title, excerpt, publishedAt, links: [...new Set(links)].slice(0, 1) };
 }
 
-export async function researchCompany(id: string): Promise<ResearchRecord> {
+export async function researchCompany(id: string, discoverySources: ResearchSource[] = []): Promise<ResearchRecord> {
   entityId.parse(id);
   const result = await jsonAt(apiUrl('www.wikidata.org', { action: 'wbgetentities', ids: id, props: 'labels|descriptions|aliases|claims|sitelinks', languages: 'en', sitefilter: 'enwiki' }));
   const company = identity(result.entities?.[id] ?? {});
   if (!company?.name || company.name === id) throw new AppError('No organization identity was found.', 404, 'COMPANY_NOT_FOUND');
-  const sources: ResearchSource[] = [];
+  return researchIdentity(company, discoverySources);
+}
+
+export async function researchIdentity(company: CompanyIdentity, discoverySources: ResearchSource[] = [], strictNames = false): Promise<ResearchRecord> {
+  const sources: ResearchSource[] = [...discoverySources];
   const warnings: string[] = ['Identity and website are directory listings, not an independently verified corporate registration. Existing-customer status is unknown.'];
-  sources.push(source('company_profile', `${company.name} - identity listing`, company.identitySource,
-    `Wikidata lists ${company.name}: ${company.description}. Listed website: ${company.website ?? 'unknown'}.`, 'Wikidata (community-maintained)', null));
+  const reportedName=company.entityId.startsWith('public-name-');
+  if(reportedName)warnings[0]='The company name is reported in public headlines; registered legal identity and existing-customer status are unverified.';
+  // A reported name is not a retrieved registry profile. Keep its original
+  // headline without relabelling it or counting it as a second source.
+  if (!reportedName) sources.push(source('company_profile', `${company.name} - identity listing`, company.identitySource,
+    `${company.entityId.startsWith('LEI-') ? 'GLEIF lists' : 'Wikidata lists'} ${company.name}: ${company.description}. Listed website: ${company.website ?? 'unknown'}.`, company.entityId.startsWith('LEI-') ? 'GLEIF (legal-entity registry)' : 'Wikidata (community-maintained)', null));
 
   await Promise.all([
     (async () => {
@@ -133,7 +142,7 @@ export async function researchCompany(id: string): Promise<ResearchRecord> {
       try {
         const query = `"${normalizedName(company.name)}" when:90d`;
         const feed = await publicFetch(`https://news.google.com/rss/search?${new URLSearchParams({ q: query, hl: 'en-IN', gl: 'IN', ceid: 'IN:en' })}`);
-        const news = parseNews(feed.text, company); sources.push(...news);
+        const news = parseNews(feed.text, company, strictNames); sources.push(...news);
         if (!news.length) warnings.push('No recent name-matching news headlines were found. This does not prove that the company has no needs.');
         else warnings.push('News items are publisher-reported headlines from Google News. Article bodies and company-specific relevance have not been independently verified.');
       } catch { warnings.push('News discovery is unavailable. No headlines were invented or substituted.'); }
@@ -155,7 +164,7 @@ export async function researchCompany(id: string): Promise<ResearchRecord> {
     })(),
   ]);
   const record: ResearchRecord = { id: `research-${randomUUID()}`, company,
-    sources: [...new Map(sources.map((s) => [s.id, s])).values()], warnings, createdAt: new Date().toISOString() };
+    sources: [...new Map(sources.map((s) => [strictNames ? `${s.kind}|${s.url}` : s.id, s])).values()], warnings, createdAt: new Date().toISOString() };
   record.quality = buildResearchOverview(record);
   await saveResearch(record);
   await recordDiscoverySnapshot({ companyId: `entity:${company.entityId}`, companyName: company.name, researchId: record.id,

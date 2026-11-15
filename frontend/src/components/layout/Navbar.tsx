@@ -8,12 +8,7 @@ interface NavbarProps {
 export function Navbar({ title }: NavbarProps) {
   return (
     <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 flex-shrink-0 shadow-sm">
-      <div className="flex items-center gap-3">
-        <div className="hidden sm:flex flex-col">
-          <h2 className="text-sm font-semibold text-gray-900 leading-tight">{title}</h2>
-          <p className="text-[11px] text-gray-400 leading-tight">Singtel Enterprise Intelligence Platform</p>
-        </div>
-      </div>
+      <h2 title={title} className="min-w-0 truncate text-base font-semibold text-gray-900">{title}</h2>
 
       <div className="flex items-center gap-2">
         {/* Search hint */}

@@ -47,7 +47,7 @@ export async function recordDiscoveryHandoff(input: SalesCompanyContext & { cand
 
 export async function recordDiscoverySnapshot(input: SalesCompanyContext) {
   return log(input, 'DISCOVERED', { eventId: `discovery:${input.researchId}`,
-    payload: { sourceCount: input.sourceIds?.length ?? 0, identity: 'Wikidata entity ID', duplicateKey: input.companyId } });
+    payload: { sourceCount: input.sourceIds?.length ?? 0, identity: input.companyId.startsWith('entity:public-name-') ? 'Public reported name; identity unverified' : input.companyId.startsWith('entity:LEI-') ? 'GLEIF legal entity ID' : 'Wikidata entity ID', duplicateKey: input.companyId } });
 }
 
 export async function getWorkflow(companyId: string) {

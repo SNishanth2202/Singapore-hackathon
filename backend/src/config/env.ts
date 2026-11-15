@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { z } from 'zod';
 import path from 'path';
+import { configureDns } from './dns';
 
 // Load .env from project root (two levels up from src/config/)
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '..', '.env') });
@@ -16,6 +17,7 @@ const envSchema = z.object({
   HOSTED_PREVIEW: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
   STORAGE_MODE: z.enum(['cloud', 'memory']).default('cloud'),
   HOST: z.string().default('127.0.0.1'),
+  DNS_SERVERS: z.string().optional(),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),
   AI_REQUESTS_PER_MINUTE: z.coerce.number().int().min(1).max(100).default(6),
   DB_CONNECTION_TIMEOUT_MS: z.coerce.number().int().min(1000).max(60000).default(10000),
@@ -29,6 +31,7 @@ const envSchema = z.object({
   AI_MODELS_URL: z.string().optional(),
   AI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120000).optional(),
   AI_REASONING_EFFORT: z.enum(['none', 'low', 'medium', 'high']).optional(),
+  AI_FREELLM_FALLBACK_ENABLED: z.enum(['true', 'false']).default('false').transform(value => value === 'true'),
 
   // Sales workspace is human-approved by default. Provider credentials are server-only secrets.
   SALES_API_TOKEN: z.string().optional().refine(value => !value || value.length >= 32, 'SALES_API_TOKEN must be at least 32 characters.'),
@@ -52,6 +55,8 @@ const envSchema = z.object({
     }, 'Use an HTTP(S) API URL without embedded credentials'),
   FREELLMAPI_API_KEY: z.string().default(''),
   FREELLMAPI_MODEL: z.string().min(1).default('auto'),
+  FREELLMAPI_REASONING_EFFORT: z.enum(['none', 'low', 'medium', 'high']).optional(),
+  FREELLMAPI_USE_TOOLS: z.enum(['true','false']).default('false').transform(value=>value==='true'),
   FREELLMAPI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120000).default(45000),
 
   // MongoDB
@@ -88,6 +93,7 @@ function validateEnv(): EnvConfig {
     process.exit(1);
   }
 
+  configureDns(result.data.DNS_SERVERS);
   return result.data;
 }
 
