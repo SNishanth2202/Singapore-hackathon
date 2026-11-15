@@ -5,7 +5,7 @@ import { sendSuccess } from '../utils/apiResponse';
 import { env } from '../config/env';
 
 export async function getReadiness(_req: Request, res: Response): Promise<void> {
-  if (env.STORAGE_MODE === 'memory' && env.NODE_ENV !== 'production' && env.LOCAL_DEMO_MODE) {
+  if (env.STORAGE_MODE === 'memory' && (env.NODE_ENV !== 'production' || env.HOSTED_PREVIEW) && env.LOCAL_DEMO_MODE) {
     res.json({ success: true, status: 'ready', storageMode: 'temporary_preview' }); return;
   }
   const checks = Promise.all([verifyMongoConnectivity(), verifyConnectivity()]);
@@ -22,6 +22,10 @@ export async function getOverallHealth(
   next: NextFunction
 ): Promise<void> {
   try {
+    if (env.STORAGE_MODE === 'memory' && env.LOCAL_DEMO_MODE && (env.NODE_ENV !== 'production' || env.HOSTED_PREVIEW)) {
+      res.json({ success: true, status: 'healthy', storageMode: 'temporary_preview', timestamp: new Date().toISOString(),
+        services: { mongodb: 'not_configured', neo4j: 'not_configured' } }); return;
+    }
     const mongoStatus = isMongoDBConnected();
     const neo4jStatus = await verifyConnectivity();
 

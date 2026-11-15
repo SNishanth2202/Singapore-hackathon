@@ -29,6 +29,9 @@ test('production preflight rejects local AI, demo storage, placeholders and wild
     assert.ok(deploymentConfigurationProblems({...hosted,...change}).length, JSON.stringify(Object.keys(change)));
   }
   assert.deepEqual(publicAiConfigurationProblems(resolveAiConfiguration({...hosted, AI_MODELS_URL:'https://openrouter.ai/api/v1/models'})), []);
+  const preview = {...hosted, STORAGE_MODE:'memory',LOCAL_DEMO_MODE:true,HOSTED_PREVIEW:true,MONGODB_URI:'',NEO4J_URI:'',NEO4J_PASSWORD:''};
+  assert.deepEqual(deploymentConfigurationProblems(preview), []);
+  assert.ok(deploymentConfigurationProblems({...preview,HOSTED_PREVIEW:false}).length);
 });
 
 test('Responses API extracts only assistant output text and uses the configured protocol', async () => {
@@ -85,4 +88,17 @@ test('hosted routes allow research and analysis while enforcing CORS, rate limit
   assert.equal((await post('/api/v1/ai/research')).status,201);
   assert.equal((await post('/api/v1/ai/analyze')).status,429);
   assert.equal((await fetch(base+'/api/v1/health/ready')).status,503);
+});
+
+test('explicit hosted preview runs sample accounts, dashboard and research without databases', async t => {
+  const {env}=require('../dist/config/env'); const original={...env};
+  Object.assign(env,{NODE_ENV:'production',STORAGE_MODE:'memory',HOSTED_PREVIEW:true,LOCAL_DEMO_MODE:true,CORS_ORIGIN:hosted.CORS_ORIGIN});
+  delete require.cache[require.resolve('../dist/app')];
+  const server=require('../dist/app').default.listen(0,'127.0.0.1');await once(server,'listening');
+  t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));Object.assign(env,original);});
+  const base='http://127.0.0.1:'+server.address().port;
+  const companies=await fetch(base+'/api/v1/companies');assert.equal(companies.status,200);const c=await companies.json();assert.equal(c.data.length,2);assert.equal(c.dataMode,'sample');
+  const analytics=await fetch(base+'/api/v1/analytics/overview');const a=await analytics.json();assert.equal(a.data.totalCompanies,2);assert.equal(a.data.isMockData,true);
+  const health=await fetch(base+'/api/v1/health/ready');assert.equal(health.status,200);assert.equal((await health.json()).storageMode,'temporary_preview');
+  const overall=await fetch(base+'/api/v1/health');const h=await overall.json();assert.equal(h.services.mongodb,'not_configured');
 });

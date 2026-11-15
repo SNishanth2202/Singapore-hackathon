@@ -1,6 +1,6 @@
 # Render backend and Vercel frontend
 
-Deploy the `priyanshu` branch of `SNishanth2202/Singapore-hackathon`. No merge is needed.
+Deploy the `priyanshu` branch of the private fork `Priyanshu-10112/Singapore-hackathon`. The upstream branch remains available at `SNishanth2202/Singapore-hackathon`; no merge is needed.
 
 ## Backend: Render
 
@@ -11,11 +11,11 @@ Use the free web service described in `render.yaml`, or these equivalent setting
 - Start: `npm start`
 - Health check: `/api/v1/health/ready`
 - Runtime: Node 24
-- `NODE_ENV=production`, `HOST=0.0.0.0`, `STORAGE_MODE=cloud`, `LOCAL_DEMO_MODE=false`, `TRUST_PROXY_HOPS=1`
+- `NODE_ENV=production`, `HOST=0.0.0.0`, `STORAGE_MODE=memory`, `LOCAL_DEMO_MODE=true`, `HOSTED_PREVIEW=true`, `TRUST_PROXY_HOPS=1`
 
-Set the real Atlas connection string, Aura URI/username/password, and AI key in Render environment variables. Never commit `.env` or place credentials in a `VITE_` variable. Add Render's listed outbound IP ranges to Atlas network access; an allow-all rule is unnecessary.
+This version deliberately runs without MongoDB or Neo4j. Research snapshots and business knowledge are held temporarily in memory; a restart or redeploy clears them. Sample accounts remain clearly labelled fictional. Keep the AI key in Render environment variables. Never commit `.env` or place credentials in a `VITE_` variable.
 
-Set `CORS_ORIGIN` to the exact Vercel production origin. Multiple explicitly approved origins can be comma-separated. The readiness endpoint returns 503 if either database is unavailable.
+Set `CORS_ORIGIN` to the exact Vercel production origin. Multiple explicitly approved origins can be comma-separated. In this preview, readiness checks the temporary-storage configuration and does not require databases.
 
 ## AI: OpenRouter
 
@@ -35,8 +35,8 @@ Redeploy after changing this variable. `frontend/vercel.json` supports direct li
 
 ## Verification
 
-Run backend `test:research`, `test:deployment`, `check:deployment`, and `verify:cloud`, then the frontend build. After deployment, check readiness, direct frontend links, company research and one real AI analysis.
+Run backend `test:research`, `test:deployment` and `check:deployment`, then the frontend build. After deployment, check readiness, direct frontend links, company research and one real AI analysis. Cloud database checks are not required for this release.
 
 No user login is added. Hosted research and analysis are available with request limits. Model-list diagnostics, test generation and business-configuration edits remain local-only; the hosted catalogue is view-only until administrator access is implemented.
 
-Research snapshots and business knowledge use Atlas. The existing Neo4j connection is verified at startup; research-to-graph synchronisation remains a separate unfinished feature. Render Free can sleep when idle, so initial requests may take longer.
+Database integration is deferred to the next version. To enable it later, configure Atlas/Aura credentials, set `STORAGE_MODE=cloud`, `LOCAL_DEMO_MODE=false` and `HOSTED_PREVIEW=false`, and run `verify:cloud`. Research-to-graph synchronisation remains separate unfinished work. Render Free can sleep when idle, so initial requests may take longer.

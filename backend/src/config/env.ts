@@ -13,6 +13,7 @@ const envSchema = z.object({
     .transform((val) => Number(val)).pipe(z.number().int().min(1).max(65535)),
   API_VERSION: z.string().default('v1'),
   LOCAL_DEMO_MODE: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
+  HOSTED_PREVIEW: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
   STORAGE_MODE: z.enum(['cloud', 'memory']).default('cloud'),
   HOST: z.string().default('127.0.0.1'),
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(0),

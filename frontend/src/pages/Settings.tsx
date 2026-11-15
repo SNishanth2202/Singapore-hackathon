@@ -44,6 +44,7 @@ export default function Settings() {
       />
 
       <BusinessKnowledge />
+      {health?.storageMode === 'temporary_preview' && <p className="rounded-lg bg-amber-50 p-4 text-sm text-amber-900">This version runs with temporary storage. Research may clear when the backend restarts. Database integration is planned for the next version.</p>}
 
       {/* User Profile */}
       <div className="card p-6">

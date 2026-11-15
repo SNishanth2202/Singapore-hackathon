@@ -41,7 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
 // ----- API routes -----
-if (env.LOCAL_DEMO_MODE && env.NODE_ENV !== 'production') app.use(`/api/${env.API_VERSION}`, demoRoutes);
+if (env.STORAGE_MODE === 'memory' && env.LOCAL_DEMO_MODE && (env.NODE_ENV !== 'production' || env.HOSTED_PREVIEW)) app.use(`/api/${env.API_VERSION}`, demoRoutes);
 app.use(`/api/${env.API_VERSION}`, apiRouter);
 
 // ----- Root -----

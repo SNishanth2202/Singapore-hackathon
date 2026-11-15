@@ -7,7 +7,7 @@ import { logger } from '../utils/logger';
 
 export async function initializeDatabases(): Promise<void> {
   if (env.STORAGE_MODE === 'memory') {
-    if (env.NODE_ENV === 'production' || !env.LOCAL_DEMO_MODE) throw new AppError('Memory storage is available only in explicit non-production sample preview.', 500, 'INVALID_STORAGE_MODE');
+    if (!env.LOCAL_DEMO_MODE || (env.NODE_ENV === 'production' && !env.HOSTED_PREVIEW)) throw new AppError('Memory storage requires explicit preview mode. Hosted previews also require HOSTED_PREVIEW=true.', 500, 'INVALID_STORAGE_MODE');
     return;
   }
   const problems = cloudConfigurationProblems(env);
