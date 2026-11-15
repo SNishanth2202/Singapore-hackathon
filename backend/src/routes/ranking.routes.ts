@@ -6,6 +6,8 @@ import { View } from '../ranking/contracts';
 import { mockSalesforceProjection, replayEvents } from '../ranking/seed';
 import { SCENARIOS } from '../ranking/engine';
 import { extractSource } from '../ranking/extractor';
+import { DiscoveryHandoffError, prepareDiscoveryHandoff } from '../ranking/discovery';
+import { recordDiscoveryHandoff } from '../sales/workflow';
 import { LlmQueueService } from '../ranking/llm-queue';
 import { RankingKeySessions } from '../ranking/key-sessions';
 import { AppError } from '../utils/errors';
@@ -41,6 +43,26 @@ export function createRankingRouter(service: RankingService, options: RankingRou
   });
   router.get('/customers', (_req, res) => { res.setHeader('Cache-Control', 'no-store'); res.json(service.customerDatabase()); });
   router.get('/comparison', asyncRoute(async (req, res) => res.json(mode === 'rules' ? service.comparison() : await llm.comparison(keys.resolve(req)))));
+
+  router.post('/import-discovery', asyncRoute(async (req, res) => {
+    const { researchId } = z.object({ researchId: z.string().regex(/^research-[0-9a-f-]{36}$/) }).strict().parse(req.body);
+    try {
+      const handoff = await prepareDiscoveryHandoff(researchId);
+      await service.ingestDiscovery(handoff);
+      await recordDiscoveryHandoff({
+        companyId: `entity:${handoff.company.entityId}`,
+        companyName: handoff.company.name,
+        researchId: handoff.researchId,
+        sourceIds: handoff.opportunities.flatMap(opportunity => opportunity.evidenceIds),
+        evidence: handoff.sources.map(source => ({ sourceId: String(source.claims.researchSourceId), title: String(source.claims.title), url: source.sourceUrl, publishedAt: source.publishedAt })),
+        candidates: handoff.opportunities.map(opportunity => ({ opportunityId: opportunity.id, service: opportunity.product })),
+      });
+      res.status(201).json({ handoff: { researchId: handoff.researchId, company: handoff.company, candidates: handoff.opportunities.length }, queue: await queue(req, true) });
+    } catch (error) {
+      if (error instanceof DiscoveryHandoffError) throw new DomainError(error.message, 409);
+      throw error;
+    }
+  }));
 
   const keyLimit = rateLimit({ windowMs: 60000, limit: 10, standardHeaders: 'draft-8', legacyHeaders: false,
     message: { message: 'Too many connection attempts. Wait a minute and try again.' } });

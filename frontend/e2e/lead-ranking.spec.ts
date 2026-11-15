@@ -97,17 +97,26 @@ test('mobile layout contains overflow, sources work, and keyboard closes and res
   await expect(page.getByRole('button', { name: 'Download mock CRM' })).toBeVisible()
 })
 test('customer-register failure discards the saved ranking instead of displaying unchecked cached leads', async ({ page }) => {
-  let unavailable = false
-  await page.route('**/api/v1/ranking/queue**', route => unavailable
-    ? route.fulfill({ status: 503, json: { code: 'CUSTOMER_DATABASE_UNAVAILABLE', message: 'Customer eligibility cannot be checked.' } })
+  let failureCode: string | null = null
+  await page.route('**/api/v1/ranking/queue**', route => failureCode
+    ? route.fulfill({ status: 503, json: { code: failureCode, message: 'Customer eligibility cannot be checked.' } })
     : route.continue())
   await page.goto('/lead-ranking')
   await expect(page.locator('tr[data-testid]')).toHaveCount(11)
   expect(await page.evaluate(() => !!localStorage.getItem('ranking-last-crm_plus_public'))).toBeTruthy()
-  unavailable = true
+  failureCode = 'CUSTOMER_DATABASE_UNAVAILABLE'
   await page.getByRole('button', { name: 'Refresh queue', exact: true }).click()
   await expect(page.locator('tr[data-testid]')).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Lead ranking unavailable' })).toBeVisible()
+  expect(await page.evaluate(() => localStorage.getItem('ranking-last-crm_plus_public'))).toBeNull()
+  // A cache saved before customer checks existed is unsafe even on an ordinary API outage.
+  failureCode = 'API_UNAVAILABLE'
+  await page.evaluate(() => localStorage.setItem('ranking-last-crm_plus_public', JSON.stringify({
+    items: [{ id: 'O02', account: 'Micron Singapore' }], total: 1, view: 'crm_plus_public',
+  })))
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'Lead ranking unavailable' })).toBeVisible()
+  await expect(page.locator('tr[data-testid]')).toHaveCount(0)
   expect(await page.evaluate(() => localStorage.getItem('ranking-last-crm_plus_public'))).toBeNull()
 })
 
@@ -162,6 +171,7 @@ test('missing-key popup connects without browser key storage; AI urgency and per
   const storage = await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage }, cookie: document.cookie }))
   expect(storage).not.toContain(fakeKey)
   await page.setViewportSize({ width: 390, height: 844 })
+  await row.getByRole('button', { name: '73%', exact: true }).scrollIntoViewIfNeeded()
   await row.getByRole('button', { name: '73%', exact: true }).click()
   await expect(page.getByRole('tooltip')).toBeVisible()
   const bounds = await page.getByRole('tooltip').boundingBox()
@@ -171,7 +181,7 @@ test('missing-key popup connects without browser key storage; AI urgency and per
 
 test('lead ranking uses the shared app shell, keeps dashboard home and redirects older links', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Sales Intelligence Command Centre/, level: 1 })).toBeVisible()
   const navigation = page.getByRole('navigation', { name: 'Main navigation' })
   await navigation.getByRole('link', { name: 'Lead Ranking', exact: true }).click()
   await expect(page).toHaveURL(/\/lead-ranking$/)

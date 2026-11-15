@@ -23,6 +23,7 @@ export interface Opportunity extends Omit<Decision, 'confidence'> {
   publicContribution: number; originalCrmDiscovery: boolean;
 }
 export interface Queue { items: Opportunity[]; total: number; view: View; queueVersion: string;
+  customerEligibility?: { policy: 'exclude_known_singtel_customers'; isMock: true; databaseVersion: string };
   asOf: string; queueComputedAt: string; eventCursor: number; initialized: boolean; degraded: boolean;
   lastSuccessfulRefreshAt: string | null; lastAttemptAt: string; sourceError: string | null;
   rubricVersion: string; scenarioVersion: string; fixtureVersion: string;

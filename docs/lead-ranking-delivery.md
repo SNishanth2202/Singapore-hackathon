@@ -11,7 +11,7 @@ for publicly documented Singtel relationships (Micron and Singapore Customs). Th
 mock register before every ranking; cached model output cannot restore an excluded account. Additional
 regressions cover file updates, aliases/groups, future discovery, in-flight changes and failed checks.
 The original counts and rank tables below predate this exclusion policy.
-Updated verification: 41 ranking/importer/API/model/customer tests, 66 existing app tests, 6 connector
+Updated verification: 43 ranking/importer/API/model/customer/discovery tests, 66 existing app tests, 6 connector
 tests and 6 browser checks passed. Both builds and the replay verifier passed. Live OpenAI/browser QA
 confirmed 11 retained leads with no excluded customer or page error.
 

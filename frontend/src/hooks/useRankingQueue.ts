@@ -17,6 +17,9 @@ export function useRankingQueue(view: View) {
     setBusy(true)
     try {
       const q = await rankingRequest<Queue>(`/queue?view=${view}`)
+      if (q.customerEligibility?.policy !== 'exclude_known_singtel_customers') {
+        throw new RankingRequestError('The backend has not verified Singtel customer eligibility. Refresh after the backend is updated.', 'CUSTOMER_DATABASE_UNAVAILABLE')
+      }
       const m = await rankingRequest<Meta>('/demo')
       if (id !== requestId.current) return
       setQueue(q); setMeta(m); setComparison(null); setError(null)
@@ -26,7 +29,11 @@ export function useRankingQueue(view: View) {
       setError((err as Error).message)
       if (discardUncheckedQueue(err)) return
       const saved = localStorage.getItem(`ranking-last-${view}`)
-      if (saved) { try { setQueue(JSON.parse(saved) as Queue) } catch { /* An invalid cache is never a fallback dataset. */ } }
+      if (saved) { try {
+        const cached = JSON.parse(saved) as Queue
+        if (cached.customerEligibility?.policy === 'exclude_known_singtel_customers') setQueue(cached)
+        else { setQueue(null); localStorage.removeItem(`ranking-last-${view}`) }
+      } catch { /* An invalid cache is never a fallback dataset. */ } }
     } finally { if (id === requestId.current) setBusy(false) }
   }, [view, discardUncheckedQueue])
   useEffect(() => { setQueue(previous => previous?.view === view ? previous : null); void refresh(); return () => { requestId.current++ } }, [refresh, view])

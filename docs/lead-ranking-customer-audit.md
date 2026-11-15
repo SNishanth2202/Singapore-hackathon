@@ -56,6 +56,9 @@ historical relationships are conservatively excluded; the file does not claim th
 - Generated opportunity suggestions from `/sources/extract` use the same register before returning
   proposals. Cached extractions and new model responses are checked against the latest file; public
   source facts remain available even when their suggested opportunity is excluded.
+- Discovery's `import-discovery` hand-off checks both the researched company and its candidate identities
+  before ingestion or downstream sales-workflow creation. A customer match returns HTTP 409 /
+  `SINGTEL_CUSTOMER_EXCLUDED`; the UI displays the reason and creates no new ranked lead.
 - An invalid/missing customer database fails closed with HTTP 503 / `CUSTOMER_DATABASE_UNAVAILABLE`.
   The browser discards its cached ranking for that error instead of showing unchecked old leads.
   If every candidate is excluded, the result is a healthy empty list without a model call.
@@ -69,7 +72,7 @@ discovery, live file edits, persistence, stale model results, in-flight changes,
 failure. **An absence from public search or this mock register cannot certify real non-customer status.**
 That final assurance requires Singtel's actual customer master and reviewed legal-entity mappings.
 
-Verification on 15 November 2026: 41 ranking/importer/API/model/customer tests, 66 existing app tests,
+Verification on 15 November 2026: 43 ranking/importer/API/model/customer/discovery tests, 66 existing app tests,
 6 connector tests and 6 browser tests passed (five core browser flows plus the targeted customer-database
 failure check). Backend and frontend builds passed, as did the offline replay verifier. The packaged
 backend test confirms that the customer register ships with the build and excludes four leads without

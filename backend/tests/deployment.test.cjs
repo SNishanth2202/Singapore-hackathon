@@ -106,7 +106,9 @@ test('explicit hosted preview runs sample accounts, dashboard and research witho
   t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));Object.assign(env,original);});
   const base='http://127.0.0.1:'+server.address().port;
   const companies=await fetch(base+'/api/v1/companies');assert.equal(companies.status,200);const c=await companies.json();assert.equal(c.data.length,2);assert.equal(c.dataMode,'sample');
-  const analytics=await fetch(base+'/api/v1/analytics/overview');const a=await analytics.json();assert.equal(a.data.totalCompanies,2);assert.equal(a.data.isMockData,true);
+  const analytics=await fetch(base+'/api/v1/analytics/overview');assert.equal(analytics.status,200);const a=await analytics.json();
+  assert.equal(a.data.dataMode,'memory_preview');assert.ok(Number.isInteger(a.data.metrics.totalCompaniesDiscovered));
+  assert.ok(Array.isArray(a.data.funnel));assert.ok(Array.isArray(a.data.interventions.items));
   const health=await fetch(base+'/api/v1/health/ready');assert.equal(health.status,200);assert.equal((await health.json()).storageMode,'temporary_preview');
   const overall=await fetch(base+'/api/v1/health');const h=await overall.json();assert.equal(h.services.mongodb,'not_configured');
 });

@@ -5,6 +5,9 @@ import { priorityStatusFor, rankQueue, toDecision } from './engine';
 import { fetchGebiz, hash, importSources, sourceEvidence, matchEntity } from './importer';
 import { fixtureCrm, fixtureOpportunities, makeSeed, REPO_ROOT } from './seed';
 import { CustomerDatabase, customerEligibility, readCustomerDatabase, CUSTOMER_CHECK_LIMITATION } from './customer-eligibility';
+import { checkCustomer } from './customer-eligibility';
+import { AppError } from '../utils/errors';
+import { DiscoveryHandoff, integrationEvidence } from './discovery';
 
 export class DomainError extends Error { constructor(message: string, public status = 400) { super(message); } }
 export class RankingService {
@@ -126,6 +129,31 @@ export class RankingService {
       const fact = event.description || `${event.eventType} for ${event.aggregateId}`;
       const changes = this.publish(next, fact);
       next.history.push({ eventId: event.eventId, eventType: event.eventType, fact, at: next.asOf, changes });
+      this.persist(next); this.state = next; return this.get();
+    });
+  }
+  ingestDiscovery(handoff: DiscoveryHandoff): Promise<QueueSnapshot> {
+    return this.transaction(() => {
+      const database = this.readCustomers();
+      if (checkCustomer({ accountId: `DISC-${handoff.company.entityId}`, account: handoff.company.name, parent: '' }, database).length
+        || handoff.opportunities.some(opportunity => checkCustomer(opportunity, database).length)) {
+        throw new AppError('No leads were added: this company matches the mock Singtel customer database.', 409, 'SINGTEL_CUSTOMER_EXCLUDED');
+      }
+      const next = clone(this.state);
+      next.sources = importSources(next.sources, handoff.sources).records;
+      next.evidence = [
+        ...next.evidence.filter(e => e.origin !== 'public'),
+        ...next.sources.map(sourceEvidence),
+        ...integrationEvidence(handoff, next.asOf),
+      ];
+      for (const opportunity of handoff.opportunities) {
+        const index = next.opportunities.findIndex(existing => existing.id === opportunity.id);
+        if (index >= 0) next.opportunities[index] = opportunity;
+        else next.opportunities.push(opportunity);
+        next.versions[opportunity.id] = (next.versions[opportunity.id] || 0) + 1;
+      }
+      const changes = this.publish(next, handoff.fact);
+      next.history.push({ eventId: `discovery-${handoff.researchId}`, eventType: 'DiscoveryQualified', fact: handoff.fact, at: next.asOf, changes });
       this.persist(next); this.state = next; return this.get();
     });
   }
