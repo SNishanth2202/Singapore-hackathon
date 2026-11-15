@@ -4,6 +4,7 @@ import companyRoutes     from './company.routes';
 import opportunityRoutes from './opportunity.routes';
 import analyticsRoutes   from './analytics.routes';
 import aiRoutes          from './ai.routes';
+import graphRoutes from './graph.routes';
 
 const router = Router();
 
@@ -12,6 +13,7 @@ router.use('/companies',    companyRoutes);
 router.use('/opportunities', opportunityRoutes);
 router.use('/analytics',    analyticsRoutes);
 router.use('/ai',           aiRoutes);
+router.use('/graph',        graphRoutes);
 
 // 404 fallback for unmatched /api/v1/* routes
 router.use((_req: Request, res: Response) => {

@@ -9,6 +9,7 @@ import researchRoutes from './research.routes';
 import businessRoutes from './business.routes';
 import { requireLocalDevelopment } from '../middleware/localDevelopment';
 import { rateLimit } from 'express-rate-limit';
+import { latestAnalysis, loadAnalysis, saveAnalysis } from '../integrations/research/analysisStore';
 
 const router = Router();
 
@@ -25,6 +26,14 @@ router.get('/models', requireLocalDevelopment, async (_req, res, next) => {
 
 router.use('/research', researchRoutes);
 router.use('/business-knowledge', businessRoutes);
+router.get('/analyses/latest', async (req, res, next) => {
+  try { sendSuccess(res, await latestAnalysis(z.string().min(1).max(100).parse(req.query.companyId))); }
+  catch (error) { next(error); }
+});
+router.get('/analyses/:id', async (req, res, next) => {
+  try { sendSuccess(res, await loadAnalysis(req.params.id)); }
+  catch (error) { next(error); }
+});
 
 let analyzing = false;
 router.post('/analyze', async (req, res, next) => {
@@ -32,7 +41,7 @@ router.post('/analyze', async (req, res, next) => {
   const input = z.object({ companyId: z.string().min(1).max(100) }).safeParse(req.body);
   if (!input.success) { next(new AppError('Provide a companyId.', 400, 'VALIDATION_ERROR')); return; }
   analyzing = true;
-  try { sendSuccess(res, await analyzeCompany(input.data.companyId)); }
+  try { sendSuccess(res, await saveAnalysis(input.data.companyId, await analyzeCompany(input.data.companyId))); }
   catch (error) { next(error); }
   finally { analyzing = false; }
 });

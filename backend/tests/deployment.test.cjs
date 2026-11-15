@@ -74,14 +74,17 @@ test('hosted routes allow research and analysis while enforcing CORS, rate limit
   const analysis = require('../dist/integrations/freellmapi/analyze');
   const research = require('../dist/integrations/research/service');
   const knowledge = require('../dist/business/store');
-  const originals = {analyze:analysis.analyzeCompany,research:research.researchCompany,read:knowledge.businessKnowledgeStore.read};
+  const reports = require('../dist/integrations/research/analysisStore');
+  const originals = {analyze:analysis.analyzeCompany,research:research.researchCompany,read:knowledge.businessKnowledgeStore.read,save:reports.saveAnalysis};
+  let savedCompanyId;
+  reports.saveAnalysis = async (companyId, result) => { savedCompanyId=companyId; return result; };
   analysis.analyzeCompany = async () => ({checked:true});
   research.researchCompany = async () => ({company:{name:'Test organisation'},sources:[]});
   knowledge.businessKnowledgeStore.read = async () => knowledge.getSeedKnowledge();
   const app = require('../dist/app').default;
   const server = app.listen(0,'127.0.0.1'); await once(server,'listening');
   t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));Object.assign(env,originalEnv);
-    analysis.analyzeCompany=originals.analyze;research.researchCompany=originals.research;knowledge.businessKnowledgeStore.read=originals.read;});
+    analysis.analyzeCompany=originals.analyze;research.researchCompany=originals.research;knowledge.businessKnowledgeStore.read=originals.read;reports.saveAnalysis=originals.save;});
   const base='http://127.0.0.1:'+server.address().port;
   const headers={Origin:hosted.CORS_ORIGIN,'Content-Type':'application/json'};
   assert.equal((await fetch(base+'/',{headers:{Origin:'https://untrusted.example'}})).status,403);
@@ -93,6 +96,7 @@ test('hosted routes allow research and analysis while enforcing CORS, rate limit
   assert.equal((await fetch(base+'/api/v1/ai/test',{method:'POST',headers:{...headers,'X-Forwarded-For':'192.0.2.2'}})).status,403);
   const post=path=>fetch(base+path,{method:'POST',headers:{...headers,'X-Forwarded-For':'192.0.2.3'},body:JSON.stringify(path.endsWith('/analyze')?{companyId:'research-test'}:{entityId:'Q491748'})});
   assert.equal((await post('/api/v1/ai/analyze')).status,200);
+  assert.equal(savedCompanyId,'research-test');
   assert.equal((await post('/api/v1/ai/research')).status,201);
   assert.equal((await post('/api/v1/ai/analyze')).status,429);
   assert.equal((await fetch(base+'/api/v1/health/ready')).status,503);

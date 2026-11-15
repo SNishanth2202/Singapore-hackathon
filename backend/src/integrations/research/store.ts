@@ -1,6 +1,7 @@
 import { AppError } from '../../utils/errors';
 import { env } from '../../config/env';
-import { ResearchSnapshot, requireCloudMongo } from '../../models/CloudStorage';
+import mongoose from 'mongoose';
+import { CompanyProfile, ResearchSnapshot, requireCloudMongo } from '../../models/CloudStorage';
 
 export interface CompanyIdentity {
   entityId: string; name: string; description: string; website: string | null;
@@ -30,8 +31,16 @@ export async function saveResearch(record: ResearchRecord) {
   }
   requireCloudMongo();
   // The immutable snapshot and pending graph-sync state are committed in one MongoDB insert.
-  await ResearchSnapshot.create({ _id: record.id, entityId: record.company.entityId, record,
-    graphStatus: 'PENDING', graphAttempts: 0, graphRetryAt: new Date(), graphLeaseUntil: new Date(0) });
+  const session = await mongoose.startSession();
+  try {
+    await session.withTransaction(async () => {
+      await ResearchSnapshot.create([{ _id: record.id, entityId: record.company.entityId, record,
+        graphStatus: 'PENDING', graphAttempts: 0, graphRetryAt: new Date(), graphLeaseUntil: new Date(0) }], { session });
+      await CompanyProfile.updateOne({ _id: record.company.entityId }, { $set: {
+        identity: record.company, latestResearchId: record.id, researchedAt: new Date(record.createdAt),
+      } }, { upsert: true, session });
+    });
+  } finally { await session.endSession(); }
 }
 export async function loadResearch(id: string): Promise<ResearchRecord> {
   if (!validResearchId(id)) throw new AppError('Research not found.', 404, 'NOT_FOUND');
@@ -42,6 +51,7 @@ export async function loadResearch(id: string): Promise<ResearchRecord> {
   return structuredClone(record);
 }
 export async function listResearch(limit = 25) {
+  limit = Math.max(1, Math.min(100, Math.trunc(limit) || 25));
   if (env.STORAGE_MODE === 'memory') return [...previewRecords.values()].reverse().slice(0, limit).map(({ id, company, createdAt, persistence }) => ({ id, company, createdAt, persistence, graphStatus: 'NOT_CONNECTED' }));
   requireCloudMongo();
   return (await ResearchSnapshot.find().sort({ createdAt: -1 }).limit(limit).select('record.id record.company record.createdAt record.persistence graphStatus').lean())

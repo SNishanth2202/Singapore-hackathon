@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { SearchIcon, GlobeIcon, RefreshCwIcon, ExternalLinkIcon } from 'lucide-react'
 import api from '../services/api'
@@ -7,6 +7,7 @@ import CompanyAnalysis from './CompanyAnalysis'
 interface Candidate { entityId: string; name: string; description: string; website: string | null; identitySource: string }
 interface Source { id: string; title: string; url: string; publisher: string; excerpt: string; publishedAt: string | null; retrievedAt: string; kind: string; verification: string }
 interface Research { id: string; company: Candidate; sources: Source[]; warnings: string[]; createdAt: string; persistence?: { mode: string; durable: boolean }; quality?: { companyEventCount: number; duplicateReportCount: number; commentaryCount: number; sourceAssessments: { sourceId: string; relevance: string; reason: string }[] } }
+interface SavedResearch { id: string; company: Candidate; createdAt: string; persistence?: { durable: boolean }; graphStatus: string }
 
 export default function CompanyResearch() {
   const [name, setName] = useState('')
@@ -15,11 +16,28 @@ export default function CompanyResearch() {
   const [phase, setPhase] = useState<'idle'|'finding'|'collecting'>('idle')
   const [error, setError] = useState('')
   const [note, setNote] = useState('')
+  const [history, setHistory] = useState<SavedResearch[]>([])
+  const [historyError, setHistoryError] = useState('')
+  useEffect(() => {
+    let active = true
+    api.get('/api/v1/ai/research').then(response => { if (active) setHistory(response.data.data) })
+      .catch(() => { if (active) setHistoryError('Saved research could not be loaded. Refresh to retry.') })
+    return () => { active = false }
+  }, [])
+  async function reopen(id: string) {
+    setError(''); setPhase('collecting'); setCandidates([])
+    try { const response = await api.get(`/api/v1/ai/research/${encodeURIComponent(id)}`); setResearch(response.data.data) }
+    catch (e) { setError(message(e)) }
+    finally { setPhase('idle') }
+  }
   async function collect(candidate: Candidate) {
     setPhase('collecting'); setError(''); setCandidates([])
     try {
       const response = await api.post('/api/v1/ai/research', { entityId: candidate.entityId }, { timeout: 100000 })
       setResearch(response.data.data)
+      const saved = response.data.data as Research
+      setHistory(previous => [{ id: saved.id, company: saved.company, createdAt: saved.createdAt, persistence: saved.persistence, graphStatus: saved.persistence?.durable ? 'PENDING' : 'NOT_CONNECTED' }, ...previous].slice(0, 25))
+      setHistoryError('')
     } catch (e) { setError(message(e)) }
     finally { setPhase('idle') }
   }
@@ -45,12 +63,20 @@ export default function CompanyResearch() {
         <input id="research-company-name" value={name} onChange={(e)=>setName(e.target.value)} disabled={phase !== 'idle'} minLength={2} maxLength={120} required placeholder="e.g. Infosys, DHL, Tata Consultancy Services" className="flex-1 min-w-0 border border-gray-300 px-3 py-3 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
         <button disabled={phase !== 'idle' || name.trim().length < 2} className="inline-flex justify-center items-center gap-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 text-sm font-semibold disabled:opacity-50">{phase === 'idle' ? <SearchIcon className="w-4 h-4" /> : <RefreshCwIcon className="w-4 h-4 animate-spin" />}{phase === 'finding' ? 'Finding company…' : phase === 'collecting' ? 'Gathering sources…' : 'Research company'}</button>
       </form>
-      <p className="text-xs text-gray-500 mt-3">Public research is separate from the sample accounts below. Coverage varies; unclear matches need your confirmation.</p>
+      <p className="text-xs text-gray-500 mt-3">Search public sources and keep a research history. Confirm the organization when names are similar.</p>
       {phase !== 'idle' && <p role="status" className="text-sm text-teal-700 mt-4">{phase === 'finding' ? 'Checking public identity listings. The AI does not guess the company.' : 'Reading profiles, recent news headlines and accessible company pages. Blocked sources will be disclosed.'}</p>}
       {error && <p role="alert" className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
       {note && <p className="text-sm text-gray-600 mt-4">{note}</p>}
       {!!candidates.length && <div className="mt-4 space-y-2"><h3 className="text-sm font-semibold">Which company do you mean?</h3>{candidates.map((c)=><button key={c.entityId} onClick={()=>void collect(c)} disabled={phase !== 'idle'} className="w-full text-left rounded-lg border border-gray-200 p-3 hover:border-teal-500 hover:bg-teal-50 disabled:opacity-50"><span className="font-semibold text-sm">{c.name}</span><span className="block text-sm text-gray-600 mt-1">{c.description}</span><span className="text-xs text-gray-400">{c.website ?? 'Website not listed'} · {c.entityId}</span></button>)}</div>}
     </div>
+    {(history.length > 0 || historyError) && <div className="card p-5 mt-5">
+      <h2 className="text-sm font-semibold text-gray-700 mb-3">Saved research</h2>
+      {historyError && <p className="text-sm text-gray-600">{historyError}</p>}
+      <div className="flex gap-2 flex-wrap">{history.map(item => <button key={item.id} disabled={phase !== 'idle'} onClick={() => void reopen(item.id)} className="text-left px-3 py-2 border border-gray-200 rounded-lg hover:border-teal-500 disabled:opacity-50">
+        <span className="block text-sm font-medium text-navy-600">{item.company.name}</span>
+        <span className="block text-xs text-gray-500">{new Date(item.createdAt).toLocaleString()} · {item.persistence?.durable ? 'Saved to cloud' : 'Session'}</span>
+      </button>)}</div>
+    </div>}
     {research && <div className="mt-5 space-y-5">
       <div className="card p-5 sm:p-6"><div className="flex flex-wrap gap-2 justify-between items-start"><div><h2 className="text-lg font-semibold text-navy-600">Research: {research.company.name}</h2><p className="text-sm text-gray-600 mt-1">{research.company.description}</p></div><span className="text-xs bg-teal-50 text-teal-700 px-2 py-1 rounded">Public-source snapshot</span></div>
         <a href={research.company.identitySource} target="_blank" rel="noopener noreferrer" className="text-xs text-teal-700 underline inline-block mt-2">Identity listing · confirm this is the right organization</a>

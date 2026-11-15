@@ -1,12 +1,16 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { searchCompanies, researchCompany } from '../integrations/research/service';
-import { loadResearch } from '../integrations/research/store';
+import { listResearch, loadResearch } from '../integrations/research/store';
 import { AppError } from '../utils/errors';
 import { sendSuccess } from '../utils/apiResponse';
 
 const router = Router();
 let researching = false;
+router.get('/', async (req, res, next) => {
+  try { sendSuccess(res, await listResearch(z.coerce.number().int().min(1).max(100).default(25).parse(req.query.limit))); }
+  catch (error) { next(error); }
+});
 router.post('/search', async (req, res, next) => {
   try {
     const { name } = z.object({ name: z.string().trim().min(2).max(120) }).strict().parse(req.body);

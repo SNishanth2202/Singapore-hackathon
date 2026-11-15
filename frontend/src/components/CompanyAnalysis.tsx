@@ -1,9 +1,10 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { SparklesIcon, RefreshCwIcon, AlertCircleIcon, CheckCircleIcon } from 'lucide-react'
 import axios from 'axios'
 import api from '../services/api'
 
 interface AnalysisResult {
+  analysisId?: string; persistence?: { durable: boolean }
   model: string | null; generatedAt: string; dataMode: string; citationCheck: string; validationWarnings?: string[]
   analysisOrigin?: string
   businessContext?: { sellerName: string; knowledgeVersion: number; companyClassification: string }
@@ -30,9 +31,18 @@ export default function CompanyAnalysis({ companyId, sources = [], autoRun = fal
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [reviewed, setReviewed] = useState(false)
-  const started = useRef(false)
-  useEffect(() => { setResult(null); setError(''); setReviewed(false) }, [companyId])
-  useEffect(() => { if (autoRun && !started.current) { started.current = true; void analyze() } }, [autoRun, companyId]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    let active = true
+    setResult(null); setError(''); setReviewed(false); setLoading(true)
+    api.get('/api/v1/ai/analyses/latest', { params: { companyId } }).then(response => {
+      if (!active) return
+      const saved = response.data.data?.result as AnalysisResult | undefined
+      if (saved) { setResult(saved); setLoading(false) }
+      else if (autoRun) void analyze()
+      else setLoading(false)
+    }).catch(() => { if (active) { setLoading(false); setError('Saved analysis could not be loaded. You can retry with Analyze with AI.') } })
+    return () => { active = false }
+  }, [companyId, autoRun]) // eslint-disable-line react-hooks/exhaustive-deps
   async function analyze() {
     setLoading(true); setError(''); setReviewed(false)
     try {
@@ -66,6 +76,7 @@ export default function CompanyAnalysis({ companyId, sources = [], autoRun = fal
     {loading && <p role="status" className="text-sm text-teal-700 mt-5 bg-teal-50 p-4 rounded-lg">Reading the supplied signals and preparing the brief. The first request may take longer while the backend starts.</p>}
     {error && <div role="alert" className="mt-5 p-4 bg-red-50 text-red-700 rounded-lg flex gap-2"><AlertCircleIcon className="w-5 h-5 shrink-0" />{error}</div>}
     {result && a && <div className="mt-6 space-y-5" aria-live="polite">
+      {result.persistence?.durable && <p className="text-xs text-gray-500">Saved report · {new Date(result.generatedAt).toLocaleString()}</p>}
       <div className="flex flex-wrap gap-2 text-xs"><span className="bg-teal-50 text-teal-700 px-2 py-1 rounded">{result.analysisOrigin === 'seller_check' ? 'Seller identity check' : `Live AI · ${result.model}`}</span><span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">{result.dataMode === 'sample' ? 'Fictional scenario' : result.dataMode === 'research' ? 'Public research · verify sources' : 'Supplied account data'}</span><span className="bg-gray-100 text-gray-600 px-2 py-1 rounded">{a.readiness === 'DISCOVERY_READY' ? 'Ready for targeted discovery' : a.readiness === 'NEEDS_RESEARCH' ? 'Service connection needs review' : 'Hold for research'}</span></div>
       {result.businessContext && <p className="text-xs text-gray-500">Seller: {result.businessContext.sellerName} · Business knowledge v{result.businessContext.knowledgeVersion}{result.businessContext.companyClassification === 'SELLER' ? ' · Selected company is the seller' : ''}</p>}
       <p className="text-sm leading-relaxed text-gray-700">{a.summary}</p>

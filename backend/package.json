@@ -10,6 +10,7 @@
     "test:research": "npm run build && node --test tests/research.test.cjs tests/freellmapi.test.cjs tests/business.test.cjs tests/events.test.cjs",
     "test:business": "npm run build && node --test tests/business.test.cjs",
     "test:deployment": "npm run build && node --test tests/deployment.test.cjs",
+    "test:storage": "npm run build && node --test tests/storage.test.cjs",
     "check:deployment": "npm run build && node dist/scripts/check-deployment.js",
     "verify:cloud": "npm run build && node dist/scripts/verify-cloud.js",
     "verify:ai": "npm run build && node dist/scripts/verify-ai.js",

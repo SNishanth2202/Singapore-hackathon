@@ -13,6 +13,7 @@ export async function getReadiness(_req: Request, res: Response): Promise<void> 
   const timeout = new Promise<boolean[]>(resolve => { timer = setTimeout(() => resolve([false, false]), 3500); });
   const [mongo, graph] = await Promise.race([checks, timeout]).finally(() => clearTimeout(timer));
   res.status(mongo && graph ? 200 : 503).json({ success: mongo && graph, status: mongo && graph ? 'ready' : 'unavailable',
+    storageMode: 'cloud',
     services: { mongodb: mongo ? 'up' : 'down', neo4j: graph ? 'up' : 'down' } });
 }
 
@@ -34,6 +35,7 @@ export async function getOverallHealth(
     res.status(allHealthy ? 200 : 207).json({
       success: true,
       status: allHealthy ? 'healthy' : 'degraded',
+      storageMode: 'cloud',
       timestamp: new Date().toISOString(),
       services: {
         mongodb: mongoStatus ? 'up' : 'down',

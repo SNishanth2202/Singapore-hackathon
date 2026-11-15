@@ -6,6 +6,8 @@ import { applyConstraints } from './integrations/neo4j/graphService';
 import { deploymentConfigurationProblems } from './config/deployment';
 import { businessKnowledgeStore } from './business/store';
 import { AppError } from './utils/errors';
+import { ensureCloudIndexes } from './models/CloudStorage';
+import { startGraphSyncWorker } from './integrations/neo4j/syncWorker';
 
 const PORT = env.PORT;
 
@@ -18,9 +20,11 @@ async function start(): Promise<void> {
   await initializeDatabases();
 
   if (env.STORAGE_MODE === 'cloud') {
+    await ensureCloudIndexes();
     await applyConstraints();
     await businessKnowledgeStore.read();
   }
+  const stopGraphSync = env.STORAGE_MODE === 'cloud' ? startGraphSyncWorker() : async () => {};
 
   const server = app.listen(PORT, env.HOST, () => {
     logger.info(`Singtel Scout backend started`, {
@@ -35,6 +39,7 @@ async function start(): Promise<void> {
     logger.info(`${signal} received — shutting down gracefully`);
 
     server.close(async () => {
+      await stopGraphSync();
       await closeDatabases();
       logger.info('Server closed');
       process.exit(0);
