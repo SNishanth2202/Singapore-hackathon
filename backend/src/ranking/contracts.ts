@@ -16,6 +16,7 @@ export const OpportunitySchema = z.object({
   // The seed queue uses three concrete products; Discovery can add a catalogue-backed
   // service hypothesis without pretending it is already a configured SKU.
   product: z.string().min(1).max(200),
+  industry: z.string().optional(), territory: z.string().optional(), leadType: z.string().optional(),
   useCase: z.string(), buyingWindowId: z.string(), ownerId: z.string(), owner: z.string(),
   contactId: z.string(), need: z.union([z.literal(0), z.literal(8), z.literal(15)]),
   needOrigin: z.enum(['public', 'mock_salesforce']), evidenceIds: z.array(z.string()),

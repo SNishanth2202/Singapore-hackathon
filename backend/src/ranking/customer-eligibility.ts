@@ -12,14 +12,14 @@ const name = z.string().min(1).refine(v => !!normalizeCustomerName(v), 'Customer
 export const CustomerDatabaseSchema = z.object({
   schemaVersion: z.literal(1), isMock: z.literal(true), updatedAt: z.string().datetime(), description: z.string(),
   customers: z.array(z.object({ id: z.string().min(1), name, accountIds: z.array(z.string().min(1)),
-    aliases: z.array(name), groupNames: z.array(name), basis: z.enum(['publicly_documented_relationship', 'synthetic_crm']),
+    aliases: z.array(name), groupNames: z.array(name), status: z.enum(['active', 'former']).optional(), previousManagerId: z.string().optional(), departureNotes: z.string().optional(), basis: z.enum(['publicly_documented_relationship', 'synthetic_crm']),
     sourceUrl: z.string().url().refine(v => v.startsWith('https://')), sourceDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), evidence: z.string().min(1),
   }).strict()),
 }).strict().refine(db => new Set(db.customers.map(c => c.id)).size === db.customers.length, 'Duplicate customer IDs');
 export type CustomerDatabase = z.infer<typeof CustomerDatabaseSchema>;
 export interface CustomerIdentity { accountId: string; account: string; parent: string; }
 export interface CustomerCheck {
-  result: 'not_found_in_mock_customer_database'; databaseVersion: string; databaseUpdatedAt: string;
+  result: 'not_found_in_mock_customer_database' | 'former_mock_customer'; databaseVersion: string; databaseUpdatedAt: string;
   isMock: true; limitation: string;
 }
 export interface CustomerExclusion {
@@ -37,8 +37,9 @@ export function readCustomerDatabase(location = process.env.SINGTEL_CUSTOMER_DB_
     return CustomerDatabaseSchema.parse(JSON.parse(fs.readFileSync(location, 'utf8')));
   } catch { throw new AppError('The Singtel customer database is unavailable or invalid. Ranking is paused until customer eligibility can be checked.', 503, 'CUSTOMER_DATABASE_UNAVAILABLE'); }
 }
-export function checkCustomer(identity: CustomerIdentity, database: CustomerDatabase) {
+export function checkCustomer(identity: CustomerIdentity, database: CustomerDatabase, status: 'active' | 'former' = 'active') {
   return database.customers.flatMap(customer => {
+    if ((customer.status || 'active') !== status) return [];
     const matchedBy: CustomerExclusion['matchedBy'] = [];
     if (customer.accountIds.includes(identity.accountId)) matchedBy.push('account_id');
     if ([customer.name, ...customer.aliases].some(n => normalizeCustomerName(n) === normalizeCustomerName(identity.account))) matchedBy.push('name_or_alias');

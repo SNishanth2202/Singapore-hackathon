@@ -89,7 +89,10 @@ function ComparisonPanel({ comparison }: { comparison: Comparison | null }) {
 
 export default function LeadRankingQueue() {
   const [view, setView] = useState<View>('crm_plus_public'), [search, setSearch] = useState(''), [status, setStatus] = useState('all')
-  const { queue, meta, comparison, error, busy, refresh, mutate, loadComparison } = useRankingQueue(view)
+  const [salesperson, setSalesperson] = useState('aisha')
+  const people = [{ id: 'aisha', name: 'Aisha Tan' }, { id: 'daniel', name: 'Daniel Lim' }, { id: 'priya', name: 'Priya Nair' }]
+  const person = people.find(p => p.id === salesperson)!
+  const { queue, meta, comparison, error, busy, refresh, mutate, loadComparison } = useRankingQueue(view, salesperson)
   const [drawer, setDrawer] = useState<'sources' | 'compare' | 'guide' | 'lab' | 'key' | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const closeDrawer = useRef(() => { setSelected(null); setDrawer(null) }).current
@@ -111,10 +114,10 @@ export default function LeadRankingQueue() {
   }
   return <div className="lr-app">
     <PageHeader
-      title="Lead Ranking"
+      title={`${person.name}'s Lead Ranking`}
       subtitle="Prioritise buying units, products and buying windows using CRM facts and public evidence."
       badge={<span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">Synthetic CRM</span>}
-      actions={<>
+      actions={<><label className="lr-status-filter"><span className="lr-sr-only">Mock salesperson</span><select aria-label="Mock salesperson" value={salesperson} onChange={e => { setSelected(null); setSalesperson(e.target.value) }}>{people.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
         <button className="lr-button primary" disabled={busy} onClick={() => void mutate('/llm/analyze', {})}><SparklesIcon size={16} />{busy ? 'Assessing…' : 'Reassess leads'}</button>
         <button className="lr-icon-button" aria-label="OpenAI API key" title="OpenAI API key" onClick={() => setDrawer('key')}><KeyIcon size={18} /></button>
         <button className="lr-button secondary" onClick={() => setDrawer('sources')}><GlobeIcon size={16} />Sources & CRM</button>

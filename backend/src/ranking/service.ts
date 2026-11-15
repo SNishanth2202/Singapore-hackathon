@@ -58,9 +58,12 @@ export class RankingService {
     for (const view of VIEWS) {
       const old = state.snapshots[view];
       const items = rankQueue(candidates, state.evidence, state.asOf, view);
-      for (const row of items) row.customerCheck = { result: 'not_found_in_mock_customer_database',
-        databaseVersion: eligibility.databaseVersion, databaseUpdatedAt: eligibility.databaseUpdatedAt,
-        isMock: true, limitation: CUSTOMER_CHECK_LIMITATION };
+      for (const row of items) {
+        const former = checkCustomer(row, database, 'former').length > 0;
+        row.customerCheck = { result: former ? 'former_mock_customer' : 'not_found_in_mock_customer_database',
+          databaseVersion: eligibility.databaseVersion, databaseUpdatedAt: eligibility.databaseUpdatedAt, isMock: true,
+          limitation: former ? 'Mock former customer: review departure and consult the previous account manager before outreach.' : CUSTOMER_CHECK_LIMITATION };
+      }
       const signature = hash({ customerDatabase: eligibility.databaseVersion, excluded: eligibility.excluded, rows: items.map(r => ({ id: r.id, rank: r.rank, score: r.score, status: r.status,
         action: r.actionCode, band: r.priorityBand, confidence: r.rankingConfidence,
         gates: r.gates, components: r.components, evidence: r.evidence, deadline: r.deadline })) });
