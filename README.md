@@ -314,3 +314,71 @@ Open **Settings → Business knowledge** to view or edit the structured seller c
 Changes persist as versioned local configuration; no authentication has been added. The existing local-development boundary applies. See [backend/BUSINESS_KNOWLEDGE.md](backend/BUSINESS_KNOWLEDGE.md) for the schema, API, editing instructions, evidence rules and storage limits. `GET/PUT /api/v1/ai/business-knowledge` supports a future admin interface. Run `npm run test:business` from backend to check the configuration and matching behavior.
 
 Analysis distinguishes a service-related signal from an exploratory event-to-service connection. An acquisition can support a conditional integration question even without exact product phrases. The backend builds factual public-research summaries from the approved event inventory, validates AI hypotheses against service/evidence IDs, and reports why any suggestion was withheld. `DISCOVERY_READY` means ready for a targeted conversation; it does not establish a qualified opportunity. The dashboard explains source limits and customer questions separately instead of using a generic missing-evidence message. The combined checks include regressions for duplicated acquisition coverage, commentary attribution, provider-versus-customer roles and event-based discovery.
+
+## Lead ranking
+
+Lead ranking combines cited public signals with synthetic Salesforce-style CRM and engineering facts.
+It ranks each account, buying unit, product/use case and buying window. **OpenAI actively assesses
+urgency and confidence**; application code enforces site, technical and deadline requirements.
+Open **Lead Ranking** in the app navigation (`/lead-ranking`); `/opportunities` redirects there.
+
+```powershell
+npm --prefix backend ci
+npm --prefix frontend ci
+npm run dev
+```
+
+Open http://localhost:3000/lead-ranking. If no OpenAI key is configured, the app opens a popup to enter
+one. Alternatively set `OPENAI_API_KEY` in the ignored project-root `.env`; the default ranking model
+is `gpt-4.1-mini`, configurable with `OPENAI_MODEL`. Browser-entered keys stay in backend memory for
+the session; the browser receives an opaque HttpOnly cookie. Keys are never saved in browser storage
+or returned by the API. OpenAI API usage is billed to the key's account. Restarting the server clears
+browser key sessions. Company research retains its existing, separate provider settings.
+
+Urgency labels are **Very urgent**, **Urgent**, **Normal priority**, **Low priority** and **Irrelevant**.
+The table shows one **confidence percentage**, with no separate numeric priority score. Hover, focus
+or tap either urgency or confidence for short evidence-based reasons. Confidence is the model's
+assessment of the evidence supporting its urgency judgment, not a calibrated probability of winning
+or a scenario frequency. Unbounded decisive evidence shows **Insufficient evidence**. Required actions
+remain Pursue, Verify, Resolve, Monitor and Blocked; failed or unknown mandatory gates prevent pursuit.
+
+The worklist opens directly onto the ranked leads. **Reassess leads** requests a fresh model assessment;
+unchanged evidence normally reuses the successful result. **Demo checks** opens replay/reset,
+connector failure, ambiguous matching, clock changes and an empty list. After customer exclusions, the
+initial 11 eligible candidates become 12 when the cited ETLA trigger is replayed. All buyer dates, contacts, commercial estimates,
+service cases and engineering assessments are synthetic. Source/model failures preserve the last
+successful result with its time and warning. Before a successful model call, the queue is labelled
+Awaiting AI. A healthy empty queue stays empty without a model call.
+
+Every ranking checks the mock Singtel customer register before scoring. Account IDs, normalized names,
+aliases and explicitly listed parent groups exclude known relationships across products/sites, including
+from cached AI results. The current audit removed Micron and Singapore Customs (four leads). Customer
+database changes take effect on the next read; a missing/invalid database pauses ranking. A retained lead
+means **not found in the mock register**, rather than proof of real non-customer status. Managed WAN
+renewals are competitive opportunities involving a synthetic incumbent. See the
+[customer audit and backend policy](docs/lead-ranking-customer-audit.md).
+
+The local launcher uses the app's memory preview and a separate atomic JSON store under `.local/`
+for ranking. The default home page remains the dashboard. No real Salesforce connection is claimed.
+The cloud backend retains its existing start entry point; hosted preview file state is temporary.
+
+Verify the module without paid model calls:
+
+```powershell
+npm --prefix backend run test:ranking
+node --test tools/gebiz-connector.test.mjs
+npm --prefix backend run verify:ranking-demo
+npm --prefix frontend run test:e2e
+```
+
+Browser tests use isolated ports and fixture state. The replay verifier checks the deterministic
+reference engine; set `LEAD_RANKING_MODE=rules` before starting the backend to use that offline mode.
+Its fixed weights and ten-scenario confidence are reference behavior rather than the live AI assessment.
+Both package builds and the existing research/deployment tests also apply.
+
+- [Active LLM architecture, keys and acceptance checks](docs/lead-ranking-llm.md)
+- [Implementation plan and acceptance criteria](docs/lead-ranking-plan.md)
+- [Data contracts and seeded opportunities](docs/lead-ranking-contracts.md)
+- [Public source inventory](docs/lead-ranking-sources.md)
+- [Demo script](docs/lead-ranking-demo.md)
+- [Verification and operational scope](docs/lead-ranking-delivery.md)

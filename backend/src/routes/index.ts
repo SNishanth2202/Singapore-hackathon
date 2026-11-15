@@ -5,6 +5,9 @@ import opportunityRoutes from './opportunity.routes';
 import analyticsRoutes   from './analytics.routes';
 import aiRoutes          from './ai.routes';
 import graphRoutes from './graph.routes';
+import { createRankingRouter } from './ranking.routes';
+import { RankingService } from '../ranking/service';
+import salesRoutes from './sales.routes';
 
 const router = Router();
 
@@ -14,6 +17,13 @@ router.use('/opportunities', opportunityRoutes);
 router.use('/analytics',    analyticsRoutes);
 router.use('/ai',           aiRoutes);
 router.use('/graph',        graphRoutes);
+router.use('/sales',        salesRoutes);
+const rankingService = new RankingService();
+if (process.env.DEMO_REAL_CLOCK === 'true') {
+  const rankingClock = setInterval(() => { void rankingService.advance(new Date().toISOString()).catch(err => console.error(err.message)); }, 30000);
+  rankingClock.unref();
+}
+router.use('/ranking',      createRankingRouter(rankingService));
 
 // 404 fallback for unmatched /api/v1/* routes
 router.use((_req: Request, res: Response) => {

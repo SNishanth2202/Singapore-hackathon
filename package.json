@@ -1,0 +1,10 @@
+{
+  "name": "singtel-lead-ranking-demo",
+  "private": true,
+  "scripts": {
+    "dev": "node tools/start-demo.mjs",
+    "start": "npm --prefix backend start",
+    "verify": "npm --prefix backend run verify:ranking-demo",
+    "start:ranking-demo": "node backend/dist/ranking/demo-server.js"
+  }
+}

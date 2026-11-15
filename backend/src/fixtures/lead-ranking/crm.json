@@ -1,0 +1,648 @@
+{
+  "fixtureVersion": "singtel-demo-v1",
+  "notice": "All CRM records, buying windows, commercial values and relationships with Singtel are synthetic.",
+  "accounts": [
+    {
+      "Id": "ACC-1",
+      "Name": "ETLA Limited",
+      "ParentName": "Frencken Group",
+      "OwnerId": "rep-demo-1",
+      "BillingCountry": "Singapore",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACC-2",
+      "Name": "Micron Singapore",
+      "ParentName": "Micron Technology",
+      "OwnerId": "rep-demo-2",
+      "BillingCountry": "Singapore",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACC-3",
+      "Name": "UMC Singapore",
+      "ParentName": "United Microelectronics Corporation",
+      "OwnerId": "rep-demo-3",
+      "BillingCountry": "Singapore",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACC-4",
+      "Name": "AEIM Pte Ltd",
+      "ParentName": "Polymatech Electronics Limited",
+      "OwnerId": "rep-demo-1",
+      "BillingCountry": "Singapore",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACC-5",
+      "Name": "Prefab Technology Pte Ltd",
+      "ParentName": "Hor Kew Corporation Limited",
+      "OwnerId": "rep-demo-2",
+      "BillingCountry": "Singapore",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACC-6",
+      "Name": "Singapore Customs",
+      "ParentName": "Ministry of Finance",
+      "OwnerId": "rep-demo-3",
+      "BillingCountry": "Singapore",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACC-7",
+      "Name": "Bombardier Singapore",
+      "ParentName": "Bombardier",
+      "OwnerId": "rep-demo-1",
+      "BillingCountry": "Singapore",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACC-8",
+      "Name": "MCCY Headquarters",
+      "ParentName": "MCCY",
+      "OwnerId": "rep-demo-2",
+      "BillingCountry": "Singapore",
+      "isSynthetic": true
+    }
+  ],
+  "contacts": [
+    {
+      "Id": "CON-O01",
+      "AccountId": "ACC-1",
+      "Name": "Demo buyer 1",
+      "Email": "buyer1@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O01",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O02",
+      "AccountId": "ACC-2",
+      "Name": "Demo buyer 2",
+      "Email": "buyer2@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O02",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O03",
+      "AccountId": "ACC-3",
+      "Name": "Demo buyer 3",
+      "Email": "buyer3@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O03",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O04",
+      "AccountId": "ACC-4",
+      "Name": "Demo buyer 4",
+      "Email": "buyer4@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O04",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O05",
+      "AccountId": "ACC-5",
+      "Name": "Demo buyer 5",
+      "Email": "buyer5@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O05",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O06",
+      "AccountId": "ACC-6",
+      "Name": "Demo buyer 6",
+      "Email": "buyer6@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O06",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O07",
+      "AccountId": "ACC-1",
+      "Name": "Demo buyer 7",
+      "Email": "buyer7@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O07",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O08",
+      "AccountId": "ACC-3",
+      "Name": "Demo buyer 8",
+      "Email": "buyer8@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O08",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O09",
+      "AccountId": "ACC-2",
+      "Name": "Demo buyer 9",
+      "Email": "buyer9@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O09",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O10",
+      "AccountId": "ACC-4",
+      "Name": "Demo buyer 10",
+      "Email": "buyer10@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O10",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O11",
+      "AccountId": "ACC-5",
+      "Name": "Demo buyer 11",
+      "Email": "buyer11@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O11",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O12",
+      "AccountId": "ACC-7",
+      "Name": "Demo buyer 12",
+      "Email": "buyer12@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O12",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O13",
+      "AccountId": "ACC-8",
+      "Name": "Demo buyer 13",
+      "Email": "buyer13@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O13",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O14",
+      "AccountId": "ACC-7",
+      "Name": "Demo buyer 14",
+      "Email": "buyer14@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O14",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O15",
+      "AccountId": "ACC-1",
+      "Name": "Demo buyer 15",
+      "Email": "buyer15@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O15",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CON-O16",
+      "AccountId": "ACC-6",
+      "Name": "Demo buyer 16",
+      "Email": "buyer16@example.test",
+      "Title": "IT / procurement lead",
+      "BuyingUnitId__c": "BU-O16",
+      "isSynthetic": true
+    }
+  ],
+  "opportunities": [
+    {
+      "Id": "O02",
+      "AccountId": "ACC-2",
+      "Name": "Existing manufacturing WAN / Managed WAN renewal",
+      "StageName": "Qualification",
+      "Amount": 120000,
+      "CloseDate": "2026-11-20T01:00:00.000Z",
+      "OwnerId": "rep-demo-2",
+      "BuyingUnitId__c": "BU-O02",
+      "SiteId__c": "SITE-O02",
+      "ProductCode__c": "Managed WAN renewal",
+      "BuyingWindowId__c": "BW-O02",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O03",
+      "AccountId": "ACC-3",
+      "Name": "Fab12i WAN operations / Managed WAN renewal",
+      "StageName": "Qualification",
+      "Amount": 100000,
+      "CloseDate": "2026-11-25T01:00:00.000Z",
+      "OwnerId": "rep-demo-3",
+      "BuyingUnitId__c": "BU-O03",
+      "SiteId__c": "SITE-O03",
+      "ProductCode__c": "Managed WAN renewal",
+      "BuyingWindowId__c": "BW-O03",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O04",
+      "AccountId": "ACC-4",
+      "Name": "Kallang manufacturing facility / New-site connectivity",
+      "StageName": "Qualification",
+      "Amount": 180000,
+      "CloseDate": "2026-11-27T01:00:00.000Z",
+      "OwnerId": "rep-demo-1",
+      "BuyingUnitId__c": "BU-O04",
+      "SiteId__c": "SITE-O04",
+      "ProductCode__c": "New-site connectivity",
+      "BuyingWindowId__c": "BW-O04",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O05",
+      "AccountId": "ACC-5",
+      "Name": "Existing operations WAN / Managed WAN renewal",
+      "StageName": "Qualification",
+      "Amount": 220000,
+      "CloseDate": "2026-12-30T01:00:00.000Z",
+      "OwnerId": "rep-demo-2",
+      "BuyingUnitId__c": "BU-O05",
+      "SiteId__c": "SITE-O05",
+      "ProductCode__c": "Managed WAN renewal",
+      "BuyingWindowId__c": "BW-O05",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O06",
+      "AccountId": "ACC-6",
+      "Name": "Telecom procurement unit / Managed WAN renewal",
+      "StageName": "Qualification",
+      "Amount": 240000,
+      "CloseDate": "2026-11-24T01:00:00.000Z",
+      "OwnerId": "rep-demo-3",
+      "BuyingUnitId__c": "BU-O06",
+      "SiteId__c": "SITE-O06",
+      "ProductCode__c": "Managed WAN renewal",
+      "BuyingWindowId__c": "BW-O06",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O07",
+      "AccountId": "ACC-1",
+      "Name": "Existing manufacturing WAN / Managed WAN renewal",
+      "StageName": "Qualification",
+      "Amount": 160000,
+      "CloseDate": "2027-01-14T01:00:00.000Z",
+      "OwnerId": "rep-demo-1",
+      "BuyingUnitId__c": "BU-O07",
+      "SiteId__c": "SITE-O07",
+      "ProductCode__c": "Managed WAN renewal",
+      "BuyingWindowId__c": "BW-O07",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O08",
+      "AccountId": "ACC-3",
+      "Name": "Expansion facility / New-site connectivity",
+      "StageName": "Qualification",
+      "Amount": 260000,
+      "CloseDate": "2027-01-29T01:00:00.000Z",
+      "OwnerId": "rep-demo-2",
+      "BuyingUnitId__c": "BU-O08",
+      "SiteId__c": "SITE-O08",
+      "ProductCode__c": "New-site connectivity",
+      "BuyingWindowId__c": "BW-O08",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O09",
+      "AccountId": "ACC-2",
+      "Name": "HBM packaging unit / New-site connectivity",
+      "StageName": "Qualification",
+      "Amount": 600000,
+      "CloseDate": "2027-01-24T01:00:00.000Z",
+      "OwnerId": "rep-demo-3",
+      "BuyingUnitId__c": "BU-O09",
+      "SiteId__c": "SITE-O09",
+      "ProductCode__c": "New-site connectivity",
+      "BuyingWindowId__c": "BW-O09",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O10",
+      "AccountId": "ACC-4",
+      "Name": "Singapore WAN operations / Managed WAN renewal",
+      "StageName": "Qualification",
+      "Amount": 90000,
+      "CloseDate": "2027-01-14T01:00:00.000Z",
+      "OwnerId": "rep-demo-1",
+      "BuyingUnitId__c": "BU-O10",
+      "SiteId__c": "SITE-O10",
+      "ProductCode__c": "Managed WAN renewal",
+      "BuyingWindowId__c": "BW-O10",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O11",
+      "AccountId": "ACC-5",
+      "Name": "Prefab+ production facility / New-site connectivity",
+      "StageName": "Qualification",
+      "Amount": 210000,
+      "CloseDate": "2027-03-15T01:00:00.000Z",
+      "OwnerId": "rep-demo-2",
+      "BuyingUnitId__c": "BU-O11",
+      "SiteId__c": "SITE-O11",
+      "ProductCode__c": "New-site connectivity",
+      "BuyingWindowId__c": "BW-O11",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O12",
+      "AccountId": "ACC-7",
+      "Name": "Future Seletar service facility / New-site connectivity",
+      "StageName": "Qualification",
+      "Amount": 700000,
+      "CloseDate": "2029-06-02T01:00:00.000Z",
+      "OwnerId": "rep-demo-3",
+      "BuyingUnitId__c": "BU-O12",
+      "SiteId__c": "SITE-O12",
+      "ProductCode__c": "New-site connectivity",
+      "BuyingWindowId__c": "BW-O12",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O13",
+      "AccountId": "ACC-8",
+      "Name": "Telecom procurement unit / Managed WAN renewal",
+      "StageName": "Qualification",
+      "Amount": 80000,
+      "CloseDate": null,
+      "OwnerId": "rep-demo-1",
+      "BuyingUnitId__c": "BU-O13",
+      "SiteId__c": "SITE-O13",
+      "ProductCode__c": "Managed WAN renewal",
+      "BuyingWindowId__c": "BW-O13",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O14",
+      "AccountId": "ACC-7",
+      "Name": "Existing service-centre WAN / Managed WAN renewal",
+      "StageName": "Qualification",
+      "Amount": 130000,
+      "CloseDate": "2027-01-04T01:00:00.000Z",
+      "OwnerId": "rep-demo-2",
+      "BuyingUnitId__c": "BU-O14",
+      "SiteId__c": "SITE-O14",
+      "ProductCode__c": "Managed WAN renewal",
+      "BuyingWindowId__c": "BW-O14",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O15",
+      "AccountId": "ACC-1",
+      "Name": "Proposed automation zone / Private 5G",
+      "StageName": "Qualification",
+      "Amount": 1200000,
+      "CloseDate": "2027-01-14T01:00:00.000Z",
+      "OwnerId": "rep-demo-3",
+      "BuyingUnitId__c": "BU-O15",
+      "SiteId__c": "SITE-O15",
+      "ProductCode__c": "Private 5G",
+      "BuyingWindowId__c": "BW-O15",
+      "isSynthetic": true
+    },
+    {
+      "Id": "O16",
+      "AccountId": "ACC-6",
+      "Name": "Satellite office / New-site connectivity",
+      "StageName": "Qualification",
+      "Amount": 500000,
+      "CloseDate": "2026-11-14T01:00:00.000Z",
+      "OwnerId": "rep-demo-1",
+      "BuyingUnitId__c": "BU-O16",
+      "SiteId__c": "SITE-O16",
+      "ProductCode__c": "New-site connectivity",
+      "BuyingWindowId__c": "BW-O16",
+      "isSynthetic": true
+    }
+  ],
+  "contracts": [
+    {
+      "Id": "CTR-O02",
+      "AccountId": "ACC-2",
+      "ContractNumber": "DEMO-O02",
+      "StartDate": "2024-01-01",
+      "EndDate": "2027-02-18",
+      "NoticeDueAt__c": "2026-11-20T01:00:00.000Z",
+      "MandatoryNoticeRule__c": "Notice must arrive before the stated deadline",
+      "SiteId__c": "SITE-O02",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CTR-O03",
+      "AccountId": "ACC-3",
+      "ContractNumber": "DEMO-O03",
+      "StartDate": "2024-01-01",
+      "EndDate": "2027-02-23",
+      "NoticeDueAt__c": "2026-11-25T01:00:00.000Z",
+      "MandatoryNoticeRule__c": "Notice must arrive before the stated deadline",
+      "SiteId__c": "SITE-O03",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CTR-O05",
+      "AccountId": "ACC-5",
+      "ContractNumber": "DEMO-O05",
+      "StartDate": "2024-01-01",
+      "EndDate": "2027-03-30",
+      "NoticeDueAt__c": "2026-12-30T01:00:00.000Z",
+      "MandatoryNoticeRule__c": "Notice must arrive before the stated deadline",
+      "SiteId__c": "SITE-O05",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CTR-O06",
+      "AccountId": "ACC-6",
+      "ContractNumber": "DEMO-O06",
+      "StartDate": "2024-01-01",
+      "EndDate": "2027-02-22",
+      "NoticeDueAt__c": "2026-11-24T01:00:00.000Z",
+      "MandatoryNoticeRule__c": "Notice must arrive before the stated deadline",
+      "SiteId__c": "SITE-O06",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CTR-O07",
+      "AccountId": "ACC-1",
+      "ContractNumber": "DEMO-O07",
+      "StartDate": "2024-01-01",
+      "EndDate": "2027-04-14",
+      "NoticeDueAt__c": "2027-01-14T01:00:00.000Z",
+      "MandatoryNoticeRule__c": "Notice must arrive before the stated deadline",
+      "SiteId__c": "SITE-O07",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CTR-O10",
+      "AccountId": "ACC-4",
+      "ContractNumber": "DEMO-O10",
+      "StartDate": "2024-01-01",
+      "EndDate": "2027-04-14",
+      "NoticeDueAt__c": "2027-01-14T01:00:00.000Z",
+      "MandatoryNoticeRule__c": "Notice must arrive before the stated deadline",
+      "SiteId__c": "SITE-O10",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CTR-O13",
+      "AccountId": "ACC-8",
+      "ContractNumber": "DEMO-O13",
+      "StartDate": "2024-01-01",
+      "EndDate": null,
+      "NoticeDueAt__c": null,
+      "MandatoryNoticeRule__c": "Notice must arrive before the stated deadline",
+      "SiteId__c": "SITE-O13",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CTR-O14",
+      "AccountId": "ACC-7",
+      "ContractNumber": "DEMO-O14",
+      "StartDate": "2024-01-01",
+      "EndDate": "2027-04-04",
+      "NoticeDueAt__c": "2027-01-04T01:00:00.000Z",
+      "MandatoryNoticeRule__c": "Notice must arrive before the stated deadline",
+      "SiteId__c": "SITE-O14",
+      "isSynthetic": true
+    }
+  ],
+  "activities": [
+    {
+      "Id": "ACT-O02",
+      "WhatId": "O02",
+      "WhoId": "CON-O02",
+      "ActivityDate": "2026-11-12T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Demo two-way buyer planning confirmation",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-O03",
+      "WhatId": "O03",
+      "WhoId": "CON-O03",
+      "ActivityDate": "2026-11-12T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Demo two-way buyer planning confirmation",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-O04",
+      "WhatId": "O04",
+      "WhoId": "CON-O04",
+      "ActivityDate": "2026-11-12T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Demo two-way buyer planning confirmation",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-O05",
+      "WhatId": "O05",
+      "WhoId": "CON-O05",
+      "ActivityDate": "2026-11-12T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Demo two-way buyer planning confirmation",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-O06",
+      "WhatId": "O06",
+      "WhoId": "CON-O06",
+      "ActivityDate": "2026-11-12T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Demo two-way buyer planning confirmation",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-O07",
+      "WhatId": "O07",
+      "WhoId": "CON-O07",
+      "ActivityDate": "2026-11-12T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Demo two-way buyer planning confirmation",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-O08",
+      "WhatId": "O08",
+      "WhoId": "CON-O08",
+      "ActivityDate": "2026-11-12T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Demo two-way buyer planning confirmation",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-O09",
+      "WhatId": "O09",
+      "WhoId": "CON-O09",
+      "ActivityDate": "2026-11-12T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Demo two-way buyer planning confirmation",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-O14",
+      "WhatId": "O14",
+      "WhoId": "CON-O14",
+      "ActivityDate": "2026-11-12T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Demo two-way buyer planning confirmation",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-O16",
+      "WhatId": "O16",
+      "WhoId": "CON-O16",
+      "ActivityDate": "2026-11-12T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Demo two-way buyer planning confirmation",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-archive-O10",
+      "WhatId": "O10",
+      "WhoId": "CON-O10",
+      "ActivityDate": "2026-08-01T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Historical two-way planning activity; outside the 30-day readiness window",
+      "isSynthetic": true
+    },
+    {
+      "Id": "ACT-archive-O11",
+      "WhatId": "O11",
+      "WhoId": "CON-O11",
+      "ActivityDate": "2026-08-01T01:00:00.000Z",
+      "Status": "Completed",
+      "Subject": "Historical two-way planning activity; outside the 30-day readiness window",
+      "isSynthetic": true
+    }
+  ],
+  "cases": [
+    {
+      "Id": "CASE-O14",
+      "AccountId": "ACC-7",
+      "SiteId__c": "SITE-O14",
+      "Status": "Open",
+      "Priority": "High",
+      "SlaDueAt__c": "2026-11-16T01:00:00.000Z",
+      "isSynthetic": true
+    },
+    {
+      "Id": "CASE-O02",
+      "AccountId": "ACC-2",
+      "SiteId__c": "SITE-O02",
+      "Status": "Closed",
+      "Priority": "High",
+      "SlaDueAt__c": "2026-11-16T01:00:00.000Z",
+      "isSynthetic": true
+    }
+  ]
+}

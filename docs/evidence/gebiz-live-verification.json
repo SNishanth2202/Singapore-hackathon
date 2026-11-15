@@ -1,0 +1,423 @@
+{
+  "schemaVersion": 1,
+  "connector": "gebiz-awards-spike-v1",
+  "retrievedAt": "2026-11-15T07:49:03.736Z",
+  "query": "telecommunication",
+  "complete": true,
+  "sourceTotal": 11,
+  "requests": [
+    {
+      "url": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=0",
+      "status": 200,
+      "returned": 5
+    },
+    {
+      "url": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=5",
+      "status": 200,
+      "returned": 5
+    },
+    {
+      "url": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=10",
+      "status": 200,
+      "returned": 1
+    }
+  ],
+  "records": [
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:CCY000ETT24000003:480",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=0",
+      "locator": "tender_no=CCY000ETT24000003;row_id=480",
+      "publishedAt": null,
+      "effectiveAt": "2024-10-01",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "Invitation to Tender for Provision of Telecommunication Services",
+      "entityHints": [
+        {
+          "name": "Ministry of Culture, Community and Youth - Ministry Headquarter",
+          "role": "buyer"
+        },
+        {
+          "name": "NXGEN COMMUNICATIONS PTE LTD",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "CCY000ETT24000003",
+        "buyer": "Ministry of Culture, Community and Youth - Ministry Headquarter",
+        "supplier": "NXGEN COMMUNICATIONS PTE LTD",
+        "awardDate": "2024-10-01",
+        "awardAmountSgd": 423751.6,
+        "awardStatus": "Awarded to Suppliers"
+      },
+      "contentHash": "f3218c7cb962c30b274a51e8ca5795c46e4c2295f1fd277dcb2345bb5b30a419"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:CPF000ETT24000012:1034",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=0",
+      "locator": "tender_no=CPF000ETT24000012;row_id=1034",
+      "publishedAt": null,
+      "effectiveAt": "2024-06-19",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "Supply, Delivery, Installation and Subscription of Telecommunication Services (CPFNED2024TDR030)",
+      "entityHints": [
+        {
+          "name": "Central Provident Fund Board",
+          "role": "buyer"
+        },
+        {
+          "name": "SPTEL PTE. LTD.",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "CPF000ETT24000012",
+        "buyer": "Central Provident Fund Board",
+        "supplier": "SPTEL PTE. LTD.",
+        "awardDate": "2024-06-19",
+        "awardAmountSgd": 31800,
+        "awardStatus": "Awarded by Items"
+      },
+      "contentHash": "65e5d6e33471ddc2cd4fae1694a03b8fd98e2593e07241d0c8fe8edf66b910dc"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:CPF000ETT24000012:1035",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=0",
+      "locator": "tender_no=CPF000ETT24000012;row_id=1035",
+      "publishedAt": null,
+      "effectiveAt": "2024-06-19",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "Supply, Delivery, Installation and Subscription of Telecommunication Services (CPFNED2024TDR030)",
+      "entityHints": [
+        {
+          "name": "Central Provident Fund Board",
+          "role": "buyer"
+        },
+        {
+          "name": "STARHUB LTD.",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "CPF000ETT24000012",
+        "buyer": "Central Provident Fund Board",
+        "supplier": "STARHUB LTD.",
+        "awardDate": "2024-06-19",
+        "awardAmountSgd": 411468,
+        "awardStatus": "Awarded by Items"
+      },
+      "contentHash": "0a0dd326cd40796741106069f3c75437c9a3d943e2b75cdd76a2305528e60057"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:FINCEDETT23000009:1928",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=0",
+      "locator": "tender_no=FINCEDETT23000009;row_id=1928",
+      "publishedAt": null,
+      "effectiveAt": "2024-03-12",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "TENDER FOR THE PROVISION OF TELECOMMUNICATION SERVICES TO SINGAPORE CUSTOMS FOR TWO YEARS WITH OPTION TO EXTEND FOR UP TO ANOTHER TWO YEARS",
+      "entityHints": [
+        {
+          "name": "Ministry of Finance - Singapore Customs",
+          "role": "buyer"
+        },
+        {
+          "name": "SINGAPORE TELECOMMUNICATIONS LIMITED",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "FINCEDETT23000009",
+        "buyer": "Ministry of Finance - Singapore Customs",
+        "supplier": "SINGAPORE TELECOMMUNICATIONS LIMITED",
+        "awardDate": "2024-03-12",
+        "awardAmountSgd": 236360,
+        "awardStatus": "Awarded to Suppliers"
+      },
+      "contentHash": "e5e46f7272958ab3dd2812597293cfa4bd1d58797fd170006c3f80ff5851c6f3"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:FINHQ0ETT21000004:1956",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=0",
+      "locator": "tender_no=FINHQ0ETT21000004;row_id=1956",
+      "publishedAt": null,
+      "effectiveAt": "2022-02-08",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "PROVISION OF TELECOMMUNICATION SERVICES",
+      "entityHints": [
+        {
+          "name": "Ministry of Finance-Ministry Headquarter",
+          "role": "buyer"
+        },
+        {
+          "name": "SINGAPORE TELECOMMUNICATIONS LIMITED",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "FINHQ0ETT21000004",
+        "buyer": "Ministry of Finance-Ministry Headquarter",
+        "supplier": "SINGAPORE TELECOMMUNICATIONS LIMITED",
+        "awardDate": "2022-02-08",
+        "awardAmountSgd": 264737,
+        "awardStatus": "Awarded to Suppliers"
+      },
+      "contentHash": "bd397bb78e7c6c1c728980cbc9e84fc7ac0f045915ccf25d8ec993724e523fd1"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:HDB000ETT21000098:3602",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=5",
+      "locator": "tender_no=HDB000ETT21000098;row_id=3602",
+      "publishedAt": null,
+      "effectiveAt": "2021-10-18",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "PROVISION OF TELECOMMUNICATION LINES FOR HOUSING MANAGEMENT GROUP FROM 1 FEB 2022 TO 31 JAN 2025",
+      "entityHints": [
+        {
+          "name": "Housing and Development Board",
+          "role": "buyer"
+        },
+        {
+          "name": "STARHUB LTD.",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "HDB000ETT21000098",
+        "buyer": "Housing and Development Board",
+        "supplier": "STARHUB LTD.",
+        "awardDate": "2021-10-18",
+        "awardAmountSgd": 1015.17,
+        "awardStatus": "Awarded to Suppliers"
+      },
+      "contentHash": "873717137b05ad20972ed4831219f5902e5738cc8e164dc9804cb37b9d6af51c"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:HDB000ETT24000253:4514",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=5",
+      "locator": "tender_no=HDB000ETT24000253;row_id=4514",
+      "publishedAt": null,
+      "effectiveAt": "2025-01-28",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "PROVISION OF TELECOMMUNICATION LINE SERVICES FOR HOUSING MANAGEMENT GROUP FOR A PERIOD OF 3 YEARS",
+      "entityHints": [
+        {
+          "name": "Housing and Development Board",
+          "role": "buyer"
+        },
+        {
+          "name": "STARHUB LTD.",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "HDB000ETT24000253",
+        "buyer": "Housing and Development Board",
+        "supplier": "STARHUB LTD.",
+        "awardDate": "2025-01-28",
+        "awardAmountSgd": 237.14,
+        "awardStatus": "Awarded to Suppliers"
+      },
+      "contentHash": "2a5823279f96f9fc792e586b020ac49c55ef4556fcbfbb15a7a5be403bc1cdae"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:HPB000ETT23000002:5432",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=5",
+      "locator": "tender_no=HPB000ETT23000002;row_id=5432",
+      "publishedAt": null,
+      "effectiveAt": "2023-02-27",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "INVITATION TO TENDER: PROVISION OF TELECOMMUNICATION SOLUTIONS FOR HEALTH PROMOTION BOARD FOR A FIRM PERIOD OF 2 YEARS WITH AN OPTION UP TO 3 YEARS",
+      "entityHints": [
+        {
+          "name": "Health Promotion Board",
+          "role": "buyer"
+        },
+        {
+          "name": "STARHUB LTD.",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "HPB000ETT23000002",
+        "buyer": "Health Promotion Board",
+        "supplier": "STARHUB LTD.",
+        "awardDate": "2023-02-27",
+        "awardAmountSgd": 289932,
+        "awardStatus": "Awarded to Suppliers"
+      },
+      "contentHash": "e4d3efa43bde4cbdceeafa226f96d22861a084646bf25a6fcbf5437286bcbd0b"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:LAWHQ0ETT21000005:7974",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=5",
+      "locator": "tender_no=LAWHQ0ETT21000005;row_id=7974",
+      "publishedAt": null,
+      "effectiveAt": "2021-09-22",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "INVITATION TO TENDER (ITT) FOR PROVISION OF TELECOMMUNICATION SERVICES",
+      "entityHints": [
+        {
+          "name": "Ministry of Law-Ministry Headquarter",
+          "role": "buyer"
+        },
+        {
+          "name": "STARHUB LTD.",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "LAWHQ0ETT21000005",
+        "buyer": "Ministry of Law-Ministry Headquarter",
+        "supplier": "STARHUB LTD.",
+        "awardDate": "2021-09-22",
+        "awardAmountSgd": 1534,
+        "awardStatus": "Awarded to Suppliers"
+      },
+      "contentHash": "164f95faf7a3c2b3aa70c86ed15a171ad74b01aa38bb604117314ff6162bbb1e"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:TRADOSETT23000002:18174",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=5",
+      "locator": "tender_no=TRADOSETT23000002;row_id=18174",
+      "publishedAt": null,
+      "effectiveAt": "2023-08-10",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "PROVISION OF INTERNET PROTOCOL (IP) TELECOMMUNICATION SERVICES",
+      "entityHints": [
+        {
+          "name": "Ministry of Trade & Industry-Department of Statistics",
+          "role": "buyer"
+        },
+        {
+          "name": "ASIATEL (S) PTE. LTD.",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "TRADOSETT23000002",
+        "buyer": "Ministry of Trade & Industry-Department of Statistics",
+        "supplier": "ASIATEL (S) PTE. LTD.",
+        "awardDate": "2023-08-10",
+        "awardAmountSgd": 361440,
+        "awardStatus": "Awarded to Suppliers"
+      },
+      "contentHash": "053ecca8bad0ebe4a47b314e7a38da2df627c0575918e7583b5f128eef63d881"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "gebiz:WSG000ETT22000007:18410",
+      "sourceFamily": "gebiz_award",
+      "sourceUrl": "https://data.gov.sg/datasets/d_acde1106003906a75c3fa052592f2fcb/view",
+      "retrievalUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=telecommunication&limit=5&offset=10",
+      "locator": "tender_no=WSG000ETT22000007;row_id=18410",
+      "publishedAt": null,
+      "effectiveAt": "2022-09-12",
+      "retrievedAt": "2026-11-15T07:49:03.736Z",
+      "excerpt": "Integrated Services for Digital Network (ISDN) lines and other Telecommunication Services",
+      "entityHints": [
+        {
+          "name": "Workforce Singapore",
+          "role": "buyer"
+        },
+        {
+          "name": "SINGAPORE TELECOMMUNICATIONS LIMITED",
+          "role": "supplier"
+        }
+      ],
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "claims": {
+        "tenderNumber": "WSG000ETT22000007",
+        "buyer": "Workforce Singapore",
+        "supplier": "SINGAPORE TELECOMMUNICATIONS LIMITED",
+        "awardDate": "2022-09-12",
+        "awardAmountSgd": 81840.04,
+        "awardStatus": "Awarded to Suppliers"
+      },
+      "contentHash": "cd7fdd4c09ccfa70b02bb210edcc3c6ca58d1b095181213ee8341de138c9a5b4"
+    }
+  ]
+}

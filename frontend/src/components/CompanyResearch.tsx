@@ -3,6 +3,7 @@ import axios from 'axios'
 import { SearchIcon, GlobeIcon, RefreshCwIcon, ExternalLinkIcon } from 'lucide-react'
 import api from '../services/api'
 import CompanyAnalysis from './CompanyAnalysis'
+import LeadRanking from './LeadRanking'
 
 interface Candidate { entityId: string; name: string; description: string; website: string | null; identitySource: string }
 interface Source { id: string; title: string; url: string; publisher: string; excerpt: string; publishedAt: string | null; retrievedAt: string; kind: string; verification: string }
@@ -87,6 +88,7 @@ export default function CompanyResearch() {
         <p className="text-xs text-gray-400 mt-4">{research.persistence?.durable ? 'Sources saved in cloud storage' : 'Temporary preview snapshot'} with retrieval times and content hashes. Snapshot: {research.id}</p>
       </div>
       <CompanyAnalysis key={research.id} companyId={research.id} sources={research.sources} autoRun />
+      <LeadRanking key={`ranking-${research.id}`} researchId={research.id} />
     </div>}
   </section>
 }
