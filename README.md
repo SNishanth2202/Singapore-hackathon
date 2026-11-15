@@ -314,3 +314,53 @@ Open **Settings → Business knowledge** to view or edit the structured seller c
 Changes persist as versioned local configuration; no authentication has been added. The existing local-development boundary applies. See [backend/BUSINESS_KNOWLEDGE.md](backend/BUSINESS_KNOWLEDGE.md) for the schema, API, editing instructions, evidence rules and storage limits. `GET/PUT /api/v1/ai/business-knowledge` supports a future admin interface. Run `npm run test:business` from backend to check the configuration and matching behavior.
 
 Analysis distinguishes a service-related signal from an exploratory event-to-service connection. An acquisition can support a conditional integration question even without exact product phrases. The backend builds factual public-research summaries from the approved event inventory, validates AI hypotheses against service/evidence IDs, and reports why any suggestion was withheld. `DISCOVERY_READY` means ready for a targeted conversation; it does not establish a qualified opportunity. The dashboard explains source limits and customer questions separately instead of using a generic missing-evidence message. The combined checks include regressions for duplicated acquisition coverage, commentary attribution, provider-versus-customer roles and event-based discovery.
+
+## Lead ranking
+
+Lead ranking combines cited public signals with synthetic Salesforce-style CRM and engineering facts.
+It ranks each account, buying unit, product/use case and buying window using deterministic rules.
+Open **Lead Ranking** in the app navigation (`/lead-ranking`); `/opportunities` redirects there.
+
+For a credential-free local preview of the full app:
+
+```powershell
+npm --prefix backend ci
+npm --prefix frontend ci
+npm run dev
+```
+
+Open http://localhost:3000/lead-ranking. The default home page remains the dashboard.
+The local launcher uses the app's memory preview for company/research features and a separate atomic
+JSON store under `.local/` for lead ranking. No real Salesforce connection is claimed.
+The cloud backend keeps its existing `npm --prefix backend start` entry point and deployment settings.
+The explicit hosted preview enables the synthetic ranking demo controls; its file state is temporary.
+
+Status labels are **Very urgent** (85-100), **Urgent** (70-84), **Normal priority** (50-69),
+**Low priority** (25-49) and **Irrelevant** (0-24). The separate next-action labels are Pursue,
+Verify, Resolve, Monitor and Blocked. Mandatory site, technical and deadline checks control pursuit.
+Priority score and ranking confidence are separate: confidence measures priority-band stability
+across ten whole-queue scenarios, with Insufficient evidence when plausible inputs cannot be bounded.
+
+The worklist opens directly onto the ranked leads. Use **Demo checks** for replay/reset, connector failure,
+ambiguous matches, clock changes and an empty list. Source refresh failures retain the last successful queue.
+The initial 15 candidates become 16 when the cited ETLA trigger is replayed. All buyer dates, contacts,
+commercial estimates, service cases and engineering assessments in this module are synthetic.
+
+Verify the lead-ranking module:
+
+```powershell
+npm --prefix backend run test:ranking
+node --test tools/gebiz-connector.test.mjs
+npm --prefix backend run verify:ranking-demo
+npm --prefix frontend run test:e2e
+```
+
+The existing backend build and research/deployment tests also apply. Browser tests reset only the ranking
+demo state. Optional live extraction requires `OPENAI_API_KEY` and `OPENAI_MODEL`; the complete replay
+runs from cited snapshots without a paid model call. Hosted research/analysis keeps main's provider settings.
+
+- [Implementation plan and acceptance criteria](docs/lead-ranking-plan.md)
+- [Data contracts and seeded opportunities](docs/lead-ranking-contracts.md)
+- [Public source inventory](docs/lead-ranking-sources.md)
+- [Demo script](docs/lead-ranking-demo.md)
+- [Verification and operational scope](docs/lead-ranking-delivery.md)

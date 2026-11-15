@@ -1,0 +1,384 @@
+{
+  "schemaVersion": 1,
+  "kind": "curated_normalized_snapshots",
+  "capturedOn": "2026-11-15",
+  "notes": "Short source excerpts and typed observations; not full-document mirrors. Publication dates remain null when unverified. All CRM overlays must be separate synthetic records.",
+  "records": [
+    {
+      "id": "S01",
+      "sourceFamily": "sgx",
+      "sourceUrl": "https://links.sgx.com/FileOpen/Frencken_Land%20Lease%20Agreement.ashx?App=Announcement&FileID=847909",
+      "locator": "PDF pp.1 and 5; Introduction; signed 3 June 2025",
+      "publishedAt": "2025-06-03",
+      "effectiveAt": "2025-08-18",
+      "excerpt": "the Company's wholly-owned subsidiary ETLA Limited",
+      "entityHints": [
+        {
+          "name": "ETLA Limited",
+          "role": "subsidiary"
+        },
+        {
+          "name": "Frencken Group Limited",
+          "role": "parent"
+        }
+      ],
+      "claims": {
+        "subsidiary": "ETLA Limited",
+        "parent": "Frencken Group Limited",
+        "site": "Kaki Bukit Avenue 5, Singapore",
+        "landLeaseExpectedStart": "2025-08-18",
+        "landLeaseExpectedYears": 33,
+        "leaseType": "industrial_land_not_telecommunications"
+      },
+      "provenanceGroupId": "frencken-kaki-bukit-land-2025",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "18cd7fcfca6ba7f7e5fc9313fae6c06453acb6a78a4cd6a139df2a116ce5e41b"
+    },
+    {
+      "id": "S02",
+      "sourceFamily": "edb_jtc",
+      "sourceUrl": "https://www.edb.gov.sg/en/about-edb/media-releases-publications/frencken-marks-groundbreaking-for-new-facility-in-singapore.html",
+      "locator": "Construction paragraph; issued by Frencken Group",
+      "publishedAt": "2025-08-12",
+      "effectiveAt": "2025-08-12",
+      "excerpt": "complete in the first quarter of 2027",
+      "entityHints": [
+        {
+          "name": "Frencken Group Limited",
+          "role": "parent"
+        }
+      ],
+      "claims": {
+        "site": "Kaki Bukit Avenue 5, Singapore",
+        "expectedCompletionQuarter": "2027-Q1",
+        "event": "groundbreaking",
+        "syndicatedUrls": [
+          "https://www.jtc.gov.sg/about-jtc/news-and-stories/industry-news/frencken-marks-groundbreaking-for-new-facility-in-singapore",
+          "https://links.sgx.com/FileOpen/Frencken_NewsRelease_SingaporeGroundbreakingEvent.ashx?App=Announcement&FileID=855236"
+        ],
+        "verificationNote": "EDB and JTC text checked; SGX grounding release indexed but direct web fetch returned 403. Separate land filing S01 downloaded and read."
+      },
+      "provenanceGroupId": "frencken-groundbreaking-2025-08-12",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "ae048f70c09e02790330812ea97b2fb4249382a53f0e2988029e5c84565c9a97"
+    },
+    {
+      "id": "S03",
+      "sourceFamily": "company",
+      "sourceUrl": "https://investors.micron.com/news/press-release/2025/Micron-Breaks-Ground-on-New-HBM-Advanced-Packaging-Facility-in-Singapore-01-08-2025/default.aspx",
+      "locator": "Opening and facility operations paragraphs",
+      "publishedAt": "2025-01-08",
+      "effectiveAt": "2025-01-08",
+      "excerpt": "Operations for the new facility are scheduled to begin in 2026",
+      "entityHints": [
+        {
+          "name": "Micron Technology",
+          "role": "company"
+        }
+      ],
+      "claims": {
+        "country": "Singapore",
+        "facility": "HBM advanced packaging",
+        "expectedOperationsYear": 2026,
+        "event": "groundbreaking"
+      },
+      "provenanceGroupId": "micron-hbm-2025-01-08",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "fb44d2f94056649c446182aa913194e870078d1cebd3a496f26287673c83b3d6"
+    },
+    {
+      "id": "S04",
+      "sourceFamily": "edb_jtc",
+      "sourceUrl": "https://www.edb.gov.sg/en/about-edb/media-releases-publications/umc-unveils-new-fab-expansion-in-singapore.html",
+      "locator": "Opening and facility location paragraphs",
+      "publishedAt": "2025-04-01",
+      "effectiveAt": "2025-04-01",
+      "excerpt": "start volume production in 2026",
+      "entityHints": [
+        {
+          "name": "United Microelectronics Corporation",
+          "role": "parent"
+        }
+      ],
+      "claims": {
+        "site": "Pasir Ris Wafer Fab Park, Singapore",
+        "facility": "new fab adjacent to existing facility",
+        "expectedVolumeProductionYear": 2026,
+        "event": "opening"
+      },
+      "provenanceGroupId": "umc-singapore-opening-2025-04-01",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "a01d5f528777af97a6d0ea17ade7df82eea7b147f82db7639d30d96035f74a0b"
+    },
+    {
+      "id": "S05",
+      "sourceFamily": "edb_jtc",
+      "sourceUrl": "https://www.edb.gov.sg/en/about-edb/media-releases-publications/polymatech-establishes-apac-manufacturing-hub-in-singapore.html",
+      "locator": "Opening paragraphs; jointly issued by AEIM and Polymatech",
+      "publishedAt": "2026-06-09",
+      "effectiveAt": "2026-06-09",
+      "excerpt": "163 Kallang Way, Singapore",
+      "entityHints": [
+        {
+          "name": "AEIM Pte Ltd",
+          "role": "subsidiary"
+        },
+        {
+          "name": "Polymatech Electronics Limited",
+          "role": "parent"
+        }
+      ],
+      "claims": {
+        "subsidiary": "AEIM Pte Ltd",
+        "parent": "Polymatech Electronics Limited",
+        "site": "Mapletree Hi-Tech Park, 163 Kallang Way, Singapore",
+        "event": "facility_opening"
+      },
+      "provenanceGroupId": "aeim-opening-2026-06-09",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "6fb0754650d9ecb32fbd4b43131e6c17a24580cea5a8547e9d89b3dfe3e471cb"
+    },
+    {
+      "id": "S06",
+      "sourceFamily": "sgx",
+      "sourceUrl": "https://links.sgx.com/FileOpen/Hor%20Kew%20Corporation%20Limited%20-%20FY2025%20Annual%20Report.ashx?App=Announcement&FileID=884280",
+      "locator": "FY2025 annual report; chairman/CEO message, business performance review",
+      "publishedAt": null,
+      "effectiveAt": null,
+      "excerpt": "33 Kaki Bukit Road 6",
+      "entityHints": [
+        {
+          "name": "Prefab Technology Pte Ltd",
+          "role": "subsidiary"
+        },
+        {
+          "name": "Hor Kew Corporation Limited",
+          "role": "parent"
+        }
+      ],
+      "claims": {
+        "reportPeriodEnd": "2025-12-31",
+        "subsidiary": "Prefab Technology Pte Ltd",
+        "parent": "Hor Kew Corporation Limited",
+        "newSite": "33 Kaki Bukit Road 6, Singapore",
+        "siteName": "Prefab+",
+        "oldSite": "66 Sungei Kadut Street 1, Singapore",
+        "oldPropertyLeaseExpiryYear": 2026,
+        "publishedDateVerified": false,
+        "verificationNote": "Publisher filing indexed text checked; preserve missing publication date, do not infer a telecommunications expiry."
+      },
+      "provenanceGroupId": "hor-kew-fy2025-prefab",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "401238f32e0180919743fe28a04e1cd4701e565ebb9337b5439769eb5fbc75d6"
+    },
+    {
+      "id": "S07",
+      "sourceFamily": "edb_jtc",
+      "sourceUrl": "https://www.jtc.gov.sg/about-jtc/news-and-stories/industry-news/bombardier-to-nearly-double-singapore-services-footprint",
+      "locator": "Facility timetable; release issued by Bombardier",
+      "publishedAt": "2026-06-09",
+      "effectiveAt": "2026-06-09",
+      "excerpt": "operations starting in the second half of 2028",
+      "entityHints": [
+        {
+          "name": "Bombardier",
+          "role": "parent"
+        }
+      ],
+      "claims": {
+        "site": "Seletar Aerospace Park, Singapore",
+        "expectedOperationsHalf": "2028-H2",
+        "constructionStartYear": 2026,
+        "event": "announced_expansion"
+      },
+      "provenanceGroupId": "bombardier-seletar-2026-06-09",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "f46f923476bf949c88e4bd86e0785e5c5491cb1a2b9fe1af4b4d07b7035a6154"
+    },
+    {
+      "id": "S08",
+      "sourceFamily": "edb_jtc",
+      "sourceUrl": "https://www.jtc.gov.sg/about-jtc/news-and-stories/press-releases/singapore-government-and-8-industry-leaders-to-research-test-and-deploy-physical-ai-in-pdd",
+      "locator": "Initial Design Partners to Deploy Services through Robots",
+      "publishedAt": "2026-05-20",
+      "effectiveAt": "2026-05-20",
+      "excerpt": "Certis, DHL, Grab and QuikBot",
+      "entityHints": [
+        {
+          "name": "JTC",
+          "role": "publisher"
+        },
+        {
+          "name": "Certis",
+          "role": "design_partner"
+        },
+        {
+          "name": "DHL",
+          "role": "design_partner"
+        }
+      ],
+      "claims": {
+        "site": "Punggol Digital District",
+        "expectedLaunchYear": 2026,
+        "topic": "multi-operator robotics testbed",
+        "customerPrivate5gDemandEstablished": false
+      },
+      "provenanceGroupId": "pdd-physical-ai-2026-05-20",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "31248a42393cdc59786272816ae9add0a555448a66e7102804e74628e5abc522"
+    },
+    {
+      "id": "S09",
+      "sourceFamily": "singtel",
+      "sourceUrl": "https://www.singtel.com/business/products-services/connectivity/sd-wan",
+      "locator": "Software-defined WAN product overview",
+      "publishedAt": null,
+      "effectiveAt": null,
+      "excerpt": "Software-defined WAN (SD-WAN)",
+      "entityHints": [
+        {
+          "name": "Singtel",
+          "role": "provider"
+        }
+      ],
+      "claims": {
+        "catalogProduct": "managed_sd_wan",
+        "claimType": "catalog_capability",
+        "customerDemandEstablished": false,
+        "siteServiceabilityEstablished": false
+      },
+      "provenanceGroupId": "singtel-sd-wan-catalog",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "30922dd937f5e9919cb3d0068d10f8f3be7e0bcaa2e550bcb8a0ba9ec9c0f551"
+    },
+    {
+      "id": "S10",
+      "sourceFamily": "singtel",
+      "sourceUrl": "https://www.singtel.com/content/dam/singtel/business/sb/articles/5g-wp-enabling-4-point-and-beyond.pdf",
+      "locator": "Case study: Hyundai Motor Group; corroborating release 17 June 2022",
+      "publishedAt": null,
+      "effectiveAt": "2022-06-17",
+      "excerpt": "cloud-based centralised mobile robot management solution",
+      "entityHints": [
+        {
+          "name": "Singtel",
+          "role": "provider"
+        },
+        {
+          "name": "Hyundai Motor Group",
+          "role": "case_study_customer"
+        }
+      ],
+      "claims": {
+        "catalogProduct": "enterprise_5g",
+        "caseStudyUseCase": "manufacturing_robot_management",
+        "caseStudyReleaseUrl": "https://www.singtel.com/about-us/media-centre/news-releases/singtel-partners-hyundai-motor-group-to-develop-advanced-manufac",
+        "newProspectDemandEstablished": false,
+        "publicationDateVerified": false
+      },
+      "provenanceGroupId": "singtel-hyundai-5g-case",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "6f1d962b3f4d5372b32a63296c7d0a206fb6e110cb7693638a7b3c85ab8e4599"
+    },
+    {
+      "id": "S11",
+      "sourceFamily": "industry",
+      "sourceUrl": "https://www.imda.gov.sg/-/media/imda/files/programme/digital-connectivity-blueprint/digital-connectivity-blueprint-report.pdf",
+      "locator": "Digital Connectivity Blueprint; resilience discussion",
+      "publishedAt": null,
+      "effectiveAt": null,
+      "excerpt": "network redundancy and diversity",
+      "entityHints": [
+        {
+          "name": "IMDA",
+          "role": "publisher"
+        }
+      ],
+      "claims": {
+        "guidanceTopic": "digital_infrastructure_resilience",
+        "isCustomerSpecificRequirement": false,
+        "publicationDateVerified": false
+      },
+      "provenanceGroupId": "imda-connectivity-blueprint",
+      "schemaVersion": 1,
+      "retrievedAt": "2026-11-15",
+      "retrievedAtPrecision": "day",
+      "matchedEntityId": null,
+      "matchedSiteId": null,
+      "matchStatus": "unreviewed",
+      "claimStatus": "observed",
+      "origin": "public",
+      "contentHash": "5c6f31e7736b9fbeb7b06cea3fe08768f44ec971e43856448c58e6bb479bc6ba"
+    }
+  ]
+}

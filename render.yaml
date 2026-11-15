@@ -21,6 +21,8 @@ services:
         value: "true"
       - key: HOSTED_PREVIEW
         value: "true"
+      - key: ENABLE_DEMO_CONTROLS
+        value: "true"
       - key: STORAGE_MODE
         value: memory
       - key: TRUST_PROXY_HOPS

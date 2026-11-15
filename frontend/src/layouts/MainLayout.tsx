@@ -5,7 +5,10 @@ const PAGE_TITLES: Record<string, string> = {
   '/': 'Dashboard',
   '/companies': 'Company Intelligence',
   '/graph': 'Knowledge Graph',
-  '/opportunities': 'Opportunity Intelligence',
+  '/dashboard': 'Dashboard',
+  '/lead-ranking': 'Lead Ranking',
+  '/opportunities': 'Lead Ranking',
+  '/legacy-opportunities': 'Opportunity Intelligence',
   '/settings': 'Settings',
 }
 

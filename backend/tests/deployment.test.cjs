@@ -110,3 +110,27 @@ test('explicit hosted preview runs sample accounts, dashboard and research witho
   const health=await fetch(base+'/api/v1/health/ready');assert.equal(health.status,200);assert.equal((await health.json()).storageMode,'temporary_preview');
   const overall=await fetch(base+'/api/v1/health');const h=await overall.json();assert.equal(h.services.mongodb,'not_configured');
 });
+
+
+test('a backend-only build initializes ranked leads with its bundled cited snapshots', () => {
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const path = require('node:path');
+  const { execFileSync } = require('node:child_process');
+  const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'singtel-ranking-package-'));
+  try {
+    const packagedBackend = path.join(temporaryRoot, 'backend');
+    fs.cpSync(path.resolve(__dirname, '../dist'), path.join(packagedBackend, 'dist'), { recursive: true });
+    const script = `const {RankingService}=require(process.argv[1]);const service=new RankingService(null);const queue=service.get();process.stdout.write(JSON.stringify({total:queue.total,initialized:queue.initialized,degraded:queue.degraded,sources:service.inspect().sources.length}));`;
+    const result = execFileSync(process.execPath, ['-e', script, path.join(packagedBackend, 'dist/ranking/service.js')], {
+      cwd: packagedBackend, encoding: 'utf8', env: { ...process.env, NODE_PATH: path.resolve(__dirname, '../node_modules') },
+    });
+    assert.deepEqual(JSON.parse(result), {total:15,initialized:true,degraded:false,sources:22});
+    assert.equal(fs.existsSync(path.join(temporaryRoot, 'docs')), false);
+  } finally {
+    // Limit recursive cleanup to the exact temporary test directory just created.
+    assert.equal(path.dirname(path.resolve(temporaryRoot)), path.resolve(os.tmpdir()));
+    assert.ok(path.basename(temporaryRoot).startsWith('singtel-ranking-package-'));
+    fs.rmSync(temporaryRoot, {recursive:true,force:true});
+  }
+});

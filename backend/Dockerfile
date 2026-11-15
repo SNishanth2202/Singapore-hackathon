@@ -1,37 +1,17 @@
 FROM node:20-alpine AS builder
+WORKDIR /app/backend
+COPY backend/package.json backend/package-lock.json ./
+RUN npm ci
+COPY backend/tsconfig.json ./
+COPY backend/src ./src
+RUN npm run build
 
-WORKDIR /app
-
-# Install pnpm
-RUN npm install -g pnpm
-
-# Copy package files
-COPY package.json pnpm-lock.yaml* ./
-
-# Install all dependencies (including devDependencies for build)
-RUN pnpm install --frozen-lockfile || pnpm install
-
-# Copy source
-COPY tsconfig.json ./
-COPY src ./src
-
-# Build TypeScript
-RUN pnpm run build
-
-# ---- Production image ----
-FROM node:20-alpine AS production
-
-WORKDIR /app
-
-RUN npm install -g pnpm
-
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
-
-COPY --from=builder /app/dist ./dist
-
+FROM node:20-alpine
+WORKDIR /app/backend
+COPY backend/package.json backend/package-lock.json ./
+RUN npm ci --omit=dev
+COPY --from=builder /app/backend/dist ./dist
+COPY package.json /app/package.json
+ENV NODE_ENV=production HOST=0.0.0.0
 EXPOSE 5000
-
-ENV NODE_ENV=production
-
 CMD ["node", "dist/server.js"]

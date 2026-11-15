@@ -1,0 +1,25 @@
+{
+  "version": "scenario-v1",
+  "asOf": "2026-11-15T01:00:00.000Z",
+  "siteAlternatives": [
+    "UNKNOWN",
+    "PASS",
+    "FAIL"
+  ],
+  "contributionMultipliers": [
+    0.8,
+    1,
+    1.2
+  ],
+  "effortMultipliers": [
+    0.75,
+    1,
+    1.25
+  ],
+  "newSiteLeadDays": [
+    30,
+    45
+  ],
+  "correlation": "Each shared multiplier applies to every linked estimate in that world.",
+  "source": "Prototype assumptions, not probabilities."
+}

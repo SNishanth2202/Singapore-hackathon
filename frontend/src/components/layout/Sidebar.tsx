@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', path: '/', icon: LayoutDashboardIcon, exact: true },
   { label: 'Company Intelligence', path: '/companies', icon: Building2Icon, exact: false },
   { label: 'Knowledge Graph', path: '/graph', icon: NetworkIcon, exact: false },
-  { label: 'Opportunities', path: '/opportunities', icon: TargetIcon, exact: false },
+  { label: 'Lead Ranking', path: '/lead-ranking', icon: TargetIcon, exact: false },
   { label: 'Settings', path: '/settings', icon: SettingsIcon, exact: false },
 ]
 
@@ -30,7 +30,7 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`flex flex-col bg-white border-r border-gray-200 transition-all duration-200 ${collapsed ? 'w-16' : 'w-60'} flex-shrink-0`}
+      className={`flex flex-col bg-white border-r border-gray-200 transition-all duration-200 ${collapsed ? 'w-16' : 'w-16 md:w-60'} flex-shrink-0`}
     >
       {/* Logo */}
       <div className={`flex items-center gap-3 px-4 py-5 border-b border-gray-100 ${collapsed ? 'justify-center' : ''}`}>
@@ -38,7 +38,7 @@ export function Sidebar() {
           <RadarIcon className="w-4 h-4 text-white" />
         </div>
         {!collapsed && (
-          <div className="min-w-0">
+          <div className="hidden md:block min-w-0">
             <p className="text-sm font-bold text-navy-600 leading-tight">Singtel</p>
             <p className="text-xs text-teal-600 font-semibold leading-tight">Scout</p>
           </div>
@@ -46,7 +46,7 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 py-4 overflow-y-auto">
+      <nav aria-label="Main navigation" className="flex-1 py-4 overflow-y-auto">
         <ul className="space-y-0.5 px-2">
           {NAV_ITEMS.map((item) => {
             const active = isActive(item.path, item.exact)
@@ -54,7 +54,8 @@ export function Sidebar() {
               <li key={item.path}>
                 <NavLink
                   to={item.path}
-                  title={collapsed ? item.label : undefined}
+                  title={item.label}
+                  aria-label={item.label}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative group ${
                     active
                       ? 'bg-navy-50 text-teal-600'
@@ -67,7 +68,7 @@ export function Sidebar() {
                   <item.icon
                     className={`flex-shrink-0 w-5 h-5 ${active ? 'text-teal-600' : 'text-gray-400 group-hover:text-gray-600'}`}
                   />
-                  {!collapsed && <span className="truncate">{item.label}</span>}
+                  {!collapsed && <span className="hidden md:block truncate">{item.label}</span>}
                 </NavLink>
               </li>
             )
@@ -87,7 +88,7 @@ export function Sidebar() {
           ) : (
             <>
               <ChevronLeftIcon className="w-4 h-4" />
-              <span>Collapse</span>
+              <span className="hidden md:inline">Collapse</span>
             </>
           )}
         </button>

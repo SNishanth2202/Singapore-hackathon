@@ -1,0 +1,68 @@
+{
+  "checkedAt": "2026-11-15T08:04:47.025Z",
+  "scope": "Planning arithmetic, local artifact links and evidence envelope validation only; not application ranking tests",
+  "fixtureVersion": "singtel-demo-v1",
+  "rubricVersion": "rubric-v1",
+  "scenarioVersion": "scenario-v1",
+  "opportunityCount": 16,
+  "componentSums": "passed",
+  "baselineIds": [
+    "O02",
+    "O03",
+    "O01",
+    "O04",
+    "O05",
+    "O06",
+    "O07",
+    "O09",
+    "O14",
+    "O08",
+    "O10",
+    "O15",
+    "O11",
+    "O13",
+    "O12",
+    "O16"
+  ],
+  "o01Before": {
+    "score": 84,
+    "rank": 3,
+    "scenarioRanks": [
+      3,
+      1,
+      1,
+      1,
+      15,
+      15,
+      3,
+      1,
+      3,
+      1
+    ],
+    "rankingConfidence": 80,
+    "actionConfidence": 30
+  },
+  "o01After": {
+    "score": 89,
+    "rank": 1,
+    "scenarioRanks": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "rankingConfidence": 100,
+    "actionConfidence": 100
+  },
+  "publicSnapshots": 11,
+  "liveAwardRecords": 11,
+  "liveHttpPages": 3,
+  "evidenceEnvelopeChecks": "passed",
+  "localMarkdownLinks": "passed"
+}
