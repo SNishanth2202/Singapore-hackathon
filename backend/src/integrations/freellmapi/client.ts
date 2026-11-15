@@ -10,6 +10,7 @@ export interface FreeLlmConfig {
   timeoutMs: number;
   protocol?: 'chat_completions' | 'responses';
   modelsUrl?: string;
+  reasoningEffort?: 'none' | 'low' | 'medium' | 'high';
 }
 
 export interface ChatMessage {
@@ -93,6 +94,7 @@ export function createFreeLlmClient(config: FreeLlmConfig, transport: typeof fet
     }
     const parsed = CompletionResponse.safeParse(await request('/chat/completions', {
       model: config.model, messages, max_tokens: maxTokens, stream: false,
+      ...(config.reasoningEffort ? { reasoning: { effort: config.reasoningEffort } } : {}),
     }));
     if (!parsed.success) throw new AppError('The AI provider returned an invalid completion.', 502, 'AI_INVALID_RESPONSE');
     const reply = parsed.data.choices[0].message.content;

@@ -28,6 +28,7 @@ const envSchema = z.object({
   AI_PROTOCOL: z.enum(['chat_completions', 'responses']).optional(),
   AI_MODELS_URL: z.string().optional(),
   AI_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120000).optional(),
+  AI_REASONING_EFFORT: z.enum(['none', 'low', 'medium', 'high']).optional(),
 
   // Existing Desktop settings remain supported for local development.
   FREELLMAPI_BASE_URL: z.string().url().default('http://127.0.0.1:31415/v1')

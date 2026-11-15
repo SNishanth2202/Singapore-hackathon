@@ -19,7 +19,7 @@ Set `CORS_ORIGIN` to the exact Vercel production origin. Multiple explicitly app
 
 ## AI: OpenRouter
 
-The backend uses `AI_BASE_URL=https://openrouter.ai/api/v1`, `AI_PROTOCOL=chat_completions`, and the key saved as `AI_API_KEY`. `AI_MODEL` pins the selected model. The initial free model is `google/gemma-4-31b-it:free`, verified in the provider's public catalogue during setup. Model availability and account quotas can change. There is no automatic fallback to a paid model.
+The backend uses `AI_BASE_URL=https://openrouter.ai/api/v1`, `AI_PROTOCOL=chat_completions`, and the key saved as `AI_API_KEY`. The tested free model is `nvidia/nemotron-3.5-lightning:free` with `AI_REASONING_EFFORT=none`. Model availability and account quotas can change. There is no automatic fallback to a paid model.
 
 Existing `FREELLMAPI_*` settings still work locally when no `AI_*` provider is configured. Credentials from different routers are never mixed. Responses-compatible providers can use `AI_PROTOCOL=responses`.
 

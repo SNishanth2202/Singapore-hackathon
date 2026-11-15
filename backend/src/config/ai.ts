@@ -3,6 +3,7 @@ import { validatePublicUrl } from '../integrations/research/publicFetch';
 interface AiEnvironment {
   AI_BASE_URL?: string; AI_API_KEY?: string; AI_MODEL?: string;
   AI_PROTOCOL?: 'chat_completions' | 'responses'; AI_MODELS_URL?: string; AI_TIMEOUT_MS?: number;
+  AI_REASONING_EFFORT?: 'none' | 'low' | 'medium' | 'high';
   FREELLMAPI_BASE_URL: string; FREELLMAPI_API_KEY: string; FREELLMAPI_MODEL: string; FREELLMAPI_TIMEOUT_MS: number;
 }
 
@@ -15,6 +16,7 @@ export function resolveAiConfiguration(config: AiEnvironment) {
     protocol: config.AI_PROTOCOL ?? 'chat_completions' as const,
     modelsUrl: config.AI_MODELS_URL?.trim() || undefined,
     timeoutMs: config.AI_TIMEOUT_MS ?? config.FREELLMAPI_TIMEOUT_MS,
+    reasoningEffort: config.AI_REASONING_EFFORT,
   };
 }
 

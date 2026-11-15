@@ -36,7 +36,7 @@ export default function CompanyAnalysis({ companyId, sources = [], autoRun = fal
   async function analyze() {
     setLoading(true); setError(''); setReviewed(false)
     try {
-      const response = await api.post('/api/v1/ai/analyze', { companyId }, { timeout: 125000 })
+      const response = await api.post('/api/v1/ai/analyze', { companyId }, { timeout: 180000 })
       setResult(response.data.data)
     } catch (e) {
       setResult(null)

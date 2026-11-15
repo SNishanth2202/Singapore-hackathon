@@ -59,6 +59,14 @@ test('provider-specific model-list URLs and account errors remain safe', async (
   }
 });
 
+test('optional router reasoning setting is sent only when configured', async () => {
+  const client=createFreeLlmClient({baseUrl:'https://router.example.com/v1',apiKey:'test-key',model:'test-model',timeoutMs:1000,reasoningEffort:'none'},async(_url,options)=>{
+    assert.deepEqual(JSON.parse(options.body).reasoning,{effort:'none'});
+    return new Response(JSON.stringify({model:'served-model',choices:[{message:{content:'OK'}}]}));
+  });
+  assert.equal((await client.generateText([{role:'user',content:'Test'}])).reply,'OK');
+});
+
 test('hosted routes allow research and analysis while enforcing CORS, rate limits and local-only edits', async t => {
   const {env} = require('../dist/config/env');
   const originalEnv = {...env};
