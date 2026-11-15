@@ -5,6 +5,16 @@ Built locally on `Lead-Ranking-Agent`, 15 November 2026. Start from the root wit
 
 ## Current OpenAI assessment update
 
+The subsequent [customer audit and policy](lead-ranking-customer-audit.md) excludes four opportunities
+for publicly documented Singtel relationships (Micron and Singapore Customs). The current queue contains
+11 eligible leads across six accounts, or 12 after ETLA discovery. Eligibility is checked against the
+mock register before every ranking; cached model output cannot restore an excluded account. Additional
+regressions cover file updates, aliases/groups, future discovery, in-flight changes and failed checks.
+The original counts and rank tables below predate this exclusion policy.
+Updated verification: 43 ranking/importer/API/model/customer/discovery tests, 66 existing app tests, 6 connector
+tests and 6 browser checks passed. Both builds and the replay verifier passed. Live OpenAI/browser QA
+confirmed 11 retained leads with no excluded customer or page error.
+
 The default calls OpenAI for internal ordering score, urgency and confidence. The table displays urgency
 and one confidence percentage; hover/focus/tap reveals 2-5-word reasons. Gate actions remain enforced
 by application code. A missing-key popup keeps a browser-provided key in backend memory and returns
@@ -13,7 +23,7 @@ See [current runtime and acceptance checks](lead-ranking-llm.md) and [demo scrip
 A real 15-candidate assessment succeeded on 15 Nov 2026 with `gpt-4.1-mini-2025-04-14`.
 Model confidence is subjective evidence support, not the reference engine's scenario frequency.
 
-Current verification: 66 existing app tests, 32 ranking/importer/API/model tests, 6 connector tests and
+Before the customer-exclusion update: 66 existing app tests, 32 ranking/importer/API/model tests, 6 connector tests and
 5 browser tests passed. The browser suite includes the missing-key popup, percentage-only display,
 short hover/focus/tap reasons and no browser key storage. Both package builds and the offline replay
 verifier passed. A separate live-model browser smoke check returned 15 assessed leads with no page errors;

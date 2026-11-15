@@ -1,5 +1,9 @@
 # Data contracts and deterministic demo fixtures
 
+**Customer policy:** [Customer audit and eligibility contract](lead-ranking-customer-audit.md) adds
+`customerCheck` to eligible rows and `customerEligibility` to queue responses. Current counts are
+11/12 after excluding four known-relationship leads; the older 15/16 counts below are the raw fixture universe.
+
 **Current runtime:** [Active LLM contract](lead-ranking-llm.md) supersedes the original deterministic
 score/threshold/scenario requirements below for the default mode. OpenAI chooses urgency and confidence;
 the UI shows confidence as a percentage with short hover reasons and no separate score. The original

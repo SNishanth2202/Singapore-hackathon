@@ -6,6 +6,7 @@ export interface Evidence { id: string; title: string; origin: string; date: str
   url: string | null; locator: string; claimStatus: string; entity: string; site: string; sourceFamily: string }
 export interface Decision { rank: number; score: number; status: Status; priorityStatus: PriorityStatus; actionCode: string; nextAction: string; priorityBand: string; confidence: number | null }
 export interface Opportunity extends Omit<Decision, 'confidence'> {
+  customerCheck?: { result: 'not_found_in_mock_customer_database'; databaseVersion: string; databaseUpdatedAt: string; isMock: true; limitation: string };
   id: string; account: string; parent: string; buyingUnit: string; address: string; product: string;
   useCase: string; buyingWindowId: string; owner: string; deadline: string | null; deadlineKind: string;
   readyBy: string; annualDealValueSgd: number; annualContributionSgd: number; pursuitHours: number;
@@ -22,6 +23,7 @@ export interface Opportunity extends Omit<Decision, 'confidence'> {
   publicContribution: number; originalCrmDiscovery: boolean;
 }
 export interface Queue { items: Opportunity[]; total: number; view: View; queueVersion: string;
+  customerEligibility?: { policy: 'exclude_known_singtel_customers'; isMock: true; databaseVersion: string };
   asOf: string; queueComputedAt: string; eventCursor: number; initialized: boolean; degraded: boolean;
   lastSuccessfulRefreshAt: string | null; lastAttemptAt: string; sourceError: string | null;
   rubricVersion: string; scenarioVersion: string; fixtureVersion: string;
@@ -50,6 +52,9 @@ export async function rankingRequest<T>(path: string, body?: unknown): Promise<T
     body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(120000),
   })
   const result = await response.json()
-  if (!response.ok) throw new Error(result.message || `Request failed (${response.status})`)
+  if (!response.ok) throw new RankingRequestError(result.message || `Request failed (${response.status})`, result.code)
   return result as T
+}
+export class RankingRequestError extends Error {
+  constructor(message: string, public code?: string) { super(message) }
 }

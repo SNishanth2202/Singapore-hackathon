@@ -17,7 +17,7 @@ export default function LeadRanking({ researchId }: { researchId: string }) {
       setResult(await rankingRequest<HandoffResponse>('/import-discovery', { researchId }))
     } catch (e) {
       setResult(null)
-      setError(axios.isAxiosError(e) ? e.response?.data?.message ?? 'Lead ranking could not be generated.' : 'Lead ranking could not be generated.')
+      setError(axios.isAxiosError(e) ? e.response?.data?.message ?? 'Lead ranking could not be generated.' : e instanceof Error ? e.message : 'Lead ranking could not be generated.')
     } finally { setLoading(false) }
   }
 

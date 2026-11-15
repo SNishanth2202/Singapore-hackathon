@@ -51,7 +51,7 @@ function decision(o: Opportunity, checks: GateResult[], asOf: string) {
     status = 'Verify'; actionCode = o.matchStatus === 'ambiguous' ? 'VERIFY_MATCH' : unknown?.gate === 'deadline' ? 'VERIFY_BUYING_WINDOW' : `VERIFY_${unknown?.gate.toUpperCase()}`;
     nextAction = o.matchStatus === 'ambiguous' ? 'Confirm the buying unit and exact site before joining these records.' : unknown?.gate === 'deadline' ? 'Confirm the contractual notice or purchase deadline with the buyer.' : unknown?.gate === 'site' ? 'Confirm serviceability and delivery access for the exact premises.' : o.product === 'Private 5G' ? 'Measure p95 latency in the proposed AGV zone before proposing a pilot.' : 'Obtain a route assessment proving two physically diverse access paths.';
   } else if (o.caseOpen) {
-    status = 'Resolve'; actionCode = 'RESOLVE_SERVICE_CASE'; nextAction = 'Resolve the open service case with the service manager before commercial outreach.';
+    status = 'Resolve'; actionCode = 'RESOLVE_SERVICE_CASE'; nextAction = 'Resolve the pre-sales serviceability case with engineering before commercial outreach.';
   } else if (dateNumber(o.deadline) - Date.parse(asOf) > 90 * DAY) {
     status = 'Monitor'; actionCode = 'MONITOR_WINDOW'; nextAction = 'Review facility progress and recheck the procurement window in seven days.';
   } else {

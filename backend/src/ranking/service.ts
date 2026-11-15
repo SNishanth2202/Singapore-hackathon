@@ -4,13 +4,17 @@ import { AuditEntry, DemoState, EventSchema, OpportunitySchema, QueueSnapshot, R
 import { priorityStatusFor, rankQueue, toDecision } from './engine';
 import { fetchGebiz, hash, importSources, sourceEvidence, matchEntity } from './importer';
 import { fixtureCrm, fixtureOpportunities, makeSeed, REPO_ROOT } from './seed';
+import { CustomerDatabase, customerEligibility, readCustomerDatabase, CUSTOMER_CHECK_LIMITATION } from './customer-eligibility';
+import { checkCustomer } from './customer-eligibility';
+import { AppError } from '../utils/errors';
 import { DiscoveryHandoff, integrationEvidence } from './discovery';
 
 export class DomainError extends Error { constructor(message: string, public status = 400) { super(message); } }
 export class RankingService {
   private state: DemoState;
   private serial: Promise<unknown> = Promise.resolve();
-  constructor(private storePath: string | null = process.env.LEAD_RANKING_STATE_PATH || path.join(REPO_ROOT, '.local/lead-ranking-state.json'), seedFactory: () => DemoState = makeSeed) {
+  constructor(private storePath: string | null = process.env.LEAD_RANKING_STATE_PATH || path.join(REPO_ROOT, '.local/lead-ranking-state.json'), seedFactory: () => DemoState = makeSeed,
+    private readCustomers: () => CustomerDatabase = readCustomerDatabase) {
     if (storePath && fs.existsSync(storePath)) {
       const saved = JSON.parse(fs.readFileSync(storePath, 'utf8')) as DemoState;
       if (saved.schemaVersion !== 1 || !Array.isArray(saved.evidence) || !saved.snapshots) throw new Error('Invalid local ranking state; restore a valid file or run seed:lead-ranking');
@@ -46,14 +50,20 @@ export class RankingService {
   private transaction<T>(work: () => Promise<T> | T): Promise<T> {
     const result = this.serial.then(work); this.serial = result.catch(() => undefined); return result;
   }
-  private publish(state: DemoState, fact: string): AuditEntry['changes'] {
+  private publish(state: DemoState, fact: string, database = this.readCustomers()): AuditEntry['changes'] {
     const changes: AuditEntry['changes'] = [];
+    const eligibility = customerEligibility(state.opportunities, database, state.asOf);
+    const excluded = new Set(eligibility.excluded.map(e => e.opportunityId));
+    const candidates = state.opportunities.filter(o => !excluded.has(o.id));
     for (const view of VIEWS) {
       const old = state.snapshots[view];
-      const items = rankQueue(state.opportunities, state.evidence, state.asOf, view);
-      const signature = hash(items.map(r => ({ id: r.id, rank: r.rank, score: r.score, status: r.status,
+      const items = rankQueue(candidates, state.evidence, state.asOf, view);
+      for (const row of items) row.customerCheck = { result: 'not_found_in_mock_customer_database',
+        databaseVersion: eligibility.databaseVersion, databaseUpdatedAt: eligibility.databaseUpdatedAt,
+        isMock: true, limitation: CUSTOMER_CHECK_LIMITATION };
+      const signature = hash({ customerDatabase: eligibility.databaseVersion, excluded: eligibility.excluded, rows: items.map(r => ({ id: r.id, rank: r.rank, score: r.score, status: r.status,
         action: r.actionCode, band: r.priorityBand, confidence: r.rankingConfidence,
-        gates: r.gates, components: r.components, evidence: r.evidence, deadline: r.deadline })));
+        gates: r.gates, components: r.components, evidence: r.evidence, deadline: r.deadline })) });
       if (old?.queueVersion === signature) continue;
       for (const row of items) {
         const prior = old?.items.find(r => r.id === row.id);
@@ -63,7 +73,7 @@ export class RankingService {
         row.changedFact = changed ? fact : prior?.changedFact ?? null;
         if (view === 'crm_plus_public' && changed) changes.push({ id: row.id, before: row.previousDecision, after: toDecision(row) });
       }
-      state.snapshots[view] = { items, total: items.length, view, queueVersion: signature, queueComputedAt: state.asOf,
+      state.snapshots[view] = { items, total: items.length, view, customerEligibility: eligibility, queueVersion: signature, queueComputedAt: state.asOf,
         asOf: state.asOf, eventCursor: Object.keys(state.appliedEvents).length, initialized: state.initialized, degraded: false,
         lastSuccessfulRefreshAt: state.lastSuccessfulRefreshAt, lastAttemptAt: state.lastAttemptAt, sourceError: null,
         rubricVersion: 'rubric-v1', scenarioVersion: 'scenario-v1', fixtureVersion: 'singtel-demo-v1' };
@@ -71,10 +81,16 @@ export class RankingService {
     return changes;
   }
   get(view: View = 'crm_plus_public'): QueueSnapshot {
+    // Read on every request: changes to the mock register invalidate persisted and AI caches.
+    const database = this.readCustomers();
+    if (this.state.snapshots[view]?.customerEligibility?.databaseVersion !== hash(database)) {
+      this.publish(this.state, 'Singtel customer exclusion register updated', database); this.persist(this.state);
+    }
     return { ...clone(this.state.snapshots[view]), asOf: this.state.asOf, degraded: !!this.state.sourceError,
       sourceError: this.state.sourceError, lastAttemptAt: this.state.lastAttemptAt, lastSuccessfulRefreshAt: this.state.lastSuccessfulRefreshAt };
   }
   inspect(): DemoState { return clone(this.state); }
+  customerDatabase(): CustomerDatabase { return clone(this.readCustomers()); }
   reset(empty = false) {
     return this.transaction(() => {
       const state = makeSeed(empty); this.publish(state, empty ? 'Empty demo reset' : 'Initial dated snapshot seed');
@@ -118,6 +134,11 @@ export class RankingService {
   }
   ingestDiscovery(handoff: DiscoveryHandoff): Promise<QueueSnapshot> {
     return this.transaction(() => {
+      const database = this.readCustomers();
+      if (checkCustomer({ accountId: `DISC-${handoff.company.entityId}`, account: handoff.company.name, parent: '' }, database).length
+        || handoff.opportunities.some(opportunity => checkCustomer(opportunity, database).length)) {
+        throw new AppError('No leads were added: this company matches the mock Singtel customer database.', 409, 'SINGTEL_CUSTOMER_EXCLUDED');
+      }
       const next = clone(this.state);
       next.sources = importSources(next.sources, handoff.sources).records;
       next.evidence = [
@@ -216,7 +237,8 @@ export class RankingService {
       ablations: families.map(family => {
         const groups = new Set(this.state.sources.filter(s => s.sourceFamily === family).map(s => s.provenanceGroupId || s.id));
         const removed = new Set(this.state.sources.filter(s => groups.has(s.provenanceGroupId || s.id)).map(s => s.id));
-        const candidates = clone(this.state.opportunities).map(o => ({ ...o,
+        const eligibleIds = new Set(full.items.map(r => r.id));
+        const candidates = clone(this.state.opportunities).filter(o => eligibleIds.has(o.id)).map(o => ({ ...o,
           need: (o.needOrigin === 'public' && o.needEvidenceIds.some(id => removed.has(id)) ? 0 : o.need) as 0 | 8 | 15,
           catalogAvailable: !removed.has(o.product === 'Private 5G' ? 'S10' : 'S09') }));
         const rows = rankQueue(candidates, this.state.evidence, this.state.asOf);

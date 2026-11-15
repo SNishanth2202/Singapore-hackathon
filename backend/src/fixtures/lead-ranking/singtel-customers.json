@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "isMock": true,
+  "updatedAt": "2026-11-15T12:00:00.000Z",
+  "description": "Mock exclusion register, not Singtel's private CRM. Publicly documented relationships are conservatively excluded; historical announcements/awards do not prove a currently active contract.",
+  "customers": [
+    {
+      "id": "SC-MICRON",
+      "name": "Micron Technology",
+      "accountIds": ["ACC-2"],
+      "aliases": ["Micron Singapore", "Micron Technology Inc"],
+      "groupNames": ["Micron Technology"],
+      "basis": "publicly_documented_relationship",
+      "sourceUrl": "https://www.singtel.com/about-us/media-centre/news-releases/singtel-partners-micron-to-deploy-commercial-5g-millimetre-wave-",
+      "sourceDate": "2022-05-30",
+      "evidence": "Singtel announced that Micron appointed it to deploy commercial 5G mmWave at Micron's Singapore fabrication facility."
+    },
+    {
+      "id": "SC-HYUNDAI",
+      "name": "Hyundai Motor Group",
+      "accountIds": [],
+      "aliases": ["Hyundai Motor Group Innovation Center Singapore", "HMGICS"],
+      "groupNames": ["Hyundai Motor Group"],
+      "basis": "publicly_documented_relationship",
+      "sourceUrl": "https://cdn1.singteldigital.com/content/dam/singtel/investorRelations/annualReports/2023/ResponsesToQuestions.pdf#page=2",
+      "sourceDate": "2023-07-23",
+      "evidence": "Singtel's 2023 investor Q&A names Hyundai Motor Group among its enterprise 5G contract wins. Excluded conservatively; no current expiry is inferred."
+    },
+    {
+      "id": "SC-NUHS",
+      "name": "National University Health System",
+      "accountIds": [],
+      "aliases": ["NUHS"],
+      "groupNames": ["National University Health System"],
+      "basis": "publicly_documented_relationship",
+      "sourceUrl": "https://cdn1.singteldigital.com/content/dam/singtel/investorRelations/annualReports/2023/ResponsesToQuestions.pdf#page=2",
+      "sourceDate": "2023-07-23",
+      "evidence": "Singtel's 2023 investor Q&A names NUHS among its enterprise 5G contract wins. Excluded conservatively; no current expiry is inferred."
+    },
+    {
+      "id": "SC-CUSTOMS",
+      "name": "Singapore Customs",
+      "accountIds": ["ACC-6"],
+      "aliases": ["Ministry of Finance - Singapore Customs"],
+      "groupNames": [],
+      "basis": "publicly_documented_relationship",
+      "sourceUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=FINCEDETT23000009&limit=5",
+      "sourceDate": "2024-03-12",
+      "evidence": "GeBIZ award FINCEDETT23000009 names Singapore Telecommunications Limited as supplier for telecommunications services to Singapore Customs. Expiry/extension is not established by the award date."
+    },
+    {
+      "id": "SC-MOF-HQ",
+      "name": "Ministry of Finance-Ministry Headquarter",
+      "accountIds": [],
+      "aliases": ["Ministry of Finance Headquarters"],
+      "groupNames": [],
+      "basis": "publicly_documented_relationship",
+      "sourceUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=FINHQ0ETT21000004&limit=5",
+      "sourceDate": "2022-02-08",
+      "evidence": "Pinned GeBIZ award FINHQ0ETT21000004 names Singapore Telecommunications Limited. This legal buying entity does not automatically identify every ministry agency as a customer."
+    },
+    {
+      "id": "SC-WSG",
+      "name": "Workforce Singapore",
+      "accountIds": [],
+      "aliases": [],
+      "groupNames": [],
+      "basis": "publicly_documented_relationship",
+      "sourceUrl": "https://data.gov.sg/api/action/datastore_search?resource_id=d_acde1106003906a75c3fa052592f2fcb&q=WSG000ETT22000007&limit=5",
+      "sourceDate": "2022-09-12",
+      "evidence": "Pinned GeBIZ award WSG000ETT22000007 names Singapore Telecommunications Limited as supplier; no current expiry is inferred."
+    }
+  ]
+}

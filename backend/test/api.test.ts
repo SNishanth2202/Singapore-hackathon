@@ -14,7 +14,7 @@ test('HTTP queue, replay, failure, validation and empty contracts', async () => 
     return { status: response.status, body: await response.json() as any };
   };
   try {
-    const first = await call('/queue'); assert.equal(first.status, 200); assert.equal(first.body.items.length, 15);
+    const first = await call('/queue'); assert.equal(first.status, 200); assert.equal(first.body.items.length, 11);
     for (const e of replayEvents.slice(0, 4)) assert.equal((await call('/demo/events', e)).status, 200);
     const q = await call('/queue'); assert.equal(q.body.items[0].id, 'O01'); assert.equal(q.body.items[0].rankingConfidence.score, 100);
     const failure = await call('/sources/refresh', { simulateFailure: true });

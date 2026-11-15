@@ -4,6 +4,8 @@
   "description": "Enterprise Radar AI \u2014 Backend API (Singtel Hackathon)",
   "main": "dist/server.js",
   "scripts": {
+    "ingest:customer-graph": "ts-node src/scripts/ingest-customer-graph.ts",
+    "test:customer-graph": "node -r ts-node/register/transpile-only --test test/customer-graph.test.ts",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc --project tsconfig.json",
     "test:ai-management": "npm run build && node --test tests/ai-management.test.cjs tests/ai-management-e2e.test.cjs tests/ai-management-restart.test.cjs",
@@ -19,7 +21,7 @@
     "seed": "ts-node src/scripts/seed.ts",
     "lint": "eslint src --ext .ts",
     "seed:lead-ranking": "ts-node src/scripts/seed-lead-ranking.ts",
-    "test:ranking": "node -r ts-node/register/transpile-only --test test/ranking.test.ts test/api.test.ts test/importer.test.ts test/discovery-handoff.test.ts test/llm-ranking.test.ts",
+    "test:ranking": "node -r ts-node/register/transpile-only --test test/ranking.test.ts test/api.test.ts test/importer.test.ts test/discovery-handoff.test.ts test/llm-ranking.test.ts test/customer-eligibility.test.ts",
     "test:sales": "npm run build && node --test tests/sales-agents.test.cjs",
     "verify:ranking-demo": "ts-node src/scripts/verify-ranking-demo.ts",
     "dev:ranking-demo": "ts-node-dev --respawn --transpile-only src/ranking/demo-server.ts",

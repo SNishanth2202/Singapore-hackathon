@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { RankingService } from '../src/ranking/service';
 import { DiscoveryHandoff, integrationEvidence } from '../src/ranking/discovery';
+import { fixtureOpportunities } from '../src/ranking/seed';
+import { AppError } from '../src/utils/errors';
 
 test('an evidence-qualified discovery hand-off becomes a gated Verify lead without inventing internal facts', async () => {
   const service = new RankingService(null);
@@ -36,4 +38,17 @@ test('an evidence-qualified discovery hand-off becomes a gated Verify lead witho
   assert.equal(row.annualContributionSgd, 0);
   assert.ok(row.evidence.some(evidence => evidence.id === `integration-site-${id}`));
   assert.equal(integrationEvidence(handoff, asOf).length, 5);
+});
+
+test('Discovery customer matches are rejected before candidates are ingested', async () => {
+  const service = new RankingService(null), before = service.get();
+  const handoff: DiscoveryHandoff = {
+    researchId: 'research-12345678-abcd-abcd-abcd-123456789012',
+    company: { entityId: 'Q-known-micron', name: 'Micron Technology Inc.' }, sources: [], fact: 'Customer exclusion test',
+    opportunities: [{ ...fixtureOpportunities()[0], id: 'DISC-known-micron', accountId: 'DISC-Q-known-micron',
+      account: 'Micron Singapore Pte. Ltd.', parent: 'Micron Technology', hiddenUntilTrigger: false }],
+  };
+  await assert.rejects(service.ingestDiscovery(handoff), e => e instanceof AppError && e.code === 'SINGTEL_CUSTOMER_EXCLUDED');
+  assert.deepEqual(service.get(), before);
+  assert.ok(!service.inspect().opportunities.some(o => o.id === 'DISC-known-micron'));
 });

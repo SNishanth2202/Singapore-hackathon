@@ -4,20 +4,23 @@ import opportunities from '../fixtures/lead-ranking/opportunities.json';
 import crm from '../fixtures/lead-ranking/crm.json';
 import events from '../fixtures/lead-ranking/events.json';
 import sourceRecords from '../fixtures/lead-ranking/source-records.json';
+import customers from '../fixtures/lead-ranking/singtel-customers.json';
 import { DemoState, Evidence, OpportunitySchema, SourceRecord, T0 } from './contracts';
 import { importSources, sourceEvidence } from './importer';
+import type { CustomerDatabase } from './customer-eligibility';
 
 const workspaceRoot = path.resolve(__dirname, '../../..');
 export const REPO_ROOT = fs.existsSync(path.join(workspaceRoot, 'package.json')) ? workspaceRoot : path.resolve(__dirname, '../..');
-export const fixtureCrm = crm;
+export const fixtureCrm = { ...crm, customers: customers.customers };
 export const replayEvents = events;
-export function mockSalesforceProjection(state: DemoState) {
-  return { ...crm,
+export function mockSalesforceProjection(state: DemoState, customerDatabase?: CustomerDatabase) {
+  return { ...fixtureCrm, customers: customerDatabase?.customers || fixtureCrm.customers,
     opportunities: state.opportunities.map(o => ({ Id: o.id, AccountId: o.accountId, Name: `${o.buyingUnit} / ${o.product}`,
       StageName: 'Qualification', Amount: o.annualDealValueSgd, CloseDate: o.deadline, OwnerId: o.ownerId,
       BuyingUnitId__c: o.buyingUnitId, SiteId__c: o.siteId, ProductCode__c: o.product,
       BuyingWindowId__c: o.buyingWindowId, isSynthetic: true })),
-    contracts: crm.contracts.map(c => ({ ...c, NoticeDueAt__c: state.opportunities.find(o => `CTR-${o.id}` === c.Id)?.deadline ?? c.NoticeDueAt__c })),
+    contracts: crm.contracts.map(c => ({ ...c, IncumbentProvider__c: 'Unspecified provider (synthetic; not a Singtel contract claim)',
+      NoticeDueAt__c: state.opportunities.find(o => `CTR-${o.id}` === c.Id)?.deadline ?? c.NoticeDueAt__c })),
     activities: [...crm.activities, ...state.history.filter(h => ['BuyingWindowConfirmed', 'RenewalNoticeConfirmed'].includes(h.eventType)).map(h => ({
       Id: `ACT-${h.eventId}`, WhatId: h.changes[0]?.id || 'O01', WhoId: 'CON-O01', ActivityDate: h.at,
       Status: 'Completed', Subject: 'Synthetic buyer window confirmation replay', isSynthetic: true,
@@ -42,7 +45,7 @@ export function makeSeed(empty = false): DemoState {
       claimStatus: 'synthetic', entity: o.account, site: o.address, sourceFamily: origin,
     });
     evidence.push(
-      synthetic(`crm-need-${o.id}`, 'Mock Salesforce · operating need', o.product === 'Managed WAN renewal' ? `Active synthetic managed WAN contract CTR-${o.id} needs a renewal decision. This is not inferred from public award history.` : 'Synthetic current operating-need review; any cited public facility trigger keeps its original publication date.'),
+      synthetic(`crm-need-${o.id}`, 'Mock Salesforce · operating need', o.product === 'Managed WAN renewal' ? `Synthetic incumbent-provider WAN contract CTR-${o.id} creates a competitive renewal opportunity. This does not assert a Singtel contract and is not inferred from public award history.` : 'Synthetic current operating-need review; any cited public facility trigger keeps its original publication date.'),
       synthetic(`crm-window-${o.id}`, 'Mock Salesforce · buying window', o.deadline ? `Required ${o.deadlineKind}: ${o.deadline}. This date is synthetic; it is not inferred from an award.` : 'No confirmed notice date. Bounded planning alternatives are synthetic.'),
       synthetic(`crm-buyer-${o.id}`, 'Mock Salesforce · buyer readiness', `Demo contact ${o.contactId}; ${o.recentActivityAt ? 'recent two-way planning activity' : 'no recent two-way activity'}.`),
       synthetic(`crm-commercial-${o.id}`, 'Mock Salesforce · commercial estimate', `Annual contribution SGD${o.annualContributionSgd}; remaining effort ${o.pursuitHours}h. Both are prototype estimates.`),

@@ -4,11 +4,19 @@ This is the current runtime contract, superseding the original deterministic pla
 ranking mode. The opportunity tuple, cited source importer, synthetic CRM fixtures and hard gates remain.
 OpenAI now chooses the internal ordering score, urgency and confidence from the supplied evidence.
 
+**Customer eligibility update:** the backend excludes known Singtel customer matches before ranking
+and before sending candidates to OpenAI. The current public audit removes Micron and Singapore Customs,
+leaving 11 initial eligible leads (12 after ETLA discovery). See the
+[customer audit and policy](lead-ranking-customer-audit.md) for all eight reviewed accounts, evidence,
+database format, alias/group matching, cache invalidation and fail-closed behavior. Remaining rows mean
+not found in the mock register; actual non-customer status requires Singtel's customer master.
+
 ## Architecture and data
 
 1. `RankingService` joins the cited public snapshots/GeBIZ connector with synthetic Salesforce-style
    accounts, contacts, opportunities, contracts, activities and cases. It applies versioned events and
-   enforces site serviceability, technical requirements and deadlines.
+   checks the mock Singtel customer exclusion register, then enforces site serviceability, technical
+   requirements and deadlines. Retained WAN renewals are competitive renewals from synthetic incumbents.
 2. `modelInput` in `backend/src/ranking/openai-ranking.ts` sends every candidate's raw facts, evidence
    IDs, source dates, excerpts, estimates and required action to the OpenAI Responses API. Baseline points,
    scores, priority labels and scenario confidence are excluded. Source excerpts are untrusted data.

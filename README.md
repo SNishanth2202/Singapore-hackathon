@@ -20,6 +20,11 @@
 
 ## Overview
 
+**Central Customer Graph Database demo:** `/graph` connects viewable mock Salesforce records, calls, email/calendar,
+support tickets, contracts, billing, and service usage. GPT-6.1 Terra extracts cited facts and connected ideas
+into the existing Neo4j graph, linked to canonical Company records through the shared connection.
+See [setup, demo walkthrough and verification](docs/customer-graph-demo.md).
+
 Singtel Scout aggregates public signals about companies (funding rounds, hiring trends, tech adoption, partnerships) and uses a knowledge graph to surface high-priority sales and partnership opportunities for Singtel's enterprise teams.
 
 **Tech Stack**
@@ -344,11 +349,19 @@ remain Pursue, Verify, Resolve, Monitor and Blocked; failed or unknown mandatory
 
 The worklist opens directly onto the ranked leads. **Reassess leads** requests a fresh model assessment;
 unchanged evidence normally reuses the successful result. **Demo checks** opens replay/reset,
-connector failure, ambiguous matching, clock changes and an empty list. The initial 15 candidates
-become 16 when the cited ETLA trigger is replayed. All buyer dates, contacts, commercial estimates,
+connector failure, ambiguous matching, clock changes and an empty list. After customer exclusions, the
+initial 11 eligible candidates become 12 when the cited ETLA trigger is replayed. All buyer dates, contacts, commercial estimates,
 service cases and engineering assessments are synthetic. Source/model failures preserve the last
 successful result with its time and warning. Before a successful model call, the queue is labelled
 Awaiting AI. A healthy empty queue stays empty without a model call.
+
+Every ranking checks the mock Singtel customer register before scoring. Account IDs, normalized names,
+aliases and explicitly listed parent groups exclude known relationships across products/sites, including
+from cached AI results. The current audit removed Micron and Singapore Customs (four leads). Customer
+database changes take effect on the next read; a missing/invalid database pauses ranking. A retained lead
+means **not found in the mock register**, rather than proof of real non-customer status. Managed WAN
+renewals are competitive opportunities involving a synthetic incumbent. See the
+[customer audit and backend policy](docs/lead-ranking-customer-audit.md).
 
 The local launcher uses the app's memory preview and a separate atomic JSON store under `.local/`
 for ranking. The default home page remains the dashboard. No real Salesforce connection is claimed.
