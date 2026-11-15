@@ -333,6 +333,7 @@ Open http://localhost:3000/lead-ranking. The default home page remains the dashb
 The local launcher uses the app's memory preview for company/research features and a separate atomic
 JSON store under `.local/` for lead ranking. No real Salesforce connection is claimed.
 The cloud backend keeps its existing `npm --prefix backend start` entry point and deployment settings.
+The explicit hosted preview enables the synthetic ranking demo controls; its file state is temporary.
 
 Status labels are **Very urgent** (85-100), **Urgent** (70-84), **Normal priority** (50-69),
 **Low priority** (25-49) and **Irrelevant** (0-24). The separate next-action labels are Pursue,

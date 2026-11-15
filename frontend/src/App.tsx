@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import { AppProvider } from './context/AppContext'
 import MainLayout from './layouts/MainLayout'
 import Dashboard from './pages/Dashboard'
@@ -14,9 +14,10 @@ function App() {
     <AppProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LeadRankingQueue />} />
-          <Route path="/opportunities" element={<LeadRankingQueue />} />
           <Route element={<MainLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/lead-ranking" element={<LeadRankingQueue />} />
+            <Route path="/opportunities" element={<Navigate to="/lead-ranking" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/companies" element={<CompanyIntelligence />} />
             <Route path="/companies/:id" element={<CompanyProfile />} />

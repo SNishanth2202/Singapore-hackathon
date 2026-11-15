@@ -1,7 +1,23 @@
 # Implemented demo and verification
 
 Built locally on `Lead-Ranking-Agent`, 15 November 2026. Start from the root with `npm run dev` after
-`npm --prefix backend ci` and `npm --prefix frontend ci`. Open http://localhost:3000.
+`npm --prefix backend ci` and `npm --prefix frontend ci`. Open http://localhost:3000/lead-ranking.
+
+## Integration with main
+
+Integrated main's Singtel Scout branding, company research, AI configuration and deployment work from
+`5065eba`. Lead Ranking uses the shared sidebar, navbar and PageHeader, with the app's navy/teal palette,
+standard type sizes and responsive spacing. `/` stays the dashboard; `/opportunities` redirects to
+`/lead-ranking`. The removed summary/replay banners stay removed; compact page actions open Demo checks.
+Score and numeric ranking confidence sit together before the longer next-action and evidence columns.
+
+The root development launcher runs the full app's memory preview alongside Vite. The normal backend
+`start` command retains main's cloud/hosted entry point; `dev:ranking-demo` and `start:ranking-demo`
+retain the standalone ranking server. Ranking requests respect `VITE_API_BASE_URL` on a split frontend/API
+host. The explicit Render hosted preview enables mutations only for the synthetic ranking demo. Its local
+file state is temporary on that free deployment; it does not connect to real Salesforce. Pinned cited
+snapshots are bundled under `backend/src/fixtures/lead-ranking/source-records.json` and copied into the
+compiled build by TypeScript, so initialization does not depend on an external documentation folder.
 
 ## What is implemented
 
@@ -37,9 +53,10 @@ Built locally on `Lead-Ranking-Agent`, 15 November 2026. Start from the root wit
 
 | Check | Result |
 | --- | --- |
+| Existing app business/research/AI/deployment suite | 66 tests passed, including a backend-only package check |
 | Backend domain/importer/HTTP suite | 22 tests passed, including priority boundaries and saved-state upgrade |
 | Standalone GeBIZ connector suite | 6 tests passed |
-| Browser end-to-end suite | 3 tests passed: replay/priority filters/persistence/comparisons; failure/unbounded/empty; mobile/keyboard/source controls |
+| Browser end-to-end suite | 4 tests passed: replay/priority filters/persistence/comparisons; failure/unbounded/empty; mobile/keyboard/source controls; shared navigation and route compatibility |
 | TypeScript/backend build | Passed |
 | TypeScript/Vite frontend build | Passed |
 | Application replay verifier | Passed; report written to `.local/readiness-report.json` |

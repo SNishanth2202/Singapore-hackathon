@@ -14,7 +14,12 @@ router.use('/companies',    companyRoutes);
 router.use('/opportunities', opportunityRoutes);
 router.use('/analytics',    analyticsRoutes);
 router.use('/ai',           aiRoutes);
-router.use('/ranking',      createRankingRouter(new RankingService()));
+const rankingService = new RankingService();
+if (process.env.DEMO_REAL_CLOCK === 'true') {
+  const rankingClock = setInterval(() => { void rankingService.advance(new Date().toISOString()).catch(err => console.error(err.message)); }, 30000);
+  rankingClock.unref();
+}
+router.use('/ranking',      createRankingRouter(rankingService));
 
 // 404 fallback for unmatched /api/v1/* routes
 router.use((_req: Request, res: Response) => {

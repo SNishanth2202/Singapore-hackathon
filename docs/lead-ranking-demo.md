@@ -9,7 +9,7 @@ See the root README and [delivery notes](lead-ranking-delivery.md) for setup and
 
 ## Preparation
 
-Replay and reset controls are available under **Demo checks**. The main page opens directly onto the queue.
+Replay and reset controls are available under **Demo checks**. Open **Lead Ranking** in the shared app navigation (`/lead-ranking`). Its page opens directly onto the ranked leads.
 
 - Use `Lead-Ranking-Agent`, fixture `singtel-demo-v1`, rubric `rubric-v1`, scenarios `scenario-v1`.
 - Pin T0 to **15 November 2026, 09:00 SGT**. Load dated public snapshots and stored LLM extractions.

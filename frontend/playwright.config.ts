@@ -6,7 +6,7 @@ export default defineConfig({
     channel: process.platform === 'win32' ? 'msedge' : undefined,
     screenshot: 'only-on-failure', trace: 'retain-on-failure' },
   webServer: [
-    { command: 'npm --prefix ../backend run dev', url: 'http://127.0.0.1:5000/api/v1/health', reuseExistingServer: !process.env.CI, timeout: 60000 },
+    { command: 'npm --prefix ../backend run dev:preview', url: 'http://127.0.0.1:5000/api/v1/health', reuseExistingServer: !process.env.CI, timeout: 60000 },
     { command: 'npm run dev -- --host 127.0.0.1 --port 3000 --strictPort', url: 'http://127.0.0.1:3000', reuseExistingServer: !process.env.CI, timeout: 60000 },
   ],
 })

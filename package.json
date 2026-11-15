@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "node tools/start-demo.mjs",
-    "start": "node backend/dist/ranking/demo-server.js",
-    "verify": "npm --prefix backend run verify:ranking-demo"
+    "start": "npm --prefix backend start",
+    "verify": "npm --prefix backend run verify:ranking-demo",
+    "start:ranking-demo": "node backend/dist/ranking/demo-server.js"
   }
 }

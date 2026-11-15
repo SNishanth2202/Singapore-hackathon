@@ -3,10 +3,12 @@ import path from 'path';
 import opportunities from '../fixtures/lead-ranking/opportunities.json';
 import crm from '../fixtures/lead-ranking/crm.json';
 import events from '../fixtures/lead-ranking/events.json';
+import sourceRecords from '../fixtures/lead-ranking/source-records.json';
 import { DemoState, Evidence, OpportunitySchema, SourceRecord, T0 } from './contracts';
 import { importSources, sourceEvidence } from './importer';
 
-export const REPO_ROOT = path.resolve(__dirname, '../../..');
+const workspaceRoot = path.resolve(__dirname, '../../..');
+export const REPO_ROOT = fs.existsSync(path.join(workspaceRoot, 'package.json')) ? workspaceRoot : path.resolve(__dirname, '../..');
 export const fixtureCrm = crm;
 export const replayEvents = events;
 export function mockSalesforceProjection(state: DemoState) {
@@ -28,9 +30,8 @@ export const fixtureOpportunities = () => opportunities.map(o => OpportunitySche
   needEvidenceIds: o.needOrigin === 'public' ? (o.id === 'O01' || o.id === 'O15' ? ['S02'] : o.evidenceIds.filter(id => !['S09', 'S10'].includes(id))) : [],
 }));
 export function readSources(): SourceRecord[] {
-  const snapshots = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'docs/evidence/public-snapshots.json'), 'utf8'));
-  const awards = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'docs/evidence/gebiz-live-verification.json'), 'utf8'));
-  return importSources([], [...snapshots.records, ...awards.records]).records;
+  // Bundle the pinned cited snapshots with dist so an API-only deployment can initialize.
+  return importSources([], sourceRecords.records).records;
 }
 export function makeSeed(empty = false): DemoState {
   const all = fixtureOpportunities(), sources = readSources();

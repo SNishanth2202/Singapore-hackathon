@@ -51,6 +51,9 @@ services:
     container_name: enterprise_radar_backend
     restart: unless-stopped
     environment:
+      NODE_ENV: development
+      STORAGE_MODE: memory
+      LOCAL_DEMO_MODE: 'true'
       ENABLE_DEMO_CONTROLS: 'true'
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}

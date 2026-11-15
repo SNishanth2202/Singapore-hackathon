@@ -42,7 +42,7 @@ export const SourceSchema = z.object({
   matchStatus: z.enum(['unreviewed', 'verified', 'ambiguous', 'unmatched']),
   claimStatus: z.enum(['observed', 'inferred', 'synthetic', 'disputed', 'superseded']),
   origin: z.enum(['public', 'mock_salesforce', 'mock_engineering']),
-  claims: z.record(z.unknown()), contentHash: z.string().regex(/^[a-f0-9]{64}$/),
+  claims: z.record(z.string(), z.unknown()), contentHash: z.string().regex(/^[a-f0-9]{64}$/),
   provenanceGroupId: z.string().optional(),
 }).passthrough();
 export type SourceRecord = z.infer<typeof SourceSchema>;

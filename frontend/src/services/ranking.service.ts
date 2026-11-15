@@ -39,7 +39,7 @@ export interface Comparison {
   ablations: { family: string; removedProvenanceGroups: string[]; topFive: string[]; changedRows: string[] }[];
 }
 export async function rankingRequest<T>(path: string, body?: unknown): Promise<T> {
-  const response = await fetch(`/api/v1/ranking${path}`, {
+  const response = await fetch(`${(import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')}/api/v1/ranking${path}`, {
     method: body === undefined ? 'GET' : 'POST', headers: { 'Content-Type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body), signal: AbortSignal.timeout(45000),
   })
