@@ -6,7 +6,7 @@ import { RankingService } from '../src/ranking/service';
 import { replayEvents } from '../src/ranking/seed';
 
 test('HTTP queue, replay, failure, validation and empty contracts', async () => {
-  const app = createDemoApp(new RankingService(null)), server = app.listen(0, '127.0.0.1');
+  const app = createDemoApp(new RankingService(null), { mode: 'rules' }), server = app.listen(0, '127.0.0.1');
   await new Promise<void>(resolve => server.once('listening', resolve));
   const root = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api/v1/ranking`;
   const call = async (route: string, body?: unknown) => {

@@ -72,8 +72,6 @@
 .lr-resolve{background:#f2f0fc;border-color:#e1dcf1;color:#8068aa}
 .lr-monitor{background:#f1f4f8;border-color:#e1e6ee;color:#78879b}
 .lr-blocked{background:#fcf0f1;border-color:#efd7db;color:#b2727d}
-.lr-priority-score{font-size:18px;font-weight:600;letter-spacing:-.7px;line-height:1.2}
-.lr-priority-score small{font-size:10px;display:block;color:#a2a8b1;font-weight:400;letter-spacing:0;margin-top:4px}
 .lr-action-text{text-align:left;padding:0;line-height:1.7;font-size:12px!important;color:#606c7d!important;max-width:190px}
 .lr-action-text:hover{color:#202d42!important}
 .lr-owner{display:block;color:#657081;font-size:12px}
@@ -85,12 +83,7 @@
 .lr-evidence-type{display:block;font-size:10px;letter-spacing:.5px;color:#aab0ba;margin-top:4px}
 .lr-public-link{display:flex;gap:4px;align-items:center;font-size:10px;margin-top:6px;color:#7c91a6}
 .lr-public-link:hover{text-decoration:underline}
-.lr-confidence-button{text-align:left;padding:0!important;width:100%}
 .lr-confidence strong{font-size:14px;font-weight:600;color:#4c5b6c;font-variant-numeric:tabular-nums}
-.lr-confidence strong span{color:#9ba5b1;font-size:11px;font-weight:400;margin-left:2px}
-.lr-confidence-track{height:3px;width:56px;background:#ecf0f4;margin:5px 0;border-radius:2px;overflow:hidden}
-.lr-confidence-track i{display:block;height:100%;background:#799a8b;border-radius:2px}
-.lr-confidence small{font-size:10px;color:#9ba4b0}
 .lr-insufficient{font-size:11px;line-height:1.5;color:#a28357}
 .lr-row-open{padding:2px!important;color:#abb3bf!important}
 .lr-band-divider td{background:#f7f8fa!important;padding:9px 22px!important;font-size:10px!important;letter-spacing:.9px;font-weight:650;color:#8c95a4}
@@ -337,8 +330,6 @@
 .lr-product{font-size:12px;color:#4b5563;line-height:1.6;flex-wrap:wrap}
 .lr-product>span{color:#6b7280}
 .lr-status{font-size:12px;padding:3px 7px;line-height:1.5;border-radius:999px}
-.lr-priority-score{font-size:18px;color:#1f2937;letter-spacing:0}
-.lr-priority-score small{font-size:11px;color:#6b7280}
 .lr-action-text{font-size:13px!important;max-width:none;line-height:1.6;color:#4b5563!important;display:block}
 .lr-owner{font-size:13px;color:#374151}
 .lr-due,.lr-overdue{font-size:12px}
@@ -348,10 +339,6 @@
 .lr-evidence-type{font-size:10px;color:#6b7280}
 .lr-public-link{font-size:11px;color:#0b7b72}
 .lr-confidence strong{font-size:14px;color:#374151}
-.lr-confidence strong span{font-size:11px;color:#6b7280}
-.lr-confidence small{font-size:11px;color:#6b7280}
-.lr-confidence-track{width:76px;background:#e5e7eb}
-.lr-confidence-track i{background:#0d9488}
 .lr-insufficient{font-size:12px}
 .lr-band-divider td{font-size:11px!important;color:#4b5563;background:#f9fafb!important;letter-spacing:.4px;padding:10px 20px!important}
 .lr-band-divider span{font-size:11px;color:#6b7280}
@@ -378,17 +365,41 @@
 .lr-app .lr-button{font-size:13px!important}
 }
 
-/* Keep score and confidence visible together before the longer action and evidence cells. */
-.lr-queue-table{min-width:1280px}
-.lr-queue-table th:first-child{width:65px}
-.lr-queue-table th:nth-child(2){width:220px}
-.lr-queue-table th:nth-child(3){width:140px}
-.lr-queue-table th:nth-child(4){width:70px}
-.lr-queue-table th:nth-child(5){width:125px}
-.lr-queue-table th:nth-child(6){width:235px}
-.lr-queue-table th:nth-child(7){width:165px}
-.lr-queue-table th:nth-child(8){width:200px}
-.lr-queue-table th:last-child{width:35px}
 @media(max-width:760px){
 .lr-status-filter{flex-basis:100%;width:100%}
 }
+
+/* One confidence percentage, with short evidence reasons on hover, focus, or tap. */
+.lr-reason-trigger{display:inline-flex;align-items:center;padding:0;text-align:left;cursor:help;background:transparent;border:0}
+.lr-reason-trigger:focus-visible{outline:2px solid #0d9488;outline-offset:4px;border-radius:5px}
+.lr-reason-dropdown{position:fixed;z-index:100;width:264px;max-width:calc(100vw - 16px);padding:14px 16px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;color:#374151;box-shadow:0 8px 24px #1118271f;font:13px/1.5 Inter,system-ui,sans-serif}
+.lr-reason-dropdown>strong{display:block;color:#111827;font-size:12px;font-weight:600;margin-bottom:8px}
+.lr-reason-dropdown ul{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.lr-reason-dropdown li{display:flex;align-items:baseline;gap:7px}
+.lr-reason-dropdown li:before{content:'';width:4px;height:4px;background:#0d9488;border-radius:50%;flex-shrink:0;align-self:center}
+.lr-reason-tags{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.lr-reason-tags>span{padding:4px 8px;border:1px solid #cfe6e3;border-radius:5px;background:#f0fdfa;color:#0b7b72;font-size:12px}
+.lr-assessment-copy{font-size:13px;line-height:1.8;color:#4b5563;margin:12px 0}
+.lr-confidence strong{font-size:15px;font-weight:600;color:#1e3a5f;text-decoration:underline dotted #a6b7c9;text-underline-offset:5px}
+.lr-awaiting{font-size:12px;color:#6b7280;border:1px dashed #cbd5e1;border-radius:6px;padding:4px 8px;white-space:nowrap}
+.lr-key-form{display:flex;flex-direction:column;gap:14px}
+.lr-key-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:12px;background:#e8eef5;color:#1e3a5f}
+.lr-key-form h3{font-size:21px;font-weight:600;color:#111827;margin:2px 0}
+.lr-key-form p{font-size:14px;line-height:1.7;color:#4b5563;margin:0}
+.lr-key-form label{font-size:13px;font-weight:600;color:#374151;margin-top:8px}
+.lr-key-form input{min-height:44px;padding:10px 12px;border:1px solid #d1d5db;border-radius:8px;color:#111827;background:#fff;font-size:14px}
+.lr-key-form .lr-key-privacy{font-size:12px;color:#6b7280}
+.lr-key-form .lr-key-configured{padding:12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-size:12px}
+.lr-key-form .lr-key-error{font-size:13px;color:#b91c1c}
+.lr-key-form>a{font-size:13px;color:#0b7b72;text-decoration:underline}
+.lr-key-form .lr-button{align-self:flex-start}
+/* Removing the separate priority score keeps urgency and confidence together. */
+.lr-queue-table{min-width:1200px}
+.lr-queue-table th:first-child{width:65px}
+.lr-queue-table th:nth-child(2){width:220px}
+.lr-queue-table th:nth-child(3){width:140px}
+.lr-queue-table th:nth-child(4){width:115px}
+.lr-queue-table th:nth-child(5){width:235px}
+.lr-queue-table th:nth-child(6){width:165px}
+.lr-queue-table th:nth-child(7){width:200px}
+.lr-queue-table th:last-child{width:35px}

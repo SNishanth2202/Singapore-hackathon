@@ -65,7 +65,10 @@ export interface QueueRow extends Opportunity {
   status: Status; priorityStatus: PriorityStatus; priorityBand: Band; actionCode: string; nextAction: string; taskDueAt: string;
   gates: GateResult[]; components: Component[]; strongestEvidence: Evidence;
   evidence: Evidence[]; previousDecision: Decision | null; changedFact: string | null;
-  rankingConfidence: { score: number | null; retainedScenarios: number | null; scenarioCount: number;
+  assessment?: { model: string | null; responseId: string | null; evaluatedAt: string | null;
+    reason: string; urgencyReasons: string[]; confidenceReasons: string[]; evidenceIds: string[]; pending?: boolean };
+  rankingConfidence: { method?: 'llm_assessment' | 'scenario_stability'; reason?: string;
+    score: number | null; retainedScenarios: number | null; scenarioCount: number;
     minRank: number | null; maxRank: number | null; actionScore: number | null;
     verifyNext: string; insufficientEvidenceReason: string | null; scenarios: ScenarioResult[]; };
   publicContribution: number; originalCrmDiscovery: boolean;
@@ -75,6 +78,9 @@ export interface QueueSnapshot {
   asOf: string; eventCursor: number; initialized: boolean; degraded: boolean;
   lastSuccessfulRefreshAt: string | null; lastAttemptAt: string; sourceError: string | null;
   rubricVersion: string; scenarioVersion: string; fixtureVersion: string;
+  llm?: { mode: 'llm' | 'rules_preview'; status: 'ready' | 'needs_key' | 'failed' | 'stale';
+    model: string | null; evaluatedAt: string | null; attemptedAt: string; inputHash: string;
+    error: string | null; code: string | null; promptVersion: string; responseId: string | null };
 }
 export const EventSchema = z.object({
   eventId: z.string().min(1).max(100), aggregateId: z.string(), aggregateVersion: z.number().int().positive(),

@@ -1,5 +1,44 @@
 # Seven-minute demo and readiness script
 
+## Current live OpenAI demo
+
+The default mode now uses active OpenAI assessments. See [the current runtime contract](lead-ranking-llm.md)
+for key setup and data flow. Open http://localhost:3000/lead-ranking after `npm run dev`. If the key popup
+appears, enter an OpenAI project key. All CRM and engineering facts remain synthetic; AI assessments
+are live. The UI shows urgency and one confidence percentage, with no separate priority score.
+
+Model judgments may vary on reassessment. Show the returned ranks, labels and evidence rather than
+promising the old exact fixture scores. Confidence represents model-assessed evidence support.
+
+| Time | Control | What to show |
+| --- | --- | --- |
+| 0:00-0:45 | Open the queue | Rank, urgency, confidence percentage, next action, owner/deadline and evidence. Hover urgency and confidence for their short reasons. |
+| 0:45-1:30 | Demo checks: replay public ETLA trigger | SGX/EDB citations create the ETLA / Kaki Bukit / new-site connectivity lead, previously absent from mock CRM. The public fact does not prove buying timing or feasibility. |
+| 1:30-2:25 | Replay mock buying-window confirmation | OpenAI reassesses all candidates using the confirmed window and notice date. Inspect ETLA's new urgency, confidence, rank and previous/new action. Site proof remains mandatory. |
+| 2:25-3:00 | Hover the urgency/confidence; open Confidence details | Short descriptors explain each assessment. The detail panel shows full rationale, verification task, model and assessment time. This percentage is not win probability or scenario frequency. |
+| 3:00-3:30 | Replay Micron service case | Required action becomes Resolve; show the synthetic incident owner and previous pursuit task. |
+| 3:30-4:25 | Replay ETLA site assessment | Exact site passes, technical diversity passes and notice remains future. Gate action becomes Pursue. Inspect changed model rank/urgency/confidence and the deciding synthetic assessment. |
+| 4:25-5:10 | CRM only, CRM + public, Deal value; Compare evidence | Same candidates, different supplied evidence or ordering. Show rank differences and contributed public evidence IDs. Source-family ablations are labelled rules-reference diagnostics. |
+| 5:10-5:40 | Replay private 5G latency failure | Required p95 <=20ms, measured 28ms: Blocked. The model cannot override the gate; ordinary WAN serviceability is insufficient. |
+| 5:40-6:20 | Demo checks: fail public refresh | Last successful queue stays visible with its refresh warning/time. Duplicate events are no-ops and reuse the assessment. |
+| 6:20-7:00 | Advance clock, load healthy empty queue, reset | Expired notice blocks a lead. Empty returns no leads and calls no model. Reset restores the fixture; wait for its assessment. |
+
+Wait for each model assessment before replaying another event. An OpenAI failure displays the previous
+successful assessment with a stale warning and its time; it must not be presented as a fresh judgment
+of new facts. Before any successful call, leads show Awaiting AI without fabricated confidence.
+
+Ready checks: both builds, backend ranking/app/connector suites, offline replay verifier and browser tests.
+Browser tests use ports 3010/5010 and a separate rules fixture store; they make no paid calls. Their API
+mock covers automatic key setup, no browser key storage, percentage display, no score column,
+hover/focus/Escape and mobile tap. Verify one real-model queue separately and inspect its cited reasons.
+Ensure `.env` and `.local/` remain ignored. Enterprise evidence stays in docs with no README link.
+
+## Original deterministic reference script
+
+The remainder is the earlier exact-number rehearsal. It applies only when the backend starts with
+`LEAD_RANKING_MODE=rules`. Its component totals and ten-scenario stability remain covered by the verifier;
+they are not expected from OpenAI. Reference confidence now displays as percentages in the UI.
+
 **Priority status:** ETLA moves from Normal priority (53) to Urgent (84) to Very urgent (89).
 The next-action labels remain Verify, Verify and Pursue. The status filter also includes Low priority
 and Irrelevant; thresholds are documented in the README.

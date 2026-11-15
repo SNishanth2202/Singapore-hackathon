@@ -2,7 +2,8 @@
 
 Enterprise figures below support the implemented design choices; they are
 not Singtel results or forecasts. Mechanisms, reported outcomes, predictive evaluations and targets are
-identified separately. The proposed rubric, replay, gates and confidence formula need our own tests.
+identified separately. Our rubric, replay, gates and confidence approach need our own tests. The default runtime now uses
+OpenAI assessments; the original deterministic rubric and scenario formula remain a reference mode.
 
 1. **Rank a specific opportunity with transparent points.**
 
@@ -20,8 +21,11 @@ identified separately. The proposed rubric, replay, gates and confidence formula
    or evaluation window. It does not isolate the scoring weights.
    [Georgia-Pacific: Results](https://www.block-tackle.com/case-study-georgia-pacific-pro-lead-scoring#:~:text=RESULTS).
 
-   **Our implementation:** the 35/25/20/15/5 weights are our assumptions for the value of acting now,
-   with component evidence and stable tiebreaks. Tests must reproduce exact component totals and tuple identity.
+   **Our implementation:** the original 35/25/20/15/5 weights are our own starting assumptions, retained
+   in the deterministic reference mode. Following the requested change, OpenAI now assesses the same need,
+   timing, fit, readiness, contribution and effort facts for the default queue. Its internal ordering score
+   is hidden; urgency and short supporting descriptors are shown. These model judgments are our prototype
+   design, not a mechanism or validated result attributed to either enterprise.
 
 2. **Turn rank into timely action in one queue.**
 
@@ -78,7 +82,7 @@ identified separately. The proposed rubric, replay, gates and confidence formula
    confirmed FAIL -> Blocked; all PASS permits Pursue in an active window. Mock route diversity and private
    5G latency requirements remain labelled. Tests must independently verify each gate and transition.
 
-5. **Show evidence and scenario-based ranking confidence.**
+5. **Show evidence behind urgency and confidence.**
 
    **Where the idea came from:** IBM's rep interface exposed underlying account data with its product
    propensity outputs. We borrow the precedent for showing the basis of a score inside the work tool.
@@ -88,8 +92,10 @@ identified separately. The proposed rubric, replay, gates and confidence formula
    with no comparator required for that count. It is not evidence for our confidence formula.
    [IBM: Tool Adoption, printed p.40 / PDF p.8](https://s3.us.cloud-object-storage.appdomain.cloud/res-files/0-IBM%20Edelman%20Paper%20Interfaces.pdf#page=8).
 
-   **Our implementation:** the ten-world priority-band retention formula is **our prototype design**.
-   Re-rank the whole queue with correlated uncertainties, show numeric stability wherever supported,
-   and use Insufficient evidence otherwise. The reproducible decisive-fact test disputes ETLA's site,
-   then verifies it: target ranking confidence **80/100 -> 100/100**, alongside changed action and rank.
-   This demonstrates scenario stability and requires our own tests; it is not an IBM validation result.
+   **Our implementation:** the original ten-world priority-band retention formula is **our prototype
+   design**, retained and tested in the offline rules engine (ETLA stability 80% -> 100% after site proof).
+   The current default follows the later requested design: OpenAI estimates confidence in its urgency
+   judgment, shown as a percentage with 2–5-word evidence descriptors on hover/focus/tap. It is subjective
+   evidence support, not scenario stability, calibrated win probability or an IBM-validated measure.
+   Decisive unbounded facts display Insufficient evidence. Our own schema, gate, stale-result and UI tests
+   verify that presentation and behavior; they do not establish statistical calibration.

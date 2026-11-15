@@ -12,9 +12,10 @@ export function useRankingQueue(view: View) {
     const id = ++requestId.current
     setBusy(true)
     try {
-      const [q, m, c] = await Promise.all([rankingRequest<Queue>(`/queue?view=${view}`), rankingRequest<Meta>('/demo'), rankingRequest<Comparison>('/comparison')])
+      const q = await rankingRequest<Queue>(`/queue?view=${view}`)
+      const m = await rankingRequest<Meta>('/demo')
       if (id !== requestId.current) return
-      setQueue(q); setMeta(m); setComparison(c); setError(null)
+      setQueue(q); setMeta(m); setComparison(null); setError(null)
       localStorage.setItem(`ranking-last-${view}`, JSON.stringify(q))
     } catch (err) {
       if (id !== requestId.current) return
@@ -26,8 +27,13 @@ export function useRankingQueue(view: View) {
   useEffect(() => { setQueue(previous => previous?.view === view ? previous : null); void refresh(); return () => { requestId.current++ } }, [refresh, view])
   const mutate = useCallback(async (path: string, body: unknown) => {
     setBusy(true); setError(null)
-    try { await rankingRequest(path, body); await refresh(); return true }
+    try { await rankingRequest(`${path}${path.includes('?') ? '&' : '?'}view=${view}`, body); await refresh(); return true }
     catch (err) { setError((err as Error).message); setBusy(false); return false }
-  }, [refresh])
-  return { queue, meta, comparison, error, busy, refresh, mutate }
+  }, [refresh, view])
+  const loadComparison = useCallback(async () => {
+    setComparison(null)
+    try { setComparison(await rankingRequest<Comparison>('/comparison')) }
+    catch (error) { setError((error as Error).message) }
+  }, [])
+  return { queue, meta, comparison, error, busy, refresh, mutate, loadComparison }
 }
