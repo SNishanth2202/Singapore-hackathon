@@ -4,6 +4,8 @@
   "description": "Enterprise Radar AI \u2014 Backend API (Singtel Hackathon)",
   "main": "dist/server.js",
   "scripts": {
+    "ingest:customer-graph": "ts-node src/scripts/ingest-customer-graph.ts",
+    "test:customer-graph": "node -r ts-node/register/transpile-only --test test/customer-graph.test.ts",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc --project tsconfig.json",
     "test:ai": "npm run build && node --test tests/freellmapi.test.cjs",

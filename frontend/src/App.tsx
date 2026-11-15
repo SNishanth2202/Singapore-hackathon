@@ -1,18 +1,23 @@
-import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom'
 import { AppProvider } from './context/AppContext'
 import MainLayout from './layouts/MainLayout'
 import Dashboard from './pages/Dashboard'
 import CompanyIntelligence from './pages/CompanyIntelligence'
 import CompanyProfile from './pages/CompanyProfile'
-import KnowledgeGraph from './pages/KnowledgeGraph'
+import CustomerGraph from './pages/CustomerGraph'
 import OpportunityIntelligence from './pages/OpportunityIntelligence'
 import LeadRankingQueue from './pages/LeadRankingQueue'
 import Settings from './pages/Settings'
 
+function LegacyCustomerGraph() {
+  const { search } = useLocation()
+  return <Navigate to={`/graph${search}`} replace />
+}
+
 function App() {
   return (
     <AppProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<Dashboard />} />
@@ -21,7 +26,9 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/companies" element={<CompanyIntelligence />} />
             <Route path="/companies/:id" element={<CompanyProfile />} />
-            <Route path="/graph" element={<KnowledgeGraph />} />
+            <Route path="/graph" element={<CustomerGraph />} />
+            <Route path="/customer-graph" element={<LegacyCustomerGraph />} />
+            <Route path="/customer-360" element={<LegacyCustomerGraph />} />
             <Route path="/legacy-opportunities" element={<OpportunityIntelligence />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

@@ -7,8 +7,8 @@ interface NavbarProps {
 export function Navbar({ title }: NavbarProps) {
   return (
     <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
-      <h2 className="text-base font-semibold text-gray-800">{title}</h2>
-      <div className="flex items-center gap-3">
+      <h2 title={title} className="min-w-0 truncate text-base font-semibold text-gray-800">{title}</h2>
+      <div className="flex shrink-0 items-center gap-3">
         <button className="relative p-1.5 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-600 transition-colors">
           <BellIcon className="w-5 h-5" />
           <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-teal-500" />

@@ -20,6 +20,11 @@
 
 ## Overview
 
+**Central Customer Graph Database demo:** `/graph` connects viewable mock Salesforce records, calls, email/calendar,
+support tickets, contracts, billing, and service usage. GPT-6.1 Terra extracts cited facts and connected ideas
+into the existing Neo4j graph, linked to canonical Company records through the shared connection.
+See [setup, demo walkthrough and verification](docs/customer-graph-demo.md).
+
 Singtel Scout aggregates public signals about companies (funding rounds, hiring trends, tech adoption, partnerships) and uses a knowledge graph to surface high-priority sales and partnership opportunities for Singtel's enterprise teams.
 
 **Tech Stack**

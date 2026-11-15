@@ -130,6 +130,9 @@ export async function applyConstraints(): Promise<void> {
     'CREATE CONSTRAINT snapshot_id_unique IF NOT EXISTS FOR (s:ResearchSnapshot) REQUIRE s.id IS UNIQUE',
     'CREATE CONSTRAINT source_revision_unique IF NOT EXISTS FOR (s:EvidenceSource) REQUIRE s.id IS UNIQUE',
     'CREATE CONSTRAINT event_revision_unique IF NOT EXISTS FOR (e:BusinessEvent) REQUIRE e.id IS UNIQUE',
+    'CREATE CONSTRAINT customergraphnode_unique IF NOT EXISTS FOR (n:CustomerGraphNode) REQUIRE n.uid IS UNIQUE',
+    'CREATE CONSTRAINT customergraphdataset_unique IF NOT EXISTS FOR (n:CustomerGraphDataset) REQUIRE n.id IS UNIQUE',
+    'CREATE CONSTRAINT customergraphingestion_unique IF NOT EXISTS FOR (n:CustomerGraphIngestion) REQUIRE n.id IS UNIQUE',
   ];
 
   for (const cypher of constraints) {

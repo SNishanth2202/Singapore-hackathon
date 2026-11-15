@@ -1,0 +1,933 @@
+{
+  "id": "c360-b927ac0baab1b763d926e268",
+  "datasetId": "customer-graph-demo-v1",
+  "inputHash": "f76e32a21fb73ae773ff3ee4f6a442894c224d58c966f0bbd199dd15a4296bfa",
+  "createdAt": "2026-11-15T15:55:11.886Z",
+  "model": "gpt-6.1-terra",
+  "responseId": "resp_0412925f7165f7f3016af9d598312087d2ad725935b290dcf3",
+  "totalTokens": 12513,
+  "promptVersion": "customer360-evidence-v1",
+  "extraction": {
+    "facts": [
+      {
+        "id": "fact-meridian-roles",
+        "accountId": "meridian",
+        "subjectId": "meridian-maya",
+        "objectId": "meridian-daniel",
+        "category": "ownership",
+        "title": "Technical and commercial approvers",
+        "statement": "Maya validates the technical design; Daniel approves commercial spend.",
+        "value": null,
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-call",
+            "quote": "Daniel Lim signs off commercial spend. I can validate the technical design, but I cannot approve the budget."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-existing-service",
+        "accountId": "meridian",
+        "subjectId": "meridian-wan",
+        "objectId": "meridian-jurong",
+        "category": "identity",
+        "title": "Jurong managed WAN",
+        "statement": "The active Jurong managed WAN is provisioned at 200 Mbps.",
+        "value": "200 Mbps",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-inventory",
+            "quote": "ML-WAN-01 | Site: Jurong warehouse | Managed WAN | 200 Mbps | Active | Contract: ML-2024-018"
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-term-conflict",
+        "accountId": "meridian",
+        "subjectId": "meridian-contract",
+        "objectId": "meridian",
+        "category": "commercial",
+        "title": "Contract and CRM dates conflict",
+        "statement": "The executed contract ends on 31 January 2027; the manually entered CRM renewal date is 28 February 2027. The signed order takes precedence.",
+        "value": null,
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-contract",
+            "quote": "Fixed term ends: 31 January 2027."
+          },
+          {
+            "artifactId": "ml-crm",
+            "quote": "CRM renewal date: 2027-02-28 (manually entered; contract not yet reconciled)"
+          },
+          {
+            "artifactId": "ml-contract",
+            "quote": "This signed-order mock takes precedence over manually entered CRM term dates."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-notice",
+        "accountId": "meridian",
+        "subjectId": "meridian-contract",
+        "objectId": null,
+        "category": "commercial",
+        "title": "Renewal notice deadline",
+        "statement": "The contract renews for twelve months unless written non-renewal notice is received by 2 December 2026.",
+        "value": "12-month renewal",
+        "date": "2026-12-02",
+        "evidence": [
+          {
+            "artifactId": "ml-contract",
+            "quote": "Renewal: Renews for twelve months unless written non-renewal notice is received by 2 December 2026."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-charge",
+        "accountId": "meridian",
+        "subjectId": "meridian-contract",
+        "objectId": "meridian-wan",
+        "category": "commercial",
+        "title": "Recurring WAN charge",
+        "statement": "The contracted recurring charge is SGD 4,800 per month excluding GST.",
+        "value": "SGD 4,800/month ex-GST",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-contract",
+            "quote": "Recurring service charge: SGD 4,800 per month, excluding GST."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-scope",
+        "accountId": "meridian",
+        "subjectId": "meridian-contract",
+        "objectId": "meridian-tuas",
+        "category": "commercial",
+        "title": "Separate order required",
+        "statement": "The existing order covers Jurong only; Tuas service, diverse backup or a bandwidth upgrade requires a separate signed order.",
+        "value": null,
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-contract",
+            "quote": "Scope: This order covers Jurong only. A Tuas service, diverse backup path, or bandwidth upgrade requires a separate signed order."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-availability",
+        "accountId": "meridian",
+        "subjectId": "meridian-contract",
+        "objectId": "meridian-wan",
+        "category": "commercial",
+        "title": "Contracted availability",
+        "statement": "The agreement commits to 99.9% monthly availability subject to exclusions.",
+        "value": "99.9% monthly",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-contract",
+            "quote": "Availability commitment: 99.9% monthly service availability, subject to the exclusions in this fictional agreement."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-tuas-date",
+        "accountId": "meridian",
+        "subjectId": "meridian-tuas",
+        "objectId": null,
+        "category": "timing",
+        "title": "Tuas ready-by date",
+        "statement": "Tuas connectivity is needed by 15 January 2027 for an expected 80 staff and real-time warehouse scanning.",
+        "value": "80 expected staff",
+        "date": "2027-01-15",
+        "evidence": [
+          {
+            "artifactId": "ml-call",
+            "quote": "The Tuas distribution hub must have connectivity ready by 15 January 2027. We expect 80 staff and real-time warehouse scanning."
+          },
+          {
+            "artifactId": "ml-email",
+            "quote": "Confirming the Tuas ready-by date is 15 January 2027."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-diversity",
+        "accountId": "meridian",
+        "subjectId": "meridian-tuas",
+        "objectId": null,
+        "category": "need",
+        "title": "Independent Tuas backup",
+        "statement": "Tuas needs resilient connectivity and a backup route independent of the primary path; a second circuit on the same path is insufficient.",
+        "value": null,
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-email",
+            "quote": "Our two requirements are resilient connectivity and a backup route independent of the primary path. An ordinary second circuit on the same path will not meet the requirement."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-assessment",
+        "accountId": "meridian",
+        "subjectId": "meridian-tuas",
+        "objectId": null,
+        "category": "timing",
+        "title": "Serviceability assessment requested",
+        "statement": "Maya requested the Tuas serviceability assessment by 20 November; fibre serviceability and delivery remain unconfirmed.",
+        "value": "Not assessed",
+        "date": "2026-11-20",
+        "evidence": [
+          {
+            "artifactId": "ml-email",
+            "quote": "Please send the serviceability assessment by 20 November 2026."
+          },
+          {
+            "artifactId": "ml-inventory",
+            "quote": "Tuas fibre serviceability: Not assessed. No delivery commitment exists."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-tuas-inventory",
+        "accountId": "meridian",
+        "subjectId": "meridian-tuas",
+        "objectId": null,
+        "category": "usage",
+        "title": "No Tuas order in seller inventory",
+        "statement": "The seller inventory records no installed or ordered Tuas service; it does not establish whether other providers serve the customer.",
+        "value": "None recorded",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-inventory",
+            "quote": "Tuas distribution hub: No installed or ordered service is recorded."
+          },
+          {
+            "artifactId": "ml-inventory",
+            "quote": "Inventory describes this seller's recorded services only; it does not establish whether the customer has services from other providers."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-provider",
+        "accountId": "meridian",
+        "subjectId": "meridian-tuas",
+        "objectId": null,
+        "category": "commercial",
+        "title": "Tuas provider not selected",
+        "statement": "Meridian is evaluating options and has not selected a Tuas provider.",
+        "value": "Not selected",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-call",
+            "quote": "We are evaluating options. We have not selected a provider for Tuas."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-budget",
+        "accountId": "meridian",
+        "subjectId": "meridian-daniel",
+        "objectId": "meridian-tuas",
+        "category": "commercial",
+        "title": "Budget placeholder only",
+        "statement": "The SGD 3,000 monthly figure is not an approved budget; Daniel needs a priced proposal before approving spend.",
+        "value": "SGD 3,000/month placeholder",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-email",
+            "quote": "Daniel needs a priced proposal before he can approve spend. The SGD 3,000/month figure in your CRM is only a planning placeholder, not an approved budget."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-expansion-blocker",
+        "accountId": "meridian",
+        "subjectId": "meridian-ticket",
+        "objectId": "meridian-tuas",
+        "category": "risk",
+        "title": "Reliability blocks expansion",
+        "statement": "Meridian will not commit to expansion until the Jurong reliability issue is addressed and requested a resolution plan.",
+        "value": null,
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-email",
+            "quote": "Please include the resolution plan for SUP-4821. We will not commit to the expansion until the Jurong reliability issue is addressed."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-incident",
+        "accountId": "meridian",
+        "subjectId": "meridian-ticket",
+        "objectId": "meridian-wan",
+        "category": "risk",
+        "title": "Packet-loss incident remains open",
+        "statement": "The P2 incident affects warehouse scanners; root cause is unconfirmed and no permanent fix has been validated.",
+        "value": "Open; P2",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-support",
+            "quote": "Opened: 9 November 2026, 18:40 SGT | Status: OPEN | Priority: P2"
+          },
+          {
+            "artifactId": "ml-support",
+            "quote": "Customer impact: Warehouse scanners intermittently lose connection during 18:00–22:00 shifts."
+          },
+          {
+            "artifactId": "ml-support",
+            "quote": "10 Nov / Network assurance: Remote checks show recurring loss. Root cause is not confirmed. Engineer visit scheduled for 16 November 2026."
+          },
+          {
+            "artifactId": "ml-support",
+            "quote": "14 Nov / Network assurance: Incident remains open. No permanent fix has been validated. Next customer update due 16 November 2026, 12:00 SGT."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-telemetry",
+        "accountId": "meridian",
+        "subjectId": "meridian-wan",
+        "objectId": "meridian-ticket",
+        "category": "usage",
+        "title": "Jurong utilization and loss",
+        "statement": "Observed inbound utilization was 91% at the 95th percentile, with 97% evening peak utilization and 3.2% maximum evening loss; telemetry does not establish the incident cause.",
+        "value": "91% p95; 97% peak; 3.2% loss",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-usage",
+            "quote": "95th-percentile inbound utilization: 91% of provisioned bandwidth."
+          },
+          {
+            "artifactId": "ml-usage",
+            "quote": "Evening peak utilization: 97% | Evening packet loss maximum: 3.2%."
+          },
+          {
+            "artifactId": "ml-usage",
+            "quote": "These observations support a capacity investigation but do not establish the cause of SUP-4821."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-review",
+        "accountId": "meridian",
+        "subjectId": "meridian-daniel",
+        "objectId": "meridian-ticket",
+        "category": "timing",
+        "title": "Technical and commercial review",
+        "statement": "Daniel accepted the 19 November review covering incident remediation, signed renewal terms and Tuas serviceability; no purchase decision is recorded.",
+        "value": "Accepted",
+        "date": "2026-11-19",
+        "evidence": [
+          {
+            "artifactId": "ml-calendar",
+            "quote": "DTSTART:20261119T020000Z"
+          },
+          {
+            "artifactId": "ml-calendar",
+            "quote": "DESCRIPTION:Review SUP-4821 remediation, signed renewal terms and Tuas serviceability. Daniel Lim has accepted. No purchase decision is recorded."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-invoice",
+        "accountId": "meridian",
+        "subjectId": "meridian-invoice",
+        "objectId": "meridian-wan",
+        "category": "commercial",
+        "title": "Invoice and disputed site work",
+        "statement": "The November invoice totals SGD 6,540 including GST; SGD 1,308 remains outstanding for disputed one-off work, not recurring service. Daniel requested the acceptance record.",
+        "value": "SGD 1,308 outstanding including GST",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-billing",
+            "quote": "Subtotal: SGD 6,000.00 | GST 9%: SGD 540.00 | Invoice total: SGD 6,540.00."
+          },
+          {
+            "artifactId": "ml-billing",
+            "quote": "Outstanding: SGD 1,308.00 including GST. This is the disputed one-off site work charge, not an unpaid recurring service charge."
+          },
+          {
+            "artifactId": "ml-billing",
+            "quote": "Customer dispute: Daniel Lim requested the work acceptance record. Finance is investigating."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-credit",
+        "accountId": "meridian",
+        "subjectId": "meridian-ticket",
+        "objectId": "meridian-invoice",
+        "category": "commercial",
+        "title": "Credit not approved",
+        "statement": "The incident SLA credit is under assessment and has not been issued or approved.",
+        "value": "Pending",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-support",
+            "quote": "SLA credit: Under review; no credit has been approved."
+          },
+          {
+            "artifactId": "ml-billing",
+            "quote": "SLA credit for SUP-4821: Pending assessment, not issued."
+          }
+        ]
+      },
+      {
+        "id": "fact-meridian-jurong-backup",
+        "accountId": "meridian",
+        "subjectId": "meridian-jurong",
+        "objectId": null,
+        "category": "usage",
+        "title": "Jurong backup inventory",
+        "statement": "No Jurong backup service is recorded in this seller's inventory; other providers are not ruled out.",
+        "value": "None recorded",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "ml-inventory",
+            "quote": "Backup connectivity at Jurong: No backup service recorded in this inventory."
+          },
+          {
+            "artifactId": "ml-inventory",
+            "quote": "Inventory describes this seller's recorded services only; it does not establish whether the customer has services from other providers."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-roles",
+        "accountId": "harbour",
+        "subjectId": "harbour-alex",
+        "objectId": "harbour-priya",
+        "category": "ownership",
+        "title": "Technical and commercial ownership",
+        "statement": "Alex signs off technical suitability and Priya approves the commercial proposal.",
+        "value": null,
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-email",
+            "quote": "Alex will sign off technical suitability; I will approve the commercial proposal."
+          },
+          {
+            "artifactId": "hp-crm",
+            "quote": "Technical sponsor: Alex Koh, Head of Infrastructure, alex.koh@harbour.example"
+          },
+          {
+            "artifactId": "hp-crm",
+            "quote": "Budget approver: Priya Menon, CFO, priya.menon@harbour.example"
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-service",
+        "accountId": "harbour",
+        "subjectId": "harbour-network",
+        "objectId": "harbour-woodlands",
+        "category": "identity",
+        "title": "Woodlands internet service",
+        "statement": "Woodlands has an active 500 Mbps Business Internet service.",
+        "value": "500 Mbps",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-inventory",
+            "quote": "HP-NET-02 | Business Internet | 500 Mbps | Active | Contract HP-2025-007"
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-line",
+        "accountId": "harbour",
+        "subjectId": "harbour-woodlands",
+        "objectId": null,
+        "category": "timing",
+        "title": "Machine-vision line start",
+        "statement": "The new machine-vision line starts on 4 January 2027 and will upload inspection images to the cloud.",
+        "value": null,
+        "date": "2027-01-04",
+        "evidence": [
+          {
+            "artifactId": "hp-call",
+            "quote": "The new machine-vision production line starts on 4 January 2027. It will upload inspection images to our cloud system."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-audit",
+        "accountId": "harbour",
+        "subjectId": "harbour-woodlands",
+        "objectId": null,
+        "category": "timing",
+        "title": "Customer assurance audit",
+        "statement": "A customer assurance audit is scheduled for 15 December; Alex requested a continuity design at the review beforehand.",
+        "value": null,
+        "date": "2026-12-15",
+        "evidence": [
+          {
+            "artifactId": "hp-call",
+            "quote": "We have a customer assurance audit on 15 December 2026. Please bring the continuity design to the review before then."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-options",
+        "accountId": "harbour",
+        "subjectId": "harbour-priya",
+        "objectId": "harbour-network",
+        "category": "need",
+        "title": "Assessment and two priced options",
+        "statement": "Priya requested an engineering assessment and prices for an upgrade alone and an upgrade with an independent backup path by 23 November.",
+        "value": "Two priced options",
+        "date": "2026-11-23",
+        "evidence": [
+          {
+            "artifactId": "hp-email",
+            "quote": "Please send the engineering assessment and two priced options by 23 November 2026: a bandwidth upgrade alone, and an upgrade with an independent backup path."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-sizing",
+        "accountId": "harbour",
+        "subjectId": "harbour-network",
+        "objectId": null,
+        "category": "need",
+        "title": "Future throughput needs sizing",
+        "statement": "A 1 Gbps service is an option, not an approved solution; engineering must confirm upload throughput and size the future workload.",
+        "value": "1 Gbps under evaluation",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-call",
+            "quote": "It is an option to evaluate, not an approved solution. We also need a resilient backup, and we need to confirm upload throughput with engineering."
+          },
+          {
+            "artifactId": "hp-usage",
+            "quote": "Engineering must size the future workload before recommending a bandwidth tier."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-budget",
+        "accountId": "harbour",
+        "subjectId": "harbour-priya",
+        "objectId": null,
+        "category": "commercial",
+        "title": "No approved budget or solution",
+        "statement": "Priya has not approved a budget or selected a solution; CRM records no purchase order.",
+        "value": "Unapproved",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-email",
+            "quote": "I have not approved a budget or selected a solution."
+          },
+          {
+            "artifactId": "hp-crm",
+            "quote": "Indicative upgrade budget: Not recorded. No purchase order exists."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-workshop",
+        "accountId": "harbour",
+        "subjectId": "harbour-alex",
+        "objectId": "harbour-priya",
+        "category": "timing",
+        "title": "Capacity and continuity workshop",
+        "statement": "Both customer attendees accepted the 20 November workshop to review upload requirements, independent backup and audit evidence.",
+        "value": "Both accepted",
+        "date": "2026-11-20",
+        "evidence": [
+          {
+            "artifactId": "hp-calendar",
+            "quote": "DTSTART:20261120T060000Z"
+          },
+          {
+            "artifactId": "hp-calendar",
+            "quote": "DESCRIPTION:Review upload requirements, independent backup design and audit evidence for 15 December 2026. Both customer attendees accepted. Proposal deadline is 23 November 2026."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-slowdown",
+        "accountId": "harbour",
+        "subjectId": "harbour-ticket",
+        "objectId": "harbour-network",
+        "category": "risk",
+        "title": "Image upload slowdown",
+        "statement": "Uploads slow when backups run during the afternoon; engineering observed high outbound utilization but no link fault in the sampled window.",
+        "value": "Monitoring; P3",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-support",
+            "quote": "Opened: 6 November 2026 | Status: MONITORING | Priority: P3"
+          },
+          {
+            "artifactId": "hp-support",
+            "quote": "Alex Koh: Inspection-image uploads slow down when backups run between 14:00 and 17:00."
+          },
+          {
+            "artifactId": "hp-support",
+            "quote": "Engineering, 8 Nov: No link fault was observed during the sampled window. High outbound utilization overlaps the reported slowdown."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-workaround",
+        "accountId": "harbour",
+        "subjectId": "harbour-ticket",
+        "objectId": null,
+        "category": "commitment",
+        "title": "Backup rescheduling workaround",
+        "statement": "Moving bulk backups outside the production shift improved upload times, but does not establish capacity for the expanded workload.",
+        "value": "Improved",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-support",
+            "quote": "Workaround, 9 Nov: Customer moved bulk backups outside the production shift. Upload times improved."
+          },
+          {
+            "artifactId": "hp-support",
+            "quote": "13 Nov: Capacity assessment is still required before the new line goes live. The workaround does not establish that the current service can support the expanded workload."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-utilization",
+        "accountId": "harbour",
+        "subjectId": "harbour-network",
+        "objectId": null,
+        "category": "usage",
+        "title": "Observed outbound utilization",
+        "statement": "The seven-day report measured 94% 95th-percentile outbound utilization and 99% peak during bulk image backup; production-shift peak fell to 81% after rescheduling.",
+        "value": "94% p95; 99% peak; 81% after rescheduling",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-usage",
+            "quote": "95th-percentile outbound utilization: 94% of provisioned bandwidth."
+          },
+          {
+            "artifactId": "hp-usage",
+            "quote": "Peak outbound utilization: 99% during bulk image backup."
+          },
+          {
+            "artifactId": "hp-usage",
+            "quote": "After backup rescheduling, peak production-shift utilization fell to 81%."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-future-traffic",
+        "accountId": "harbour",
+        "subjectId": "harbour-network",
+        "objectId": "harbour-woodlands",
+        "category": "usage",
+        "title": "Future line excluded from telemetry",
+        "statement": "The new line is not live and its incremental traffic is not included in observed measurements.",
+        "value": "Not measured",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-usage",
+            "quote": "The new machine-vision line is not live; its incremental traffic is not in these measurements."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-availability",
+        "accountId": "harbour",
+        "subjectId": "harbour-network",
+        "objectId": "harbour-ticket",
+        "category": "usage",
+        "title": "Sampled availability and SLA",
+        "statement": "The sampled window showed 100% availability, not a full-month SLA measurement; no breach or credit has been confirmed.",
+        "value": "100% sampled window",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-usage",
+            "quote": "Availability: 100% during this sampled window; this is not a forecast or a full-month SLA measurement."
+          },
+          {
+            "artifactId": "hp-support",
+            "quote": "No SLA breach or service credit has been confirmed."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-term",
+        "accountId": "harbour",
+        "subjectId": "harbour-contract",
+        "objectId": "harbour-network",
+        "category": "commercial",
+        "title": "Current contract term",
+        "statement": "The executed internet order runs from 1 July 2025 to 30 June 2027.",
+        "value": null,
+        "date": "2027-06-30",
+        "evidence": [
+          {
+            "artifactId": "hp-contract",
+            "quote": "Term: 1 July 2025 to 30 June 2027."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-amendment",
+        "accountId": "harbour",
+        "subjectId": "harbour-contract",
+        "objectId": "harbour-network",
+        "category": "commercial",
+        "title": "Upgrade prerequisites",
+        "statement": "Bandwidth changes require a signed amendment and a new technical feasibility check; lead time must be confirmed after engineering validation.",
+        "value": null,
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-contract",
+            "quote": "Bandwidth changes require a signed service amendment and a new technical feasibility check."
+          },
+          {
+            "artifactId": "hp-contract",
+            "quote": "Any delivery lead time must be confirmed after engineering validation; this agreement promises no upgrade installation date."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-backup",
+        "accountId": "harbour",
+        "subjectId": "harbour-contract",
+        "objectId": "harbour-woodlands",
+        "category": "risk",
+        "title": "Independent backup not recorded",
+        "statement": "The order includes no independent backup, and none is recorded in the seller's inventory; this does not establish what other providers supply.",
+        "value": "None in order or seller inventory",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-contract",
+            "quote": "No independent backup service is included in this order."
+          },
+          {
+            "artifactId": "hp-inventory",
+            "quote": "Independent backup service: None recorded in this seller's inventory."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-serviceability",
+        "accountId": "harbour",
+        "subjectId": "harbour-network",
+        "objectId": null,
+        "category": "risk",
+        "title": "Upgrade feasibility unvalidated",
+        "statement": "No upgrade order is recorded; 1 Gbps serviceability and installation lead time remain unvalidated.",
+        "value": "Unvalidated",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-inventory",
+            "quote": "Upgrade order: None recorded. 1 Gbps serviceability and installation lead time are not yet validated."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-invoice",
+        "accountId": "harbour",
+        "subjectId": "harbour-invoice",
+        "objectId": "harbour-network",
+        "category": "commercial",
+        "title": "November invoice paid",
+        "statement": "The SGD 2,200 ex-GST recurring charge produced a SGD 2,398 invoice, paid in full on 12 November; payment does not approve an upgrade.",
+        "value": "SGD 2,398 paid; SGD 0 outstanding",
+        "date": "2026-11-12",
+        "evidence": [
+          {
+            "artifactId": "hp-billing",
+            "quote": "November recurring charge: SGD 2,200.00 excluding GST."
+          },
+          {
+            "artifactId": "hp-billing",
+            "quote": "GST 9%: SGD 198.00 | Invoice total: SGD 2,398.00."
+          },
+          {
+            "artifactId": "hp-billing",
+            "quote": "Payment: SGD 2,398.00 received on 12 November 2026. Status: PAID IN FULL."
+          },
+          {
+            "artifactId": "hp-billing",
+            "quote": "Outstanding balance: SGD 0.00. No billing dispute is recorded."
+          },
+          {
+            "artifactId": "hp-billing",
+            "quote": "This payment does not indicate approval of the proposed upgrade."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-schedule",
+        "accountId": "harbour",
+        "subjectId": "harbour-priya",
+        "objectId": "harbour-network",
+        "category": "need",
+        "title": "Realistic installation schedule",
+        "statement": "Priya requested a realistic installation schedule and clarity on contract amendment for the January line start; no delivery date has been committed.",
+        "value": "Not committed",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-email",
+            "quote": "The production line starts on 4 January 2027. We need a realistic installation schedule and clarity on any contract amendment."
+          },
+          {
+            "artifactId": "hp-call",
+            "quote": "We will assess capacity and a diverse backup option. No delivery date has been committed."
+          }
+        ]
+      },
+      {
+        "id": "fact-harbour-security-inventory",
+        "accountId": "harbour",
+        "subjectId": "harbour-woodlands",
+        "objectId": null,
+        "category": "usage",
+        "title": "Security inventory limitation",
+        "statement": "No managed security service is recorded in this inventory, which does not establish that the customer lacks security controls or other providers.",
+        "value": "None recorded",
+        "date": null,
+        "evidence": [
+          {
+            "artifactId": "hp-inventory",
+            "quote": "Managed security service: None recorded in this inventory; this does not prove the customer has no security controls or other providers."
+          }
+        ]
+      }
+    ],
+    "ideas": [
+      {
+        "id": "idea-meridian-incident-review",
+        "accountId": "meridian",
+        "kind": "action",
+        "title": "Resolve the reliability blocker",
+        "rationale": "The open incident blocks expansion and high utilization warrants investigation, but does not establish the packet-loss cause.",
+        "nextAction": "Complete the engineer visit and customer update, validate the root cause and remediation, and bring the plan to the review without presenting an upgrade as a confirmed fix.",
+        "factIds": [
+          "fact-meridian-incident",
+          "fact-meridian-telemetry",
+          "fact-meridian-expansion-blocker",
+          "fact-meridian-review"
+        ],
+        "priority": "high"
+      },
+      {
+        "id": "idea-meridian-tuas-design",
+        "accountId": "meridian",
+        "kind": "opportunity",
+        "title": "Validate a diverse Tuas design",
+        "rationale": "The hub has a firm ready-by need and independent-path requirement, while fibre serviceability and the budget are unconfirmed.",
+        "nextAction": "Assess primary and independent backup routes by the requested deadline, verify feasibility and lead time, then prepare a priced proposal for Daniel without assuming approval.",
+        "factIds": [
+          "fact-meridian-tuas-date",
+          "fact-meridian-diversity",
+          "fact-meridian-assessment",
+          "fact-meridian-budget"
+        ],
+        "priority": "high"
+      },
+      {
+        "id": "idea-meridian-renewal",
+        "accountId": "meridian",
+        "kind": "risk",
+        "title": "Reconcile renewal before notice deadline",
+        "rationale": "The CRM date conflicts with the authoritative signed term, and the notice deadline precedes expiry.",
+        "nextAction": "Correct the CRM and review the signed renewal and notice terms with Daniel at the scheduled meeting.",
+        "factIds": [
+          "fact-meridian-term-conflict",
+          "fact-meridian-notice",
+          "fact-meridian-review"
+        ],
+        "priority": "high"
+      },
+      {
+        "id": "idea-meridian-dispute",
+        "accountId": "meridian",
+        "kind": "action",
+        "title": "Investigate disputed site work",
+        "rationale": "The outstanding balance is a disputed one-off charge rather than unpaid recurring fees, while the incident credit remains separate and pending.",
+        "nextAction": "Obtain the work acceptance record for Daniel and coordinate the dispute and credit assessments separately.",
+        "factIds": [
+          "fact-meridian-invoice",
+          "fact-meridian-credit",
+          "fact-meridian-roles"
+        ],
+        "priority": "medium"
+      },
+      {
+        "id": "idea-harbour-sizing",
+        "accountId": "harbour",
+        "kind": "opportunity",
+        "title": "Size capacity for the new line",
+        "rationale": "Existing traffic has approached capacity, but the improved workaround and telemetry do not measure the future line's incremental load.",
+        "nextAction": "Use the workshop to quantify projected upload demand and assess feasible bandwidth tiers before preparing the requested upgrade-only option.",
+        "factIds": [
+          "fact-harbour-utilization",
+          "fact-harbour-workaround",
+          "fact-harbour-future-traffic",
+          "fact-harbour-options",
+          "fact-harbour-workshop"
+        ],
+        "priority": "high"
+      },
+      {
+        "id": "idea-harbour-continuity",
+        "accountId": "harbour",
+        "kind": "opportunity",
+        "title": "Develop independent backup option",
+        "rationale": "Priya requested a priced independent-backup option before the audit, while the current order and seller inventory do not record such a service.",
+        "nextAction": "Verify existing third-party arrangements and path diversity, then develop a feasible continuity design and audit evidence for review.",
+        "factIds": [
+          "fact-harbour-options",
+          "fact-harbour-backup",
+          "fact-harbour-audit",
+          "fact-harbour-workshop"
+        ],
+        "priority": "high"
+      },
+      {
+        "id": "idea-harbour-delivery",
+        "accountId": "harbour",
+        "kind": "risk",
+        "title": "Validate delivery and approval prerequisites",
+        "rationale": "The line start is approaching, but serviceability, lead time, budget and a signed amendment remain unresolved.",
+        "nextAction": "Complete engineering feasibility and obtain a realistic schedule; explain amendment requirements in the proposal without promising delivery or assuming approval.",
+        "factIds": [
+          "fact-harbour-line",
+          "fact-harbour-serviceability",
+          "fact-harbour-amendment",
+          "fact-harbour-budget",
+          "fact-harbour-schedule"
+        ],
+        "priority": "high"
+      }
+    ]
+  }
+}

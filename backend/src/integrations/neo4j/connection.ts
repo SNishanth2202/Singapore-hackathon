@@ -4,12 +4,17 @@ import { logger } from '../../utils/logger';
 import { AppError } from '../../utils/errors';
 
 let driver: Driver | null = null;
+let connecting: Promise<void> | null = null;
 export function getDriver(): Driver {
   if (!driver) throw new AppError('Neo4j Aura is not connected.', 503, 'AURA_UNAVAILABLE');
   return driver;
 }
 export async function connectNeo4j(): Promise<void> {
   if (driver) return;
+  if (!connecting) connecting = openConnection().finally(() => { connecting = null; });
+  return connecting;
+}
+async function openConnection(): Promise<void> {
   const candidate = neo4j.driver(env.NEO4J_URI, neo4j.auth.basic(env.NEO4J_USERNAME, env.NEO4J_PASSWORD), {
     connectionTimeout: env.DB_CONNECTION_TIMEOUT_MS,
     connectionAcquisitionTimeout: env.DB_CONNECTION_TIMEOUT_MS,
@@ -29,6 +34,7 @@ export async function connectNeo4j(): Promise<void> {
   }
 }
 export async function disconnectNeo4j(): Promise<void> {
+  if (connecting) await connecting.catch(() => undefined);
   const current = driver; driver = null;
   if (current) await current.close();
 }
