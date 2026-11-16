@@ -9,7 +9,7 @@ test('CRM opens its persisted account projection, original sources and linked ac
   expect(list.data.accounts).toHaveLength(2)
   const account = list.data.accounts[0]
   const detail = (await (await request.get(api + '/api/v1/crm/accounts/' + encodeURIComponent(account.id))).json()).data
-  await page.goto('/crm')
+  await page.goto('/crm/records')
   await expect(page.getByRole('heading', { name: 'Customer CRM', exact: true, level: 1 })).toBeVisible()
   await page.getByRole('link', { name: new RegExp(account.name) }).click()
   await expect(page.getByRole('heading', { name: account.name, exact: true, level: 1 })).toBeVisible()
@@ -46,7 +46,7 @@ test('CRM opens its persisted account projection, original sources and linked ac
 
 test('CRM failure stays retryable without substituting account records', async ({ page }) => {
   await page.route('**/api/v1/crm/accounts', route => route.fulfill({ status: 503, json: { message: 'Storage unavailable' } }))
-  await page.goto('/crm')
+  await page.goto('/crm/records')
   await expect(page.getByRole('button', { name: 'Retry', exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Meridian Logistics', exact: true })).toHaveCount(0)
 })

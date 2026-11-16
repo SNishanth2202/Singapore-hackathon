@@ -141,7 +141,7 @@ export default function OpportunityIntelligence() {
       <PageHeader
         title="Opportunity Intelligence"
         subtitle="Track and prioritise potential Singtel service opportunities"
-        badge={isMockData ? <Badge label="Illustrative" variant="sample" /> : undefined}
+        badge={isMockData ? <Badge label="Account records" variant="sample" /> : undefined}
       />
 
       {/* Stats strip */}

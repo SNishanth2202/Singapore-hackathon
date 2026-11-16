@@ -9,6 +9,7 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { formatDate, formatNumber } from '../utils/formatters'
 import api from '../services/api'
 import { AiDashboardSummary } from '../components/ai/AiDashboardSummary'
+import { PortfolioDashboard } from '../components/crm/PortfolioDashboard'
 
 const lineColors: Record<string, string> = { EMAIL_PROVIDER_ACCEPTED: '#1e3a5f', REPLY_RECEIVED: '#0d9488', EMAIL_FAILED: '#dc2626' }
 const title = (value: string) => value.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase())
@@ -33,6 +34,7 @@ export default function Dashboard() {
   const [endDate, setEndDate] = useState(dayValue(new Date()))
   const [filters, setFilters] = useState({ country: '', industry: '', service: '', agent: '', status: '' })
   const [busyIntervention, setBusyIntervention] = useState('')
+  const [portfolioRevision, setPortfolioRevision] = useState(0)
 
   async function load() {
     setLoading(true); setError('')
@@ -74,7 +76,7 @@ export default function Dashboard() {
   const agents = data?.agentPerformance.map(row => row.agent).filter(Boolean) ?? []
 
   return <div className="max-w-7xl mx-auto space-y-6">
-    <PageHeader title="Singtel Scout — Sales Intelligence" subtitle="A live view of discovery, evidence-qualified opportunities, outreach, replies, and human follow-up." actions={<button onClick={() => void load()} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600"><RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />Refresh</button>} />
+    <PageHeader title="Singtel Scout — Sales Intelligence" subtitle="Find new opportunities, understand existing accounts and plan the next customer conversation." actions={<button onClick={() => { setPortfolioRevision(value => value + 1); void load() }} disabled={loading} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600"><RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />Refresh</button>} />
     {/* Hero banner */}
       <div
         className="rounded-2xl p-6 text-white relative overflow-hidden"
@@ -90,31 +92,17 @@ export default function Dashboard() {
               <SparklesIcon className="w-4 h-4 text-teal-300" />
               <span className="text-xs font-semibold text-teal-300 uppercase tracking-widest">AI-Powered Intelligence</span>
             </div>
-            <h2 className="text-xl font-bold leading-tight">Singtel Scout</h2>
+            <h2 className="text-xl font-bold leading-tight">The right next move for every account</h2>
             <p className="text-white/70 text-sm mt-1 max-w-md">
-              Identifying enterprise opportunities across APAC through live public research and AI analysis.
+              Research new customers and grow existing relationships with evidence and account intelligence.
             </p>
           </div>
-          <div className="hidden md:flex items-center gap-6">
-            <div className="text-center">
-              <p className="text-2xl font-bold">{formatNumber(metric.totalCompaniesDiscovered ?? 0)}</p>
-              <p className="text-xs text-white/60 mt-0.5">Companies discovered</p>
-            </div>
-            <div className="w-px h-10 bg-white/20" />
-            <div className="text-center">
-              <p className="text-2xl font-bold">{formatNumber(metric.qualifiedCompanies ?? 0)}</p>
-              <p className="text-xs text-white/60 mt-0.5">Qualified companies</p>
-            </div>
-            <div className="w-px h-10 bg-white/20" />
-            <div className="text-center">
-              <p className="text-2xl font-bold">{formatNumber(metric.pendingInterventions ?? 0)}</p>
-              <p className="text-xs text-white/60 mt-0.5">Follow-ups pending</p>
-            </div>
-          </div>
+          <div className="hidden shrink-0 gap-3 pl-5 lg:flex"><button onClick={() => navigate('/lead-ranking')} className="rounded-lg border border-white/25 px-4 py-3 text-sm font-medium hover:bg-white/10">Find new customers →</button><button onClick={() => navigate('/crm')} className="rounded-lg bg-white/15 px-4 py-3 text-sm font-medium hover:bg-white/25">Grow customer accounts →</button></div>
         </div>
       </div>
 
 
+    <PortfolioDashboard refreshKey={portfolioRevision} />
     {/* Quick actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button
@@ -151,12 +139,13 @@ export default function Dashboard() {
       </div>
 
 
+    <details className="rounded-xl border border-gray-200 bg-white p-5"><summary className="cursor-pointer text-sm font-semibold text-navy-600">Discovery and outreach analytics</summary><div className="mt-5 space-y-6">
     <section className="card flex flex-wrap items-end gap-3 p-4">
       <label className="text-xs text-gray-500">Reporting period<select value={preset} onChange={e => changePeriod(e.target.value)} className="mt-1 block rounded-lg border px-3 py-2 text-sm text-gray-700"><option value="today">Today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option><option value="custom">Custom range</option></select></label>
       <label className="text-xs text-gray-500">From<input type="date" value={startDate} onChange={e => { setPreset('custom'); setStartDate(e.target.value) }} className="mt-1 block rounded-lg border px-3 py-2 text-sm" /></label>
       <label className="text-xs text-gray-500">To<input type="date" value={endDate} onChange={e => { setPreset('custom'); setEndDate(e.target.value) }} className="mt-1 block rounded-lg border px-3 py-2 text-sm" /></label>
       {(['country', 'industry', 'service', 'agent', 'status'] as const).map(key => <label key={key} className="text-xs capitalize text-gray-500">{key}<select value={filters[key]} onChange={e => setFilters(current => ({ ...current, [key]: e.target.value }))} className="mt-1 block max-w-44 rounded-lg border px-3 py-2 text-sm text-gray-700"><option value="">All {key}s</option>{(key === 'country' ? countries : key === 'industry' ? industries : key === 'service' ? services : key === 'agent' ? agents : ['PENDING', 'ASSIGNED', 'IN_PROGRESS', 'WAITING_FOR_CUSTOMER', 'WAITING_FOR_INTERNAL_INFORMATION', 'RESOLVED', 'CLOSED']).map(value => <option key={value} value={value}>{title(value)}</option>)}</select></label>)}
-      {data && <span className="ml-auto text-[11px] text-gray-400">{data.dataMode === 'memory_preview' ? 'Session data' : 'MongoDB aggregates'}{data.containsSyntheticData ? ' · includes illustrative workflow records' : ''} · UTC</span>}
+      {data && <span className="ml-auto text-[11px] text-gray-400">{data.dataMode === 'memory_preview' ? 'Session data' : 'MongoDB aggregates'} · UTC</span>}
     </section>
     {error && <div role="alert" className="flex gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700"><AlertCircleIcon className="h-4 w-4 shrink-0" />{error}</div>}
     {loading && !data ? <LoadingSpinner label="Loading sales analytics…" /> : data && <>
@@ -258,5 +247,6 @@ export default function Dashboard() {
         )}
       </div>
 
+    </div></details>
   </div>
 }

@@ -26,7 +26,7 @@ test('test-provider email workflow moves through review, approval, reply and fol
   await page.getByRole('button', { name: 'Send via configured provider' }).click()
   await expect(page.getByText(/Provider accepted at/)).toBeVisible()
 
-  const reply = page.getByPlaceholder('Paste a reply for a local synthetic simulation...')
+  const reply = page.getByPlaceholder('Paste a customer reply for analysis...')
   await reply.fill('We are interested in a discovery call next week. Please share suitable times.')
   await page.getByRole('button', { name: 'Analyze simulated reply' }).click()
   await expect(page.locator('strong').filter({ hasText: 'REPLY RECEIVED' }).first()).toBeVisible()

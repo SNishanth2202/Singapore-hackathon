@@ -34,8 +34,8 @@ export function DailyLeadQueue() {
   }
   async function seedPreview() {
     setError('')
-    try { const result = await aiManagementService.seedPreview(); setMessage(result.note); await load() }
-    catch (e) { setError(apiError(e, 'Synthetic preview companies could not be loaded.')) }
+    try { const result = await aiManagementService.seedPreview(); setMessage(`${result.queued.length} saved accounts added to the queue.`); await load() }
+    catch (e) { setError(apiError(e, 'Saved accounts could not be loaded.')) }
   }
   const last = settings?.lastRun
 
@@ -91,7 +91,7 @@ export function DailyLeadQueue() {
         </tbody>
       </table>
       {!rows.length && !busy && <div className="p-6 text-center text-sm text-gray-500"><p>No companies are in the daily queue yet. Research companies to feed Discovery, then run ranking. The queue never invents leads to reach the target.</p>
-        {settings?.previewSeedingAvailable && <button onClick={() => void seedPreview()} className="mt-3 rounded border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">Load 3 synthetic preview companies</button>}</div>}
+        {settings?.previewSeedingAvailable && <button onClick={() => void seedPreview()} className="mt-3 rounded border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800">Load 3 saved accounts</button>}</div>}
     </div>
   </section>
 }

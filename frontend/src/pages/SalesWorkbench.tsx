@@ -37,7 +37,7 @@ export default function SalesWorkbench() {
 
   async function seedDemo() {
     setBusy(true); setError(''); setNotice('')
-    try { const r = await api.post('/api/v1/sales/demo/run'); setNotice(`${r.data.data.message} Workflow activity is retained for review.`); await load() }
+    try { await api.post('/api/v1/sales/demo/run'); setNotice('Workflow activity is retained for review in the recorded outbox.'); await load() }
     catch (e) { setError(errorText(e)) } finally { setBusy(false) }
   }
 

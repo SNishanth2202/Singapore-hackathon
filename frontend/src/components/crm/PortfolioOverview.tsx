@@ -1,0 +1,24 @@
+import { Link } from 'react-router-dom'
+import { ArrowRightIcon, Building2Icon, GaugeIcon, SlidersHorizontalIcon, TrendingUpIcon } from 'lucide-react'
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { CrmPortfolio, crmMoney, crmMonth } from '../../services/crm-portfolio.service'
+
+export function PortfolioOverview({ data, compact = false }: { data: CrmPortfolio; compact?: boolean }) {
+  const m = data.metrics
+  const cards = [
+    { title: 'Customer accounts', value: m.accounts.toLocaleString(), detail: `${m.billedSubscriptions} billed subscriptions`, icon: Building2Icon, href: '/crm' },
+    { title: 'Monthly billing', value: crmMoney(m.billedSgd, true), detail: `${crmMonth(data.reportingMonth)} · includes tax`, icon: TrendingUpIcon, href: '/crm?view=billing' },
+    { title: 'Capacity opportunities', value: m.capacityAccounts.toLocaleString(), detail: `${m.capacitySubscriptions} subscriptions above allowance`, icon: GaugeIcon, href: '/crm?view=capacity' },
+    { title: 'Plan optimisation', value: m.optimisationSubscriptions.toLocaleString(), detail: 'Subscriptions below 30% utilisation', icon: SlidersHorizontalIcon, href: '/crm?view=optimisation' },
+  ]
+  return <section aria-label="Customer portfolio overview" className="space-y-4">
+    <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-lg font-semibold text-navy-600">Existing customer intelligence</h2><p className="mt-1 text-xs text-gray-500">Account growth and service priorities · {crmMonth(data.reportingMonth)}</p></div>{<Link to="/crm" className="inline-flex items-center gap-1 text-sm font-medium text-teal-700">Explore customers<ArrowRightIcon size={15} /></Link>}</div>
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{cards.map(card => <Link key={card.title} to={card.href} className="card p-5 transition hover:border-teal-400 focus-visible:ring-2 focus-visible:ring-teal-500"><div className="flex justify-between gap-2"><p className="text-xs font-medium text-gray-500">{card.title}</p><card.icon size={17} className="text-teal-600" /></div><p className="mt-3 text-3xl font-semibold tracking-tight text-navy-600">{card.value}</p><p className="mt-2 text-xs text-gray-500">{card.detail}</p></Link>)}</div>
+    {!compact && <div className="grid gap-4 xl:grid-cols-3"><section className="card p-5 xl:col-span-2" aria-label="Customer billing trend"><div className="flex flex-wrap justify-between gap-2"><div><h3 className="text-sm font-semibold text-gray-800">Billing trend</h3><p className="mt-1 text-xs text-gray-500">Monthly invoice totals · {data.coverage.months} months</p></div>{m.billingChangePct != null && <span className="text-xs text-gray-500">{m.billingChangePct > 0 ? '+' : ''}{m.billingChangePct}% year on year</span>}</div><div className="mt-5 h-56"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data.billingTrend} margin={{ left: 12, right: 12 }}><defs><linearGradient id="crm-billing-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0d9488" stopOpacity={0.25} /><stop offset="100%" stopColor="#0d9488" stopOpacity={0.02} /></linearGradient></defs><CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef2f5" /><XAxis dataKey="period" tickFormatter={crmMonth} tick={{ fontSize: 10 }} minTickGap={55} /><YAxis tickFormatter={v => crmMoney(Number(v), true)} tick={{ fontSize: 10 }} width={82} /><Tooltip labelFormatter={v => crmMonth(String(v))} formatter={v => [crmMoney(Number(v)), 'Billed']} /><Area isAnimationActive={false} type="monotone" dataKey="billedSgd" stroke="#0d9488" strokeWidth={2.5} fill="url(#crm-billing-fill)" /></AreaChart></ResponsiveContainer></div></section><section className="card p-5" aria-label="Account review priorities"><h3 className="text-sm font-semibold text-gray-800">Where to focus</h3><div className="mt-4 space-y-4">{[
+      ['Service reviews', m.serviceReviewAccounts, 'Confirm service performance and SLA context', '/crm?view=service'],
+      ['Customer concerns', m.latestNegativeAccounts, 'Latest conversation has negative sentiment', '/crm?view=engagement'],
+      ['Contract records to review', m.contractReviews, 'Confirm extensions and replacement agreements', '/crm?view=contracts'],
+      ['Open opportunities', m.openOpportunities, `${crmMoney(m.openAnnualSgd, true)} estimated annual value`, '/crm?view=pipeline'],
+    ].map(([title, value, detail, href]) => <Link key={String(title)} to={String(href)} className="block rounded-lg bg-gray-50 p-3 hover:bg-teal-50"><div className="flex items-center justify-between gap-3"><strong className="text-sm font-medium text-gray-700">{title}</strong><span className="font-semibold text-navy-600">{value}</span></div><p className="mt-1 text-[11px] text-gray-500">{detail}</p></Link>)}</div></section></div>}
+  </section>
+}

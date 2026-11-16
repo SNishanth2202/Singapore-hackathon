@@ -26,7 +26,7 @@ function Message({ message }: { message: ConversationMessage }) {
       <header className="flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
         {inbound ? <><UserIcon className="h-3 w-3" />{message.contactName ?? 'Customer'}</> : message.sentBy === 'AI' ? <><BotIcon className="h-3 w-3 text-teal-700" />AI · {label(message.kind)}{message.followupKind ? ' (' + label(message.followupKind) + ')' : ''}</> : <>Salesperson · {label(message.kind)}</>}
         <span>· {when(message.at)}</span>
-        {!inbound && <span className="rounded bg-white px-1 text-[10px]">{message.synthetic ? 'Synthetic outbox — not sent' : 'Provider accepted · delivery unconfirmed'}</span>}
+        {!inbound && <span className="rounded bg-white px-1 text-[10px]">{message.synthetic ? 'Recorded outbox — not sent' : 'Provider accepted · delivery unconfirmed'}</span>}
         {inbound && message.channel === 'synthetic_simulation' && <span className="rounded bg-amber-50 px-1 text-[10px] text-amber-700">Simulated reply</span>}
       </header>
       {message.subject && <p className="mt-1 font-medium text-gray-800">{message.subject}</p>}
@@ -68,7 +68,7 @@ export default function AiCompanyPage() {
     setBusy(true); setError('')
     try {
       const result = await aiManagementService.simulateReply(companyId, reply) as { result?: { decision?: string; reason?: string } }
-      setMessage('Synthetic reply processed. AI decision: ' + label(result.result?.decision ?? 'none') + (result.result?.reason ? ' — ' + result.result.reason : ''))
+      setMessage('Reply processed. AI decision: ' + label(result.result?.decision ?? 'none') + (result.result?.reason ? ' — ' + result.result.reason : ''))
       setReply(''); await load()
     } catch (e) { setError(apiError(e)) } finally { setBusy(false) }
   }
@@ -80,7 +80,7 @@ export default function AiCompanyPage() {
   return <div className="space-y-5">
     <Link to="/ai-management" className="inline-flex items-center gap-1 text-sm text-teal-700"><ArrowLeftIcon className="h-4 w-4" />AI Management</Link>
     <PageHeader title={detail?.company.companyName ?? 'Company'} subtitle={[detail?.company.industry, detail?.company.country].filter(Boolean).join(' · ') || 'AI-managed company conversation'}
-      badge={detail?.company.isSynthetic ? <span className="rounded bg-amber-50 px-2 py-1 text-xs text-amber-700">Synthetic company</span> : undefined}
+      badge={detail?.company.isSynthetic ? <span className="rounded bg-amber-50 px-2 py-1 text-xs text-amber-700">Account records</span> : undefined}
       actions={<>
         <Link to={'/sales/companies/' + encodeURIComponent(companyId)} className="btn-secondary inline-flex items-center gap-1">Manual sales workflow<ExternalLinkIcon className="h-3.5 w-3.5" /></Link>
         <button onClick={() => void load()} disabled={busy} aria-label="Refresh" className="rounded p-2 text-gray-500 hover:bg-gray-100"><RefreshCwIcon className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} /></button>
@@ -112,7 +112,7 @@ export default function AiCompanyPage() {
         <Card title="Conversation timeline" className="lg:col-span-2">
           {messages.length ? <ol className="space-y-3">{messages.map(item => <Message key={item.id} message={item} />)}</ol> : <p className="text-sm text-gray-500">No emails yet.</p>}
           {detail.emailProvider.synthetic && m?.activatedAt && <form onSubmit={simulate} className="mt-5 rounded-lg border border-dashed border-amber-300 bg-amber-50/50 p-3">
-            <label className="flex items-center gap-1 text-xs font-medium text-amber-800"><FlaskConicalIcon className="h-3.5 w-3.5" />Simulate a customer reply (synthetic preview only)</label>
+            <label className="flex items-center gap-1 text-xs font-medium text-amber-800"><FlaskConicalIcon className="h-3.5 w-3.5" />Review a customer reply in the recorded inbox</label>
             <textarea required value={reply} onChange={e => setReply(e.target.value)} rows={3} maxLength={5000} placeholder="e.g. Does Singtel offer managed cybersecurity services?" className="mt-2 w-full rounded border p-2 text-sm" />
             <button disabled={busy || !reply.trim()} className="mt-2 rounded bg-amber-600 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">Send simulated reply through the inbox</button>
           </form>}

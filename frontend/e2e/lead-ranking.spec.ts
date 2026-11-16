@@ -6,11 +6,11 @@ async function close(page: Page) {
 }
 async function replayNext(page: Page) {
   await close(page)
-  await page.getByRole('button', { name: 'Demo checks', exact: true }).click()
+  await page.getByRole('button', { name: 'Workflow checks', exact: true }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Replay next event', exact: true }).click()
 }
 async function expectedWorklist(page: Page) {
-  const salesperson = await page.getByRole('combobox', { name: 'Mock salesperson' }).inputValue()
+  const salesperson = await page.getByRole('combobox', { name: 'Account owner' }).inputValue()
   return (await page.request.get(`${api}/queue?view=crm_plus_public&salesperson=${salesperson}`)).json()
 }
 async function showOpportunity(page: Page, id: string) {
@@ -18,7 +18,7 @@ async function showOpportunity(page: Page, id: string) {
     const queue = await (await page.request.get(`${api}/queue?salesperson=${person}`)).json()
     if (queue.items.some((row: { id: string }) => row.id === id)) {
       await close(page)
-      await page.getByRole('combobox', { name: 'Mock salesperson' }).selectOption(person)
+      await page.getByRole('combobox', { name: 'Account owner' }).selectOption(person)
       await expect(page.getByTestId(`opportunity-${id}`)).toBeVisible()
       return
     }
@@ -87,16 +87,16 @@ test('source failure, unbounded confidence and healthy empty queue are visible c
   for (let i = 0; i < 2; i++) { await replayNext(page); await expect(page.getByRole('dialog')).toBeVisible(); await close(page) }
   await showOpportunity(page, 'O01')
   const assigned = await expectedWorklist(page)
-  await page.getByRole('button', { name: 'Demo checks', exact: true }).click()
+  await page.getByRole('button', { name: 'Workflow checks', exact: true }).click()
   await page.getByRole('button', { name: /Fail public-source refresh/ }).click()
   await close(page)
   await expect(page.getByText('Public-source refresh failed · worklist preserved')).toBeVisible()
   await expect(page.locator('tr[data-testid]')).toHaveCount(assigned.total)
-  await page.getByRole('button', { name: 'Demo checks', exact: true }).click()
+  await page.getByRole('button', { name: 'Workflow checks', exact: true }).click()
   await page.getByRole('button', { name: /Remove plausible bounds for ETLA/ }).click()
   await close(page)
   await expect(page.getByTestId('opportunity-O01').locator('.lr-insufficient')).toContainText('Insufficient')
-  await page.getByRole('button', { name: 'Demo checks', exact: true }).click()
+  await page.getByRole('button', { name: 'Workflow checks', exact: true }).click()
   await page.getByRole('button', { name: /Load a healthy empty queue/ }).click()
   await close(page)
   await expect(page.getByRole('heading', { name: 'No leads to rank' })).toBeVisible()
@@ -109,14 +109,14 @@ test('mobile layout contains overflow, sources work, and keyboard closes and res
   await expect(page.locator('tr[data-testid]')).toHaveCount((await expectedWorklist(page)).total)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy()
   await page.screenshot({ path: '../.local/screenshots/mobile-queue.png', fullPage: true })
-  const guide = page.getByRole('button', { name: 'Demo guide', exact: true })
+  const guide = page.getByRole('button', { name: 'Workflow guide', exact: true })
   await guide.click(); await expect(page.getByRole('dialog')).toBeVisible()
   await page.keyboard.press('Escape'); await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(guide).toBeFocused()
   await page.getByRole('button', { name: 'Sources & CRM', exact: true }).click()
   await expect(page.getByRole('dialog').getByText('Public sources', { exact: true })).toBeVisible()
-  await page.getByRole('button', { name: 'Mock Salesforce', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Download mock CRM' })).toBeVisible()
+  await page.getByRole('button', { name: 'CRM records', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Download CRM records' })).toBeVisible()
 })
 test('customer-register failure discards the saved ranking instead of displaying unchecked cached leads', async ({ page }) => {
   let failureCode: string | null = null

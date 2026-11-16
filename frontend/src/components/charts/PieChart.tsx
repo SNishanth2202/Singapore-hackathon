@@ -40,7 +40,7 @@ export function PieChart({ data, title, isSample }: PieChartProps) {
         </div>
         {isSample && (
           <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-600 border border-amber-200">
-            Illustrative
+            Account records
           </span>
         )}
       </div>

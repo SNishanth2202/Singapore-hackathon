@@ -4,6 +4,7 @@
   "description": "Enterprise Radar AI — Backend API (Singtel Hackathon)",
   "main": "dist/server.js",
   "scripts": {
+    "refresh:crm": "ts-node src/scripts/refresh-crm-portfolio.ts",
     "seed:crm": "ts-node src/scripts/seed-crm.ts",
     "seed:showcase": "ts-node src/scripts/seed-showcase.ts",
     "test:product-fixes": "npm run build && node --test tests/product-fixes.test.cjs",

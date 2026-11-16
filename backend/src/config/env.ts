@@ -5,6 +5,7 @@ import { configureDns } from './dns';
 
 // Load .env from project root (two levels up from src/config/)
 dotenv.config({ path: path.resolve(__dirname, '..', '..', '..', '.env') });
+dotenv.config({ path: path.resolve(__dirname, '..', '..', '..', '.local', 'crm-source.env') });
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -62,6 +63,10 @@ const envSchema = z.object({
   // MongoDB
   MONGODB_URI: z.string().default(''),
   MONGODB_DB_NAME: z.string().default('enterprise_radar'),
+  CRM_SOURCE_MONGODB_URI: z.string().optional(),
+  CRM_SOURCE_DB_NAME: z.string().optional(),
+  CRM_PORTFOLIO_CACHE_PATH: z.string().optional(),
+  CRM_SOURCE_USE_SAVED_VIEW: z.enum(['true', 'false']).default('false').transform(value => value === 'true'),
 
   // Neo4j
   NEO4J_URI: z.string().default(''),

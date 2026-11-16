@@ -80,7 +80,7 @@ export default function CrmAccounts() {
     {detail ? <>
       <Link to="/crm" className="inline-flex items-center gap-1 text-sm text-teal-700"><ArrowLeftIcon className="h-4 w-4" />All customer accounts</Link>
       <section className="card p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-sm leading-relaxed text-gray-600">{detail.account.description}</p><div className="mt-3 flex flex-wrap gap-2"><Badge label="Existing customer" variant="industry" /><Badge label={detail.account.industry} variant="industry" />{detail.account.isSynthetic && <Badge label="Illustrative records" variant="sample" />}</div></div>
+        <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-sm leading-relaxed text-gray-600">{detail.account.description}</p><div className="mt-3 flex flex-wrap gap-2"><Badge label="Existing customer" variant="industry" /><Badge label={detail.account.industry} variant="industry" />{detail.account.isSynthetic && <Badge label="Source records" variant="sample" />}</div></div>
           <Link className="inline-flex items-center gap-2 text-sm font-medium text-teal-700 underline" to={'/graph?account=' + encodeURIComponent(detail.account.graphAccountId)}><NetworkIcon className="h-4 w-4" />Open account graph</Link></div>
         <p className="mt-4 flex items-center gap-2 text-xs text-gray-500"><DatabaseIcon className="h-3 w-3" />{detail.persistence.durable ? 'Saved in MongoDB Atlas' : 'Session records'} · {detail.facts.length} sourced facts · {detail.artifacts.length} original records</p>
       </section>
@@ -98,7 +98,7 @@ export default function CrmAccounts() {
       <p className="text-xs text-gray-400">Extracted {formatDate(detail.extraction.createdAt)} · {detail.extraction.model} · {detail.extraction.promptVersion}. Proposed actions require account-team review.</p>
     </> : accounts.length ? <div className="grid gap-5 md:grid-cols-2">{accounts.map(account => <Link key={account.id} to={'/crm/' + encodeURIComponent(account.id)} className="card block p-6 hover:border-teal-500">
       <div className="flex items-start justify-between gap-4"><div><h2 className="text-lg font-semibold text-navy-600">{account.name}</h2><p className="mt-1 text-sm text-gray-500">{account.industry}</p></div><ArrowRightIcon className="h-5 w-5 text-teal-600" /></div><p className="mt-4 text-sm leading-relaxed text-gray-600">{account.description}</p>
-      <div className="mt-4 flex flex-wrap gap-2"><Badge label="Existing customer" variant="industry" />{account.isSynthetic && <Badge label="Illustrative records" variant="sample" />}</div>
+      <div className="mt-4 flex flex-wrap gap-2"><Badge label="Existing customer" variant="industry" />{account.isSynthetic && <Badge label="Source records" variant="sample" />}</div>
       <dl className="mt-5 grid grid-cols-3 gap-3">{(['contacts', 'contracts', 'invoices', 'artifacts', 'opportunities', 'actions'] as const).map(key => <div key={key}><dt className="text-xs capitalize text-gray-500">{key}</dt><dd className="mt-1 text-lg font-semibold text-navy-600">{account.counts[key]}</dd></div>)}</dl>
     </Link>)}</div> : <section className="card p-8"><p className="text-sm text-gray-600">No customer accounts are available. Import the prepared CRM records to begin.</p></section>}
   </div>
