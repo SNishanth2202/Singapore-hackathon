@@ -1,87 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  * {
-    box-sizing: border-box;
+  :root {
+    --brand: theme('colors.brand.DEFAULT');
+    --brand-deep: theme('colors.brand.600');
+    --canvas: theme('colors.canvas');
+    --surface: #fff;
+    --ink: theme('colors.ink');
+    --muted: theme('colors.muted');
+    --line: theme('colors.line');
+    accent-color: var(--brand);
   }
 
-  html {
-    font-family: 'Inter', system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  body {
-    @apply bg-white antialiased;
-    color: #231F20;
-  }
-
-  ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 10px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
+  html { @apply font-sans antialiased; }
+  body { background: var(--canvas); color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--brand-deep); outline-offset: 2px; }
+  ::selection { background: #ffe1e8; color: var(--ink); }
+  :where(input, select, textarea) { max-width: 100%; }
+  :where(button, a, input, select, textarea, summary) { transition: color .14s, background-color .14s, border-color .14s, box-shadow .14s; }
+  :where(button:disabled) { cursor: not-allowed; }
+  :where(table) { font-variant-numeric: tabular-nums; }
+  :where(thead) { background: var(--canvas); color: var(--muted); }
+  :where(th) { font-weight: 600; text-align: left; }
+  :where(tbody tr + tr) { border-top: 1px solid var(--line); }
+  :where(tbody tr:hover) { background: #fafafb; }
+  :where(td, th) { overflow-wrap: break-word; }
+  .recharts-cartesian-grid line { stroke: var(--line); }
+  .recharts-cartesian-axis-tick text { fill: var(--muted); }
+  .recharts-default-tooltip { border-radius: 8px; box-shadow: 0 3px 12px rgb(32 33 36 / .08); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
   }
 }
 
 @layer components {
-  .card {
-    @apply bg-white rounded-xl shadow-card;
-    border: 1px solid #D1D1D1;
-  }
-
-  .card-hover {
-    @apply transition-all duration-200 hover:shadow-card-hover hover:-translate-y-0.5;
-  }
-
-  .btn-primary {
-    @apply text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 shadow-sm active:scale-95;
-    background-color: #EE133B;
-  }
-
-  .btn-primary:hover {
-    background-color: #D0102F;
-  }
-
-  .btn-secondary {
-    @apply bg-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95;
-    color: #333333;
-    border: 1px solid #D1D1D1;
-  }
-
-  .btn-secondary:hover {
-    background-color: #F7F7F7;
-    border-color: #959595;
-  }
-
-  .btn-teal {
-    @apply text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 shadow-sm active:scale-95;
-    background-color: #EE133B;
-  }
-
-  .btn-teal:hover {
-    background-color: #D0102F;
-  }
-
-  .stat-label {
-    @apply text-xs font-semibold uppercase tracking-widest;
-    color: #6B6B6B;
-  }
-
-  .section-title {
-    @apply text-sm font-semibold;
-    color: #231F20;
-  }
+  .card { @apply rounded-xl border border-line bg-white shadow-card; }
+  .card-hover { @apply transition-colors duration-150 hover:border-gray-300 hover:shadow-card-hover; }
+  .btn-primary, .btn-teal { @apply rounded-lg border border-transparent bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600 disabled:opacity-50; }
+  .btn-secondary { @apply rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-ink hover:border-gray-300 hover:bg-canvas disabled:opacity-50; }
+  .stat-label { @apply text-xs font-semibold text-muted; }
+  .section-title { @apply text-sm font-semibold text-ink; }
 }

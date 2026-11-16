@@ -118,7 +118,7 @@ export default function OpportunityIntelligence() {
               className="h-full rounded-full transition-all"
               style={{
                 width: `${Math.round(row.confidenceScore * 100)}%`,
-                background: row.confidenceScore >= 0.7 ? '#0D9488' : row.confidenceScore >= 0.4 ? '#F59E0B' : '#94A3B8',
+                background: row.confidenceScore >= 0.7 ? 'var(--brand-deep)' : row.confidenceScore >= 0.4 ? '#F59E0B' : '#94A3B8',
               }}
             />
           </div>

@@ -44,17 +44,17 @@ function ActivationDialog({ companyId, companyName, onClose, onDone }: { company
   }
 
   return <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" role="dialog" aria-modal="true" aria-labelledby="ai-activate-title">
-    <form onSubmit={submit} className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
+    <form onSubmit={submit} className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-xl border bg-white p-5 shadow-xl sm:p-6">
       <div className="flex items-start justify-between gap-3">
-        <div><h2 id="ai-activate-title" className="flex items-center gap-2 text-lg font-semibold text-gray-900"><BotIcon className="h-5 w-5 text-teal-600" />Enable AI Management</h2>
-          <p className="mt-1 text-sm text-gray-500">{companyName}</p></div>
-        <button type="button" onClick={onClose} aria-label="Close" className="rounded p-1 text-gray-400 hover:bg-gray-100"><XIcon className="h-5 w-5" /></button>
+        <div><h2 id="ai-activate-title" className="flex items-center gap-2 text-lg font-semibold text-gray-900"><BotIcon className="h-5 w-5 text-singtelRed" />Enable AI Management</h2>
+          <p className="mt-1 text-sm text-singtelGray-500">{companyName}</p></div>
+        <button type="button" onClick={onClose} aria-label="Close" className="rounded p-1 text-singtelGray-500 hover:bg-gray-100"><XIcon className="h-5 w-5" /></button>
       </div>
-      {!detail && !error && <p className="mt-6 flex items-center gap-2 text-sm text-gray-500"><Loader2Icon className="h-4 w-4 animate-spin" />Checking intelligence, contact and suppression…</p>}
+      {!detail && !error && <p className="mt-6 flex items-center gap-2 text-sm text-singtelGray-500"><Loader2Icon className="h-4 w-4 animate-spin" />Checking intelligence, contact and suppression…</p>}
       {detail && <>
-        <section className="mt-4 rounded-lg border p-3 text-sm">
-          <h3 className="text-xs font-semibold uppercase text-gray-500">Readiness</h3>
-          <ul className="mt-2 space-y-1 text-xs text-gray-600">
+        <section className="mt-4 rounded-lg border bg-singtelGray-50 p-3 text-sm">
+          <h3 className="text-xs font-semibold uppercase text-singtelGray-500">Readiness</h3>
+          <ul className="mt-2 grid gap-2 text-xs text-gray-600 sm:grid-cols-2">
             <li>{detail.readiness.intelligence.discovered ? '✓' : '✗'} Entered through Discovery</li>
             <li>{detail.readiness.intelligence.qualifiedOpportunities ? '✓' : '✗'} {detail.readiness.intelligence.qualifiedOpportunities} evidence-qualified opportunit{detail.readiness.intelligence.qualifiedOpportunities === 1 ? 'y' : 'ies'}</li>
             <li>{detail.readiness.intelligence.evidenceSources ? '✓' : '✗'} {detail.readiness.intelligence.evidenceSources} verified research source(s)</li>
@@ -63,19 +63,21 @@ function ActivationDialog({ companyId, companyName, onClose, onDone }: { company
           {otherProblems.length > 0 && <p className="mt-2 text-xs text-red-700">{otherProblems.join(' ')}</p>}
         </section>
         <fieldset className="mt-4 grid gap-2">
-          <legend className="text-xs font-semibold uppercase text-gray-500">Verified business contact</legend>
-          <input required value={contact.name} onChange={e => setContact({ ...contact, name: e.target.value })} placeholder="Contact name" className="rounded-lg border px-3 py-2 text-sm" />
-          <input required type="email" value={contact.email} onChange={e => setContact({ ...contact, email: e.target.value })} placeholder="Business email" className="rounded-lg border px-3 py-2 text-sm" />
-          <input required value={contact.role} onChange={e => setContact({ ...contact, role: e.target.value })} placeholder="Role" className="rounded-lg border px-3 py-2 text-sm" />
-          <input required minLength={3} value={contact.source} onChange={e => setContact({ ...contact, source: e.target.value })} placeholder="How was this contact verified?" className="rounded-lg border px-3 py-2 text-sm" />
-          <select required value={contact.outreachBasis} onChange={e => setContact({ ...contact, outreachBasis: e.target.value })} className="rounded-lg border px-3 py-2 text-sm">
+          <legend className="text-xs font-semibold uppercase text-singtelGray-500">Verified business contact</legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="text-xs text-singtelGray-600">Contact name<input required value={contact.name} onChange={e => setContact({ ...contact, name: e.target.value })} placeholder="Contact name" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></label>
+            <label className="text-xs text-singtelGray-600">Business email<input required type="email" value={contact.email} onChange={e => setContact({ ...contact, email: e.target.value })} placeholder="Business email" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></label>
+            <label className="text-xs text-singtelGray-600">Role<input required value={contact.role} onChange={e => setContact({ ...contact, role: e.target.value })} placeholder="Role" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></label>
+            <label className="text-xs text-singtelGray-600">Verification source<input required minLength={3} value={contact.source} onChange={e => setContact({ ...contact, source: e.target.value })} placeholder="How was this contact verified?" className="mt-1 w-full rounded-lg border px-3 py-2 text-sm" /></label>
+          </div>
+          <label className="text-xs text-singtelGray-600">Outreach basis<select required value={contact.outreachBasis} onChange={e => setContact({ ...contact, outreachBasis: e.target.value })} className="mt-1 block w-full rounded-lg border px-3 py-2 text-sm">
             <option value="">Reviewed outreach basis…</option>
             {detail.activation.outreachBases.map(basis => <option key={basis} value={basis}>{OUTREACH_BASIS_LABELS[basis] ?? basis}</option>)}
-          </select>
+          </select></label>
           <label className="text-xs text-gray-600">Contact’s jurisdiction (country code)
             <input required value={jurisdiction} onChange={e => setJurisdiction(e.target.value.toUpperCase().slice(0, 2))} pattern="[A-Za-z]{2}" className="ml-2 w-16 rounded border px-2 py-1 text-sm uppercase" /></label>
-          {detail.activation.consentOnlyJurisdictions.length > 0 && <p className="text-xs text-gray-500">Consent-only policy applies to: {detail.activation.consentOnlyJurisdictions.join(', ')}.</p>}
-          <p className="text-xs text-gray-500">A publicly listed email address is not proof of consent or lawful permission.</p>
+          {detail.activation.consentOnlyJurisdictions.length > 0 && <p className="text-xs text-singtelGray-500">Consent-only policy applies to: {detail.activation.consentOnlyJurisdictions.join(', ')}.</p>}
+          <p className="text-xs text-singtelGray-500">A publicly listed email address is not proof of consent or lawful permission.</p>
         </fieldset>
         <section className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
           <p className="font-semibold">What you are authorising</p>
@@ -91,7 +93,7 @@ function ActivationDialog({ companyId, companyName, onClose, onDone }: { company
       {error && <p role="alert" className="mt-3 rounded bg-red-50 p-2 text-sm text-red-700">{error}</p>}
       <div className="mt-5 flex justify-end gap-2">
         <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-        <button disabled={busy || !detail || !authorised || !compliance || otherProblems.length > 0} className="inline-flex items-center gap-2 rounded bg-teal-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+        <button disabled={busy || !detail || !authorised || !compliance || otherProblems.length > 0} className="btn-primary inline-flex items-center gap-2">
           {busy && <Loader2Icon className="h-4 w-4 animate-spin" />}Enable AI Management</button>
       </div>
     </form>
@@ -120,19 +122,19 @@ export function AiManagementControl({ companyId, companyName, state, compact = f
     <div className="flex items-center gap-2">
       <button type="button" role="switch" aria-checked={enrolled} aria-label={(enrolled ? 'Disable' : 'Enable') + ' AI Management for ' + companyName}
         disabled={busy || state === 'ACTIVATING'} onClick={() => void toggle()}
-        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${enrolled ? 'bg-teal-600' : 'bg-gray-300'}`}>
+        className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${enrolled ? 'bg-singtelRed' : 'bg-gray-300'}`}>
         <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${enrolled ? 'translate-x-4' : 'translate-x-0.5'}`} />
       </button>
       <ManagementBadge state={state} />
-      {busy && <Loader2Icon className="h-3.5 w-3.5 animate-spin text-gray-400" />}
+      {busy && <Loader2Icon className="h-3.5 w-3.5 animate-spin text-singtelGray-500" />}
     </div>
     {enrolled && <div className="flex flex-wrap gap-1">
       {(state === 'ACTIVE' || state === 'HUMAN_ATTENTION_REQUIRED') && <button disabled={busy} onClick={() => void run(() => aiManagementService.pause(companyId), 'Automation paused for ' + companyName + '.')}
         className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] text-gray-600 hover:bg-gray-50"><PauseIcon className="h-3 w-3" />Pause</button>}
       {['PAUSED', 'HUMAN_ATTENTION_REQUIRED', 'HUMAN_HANDOVER', 'ERROR'].includes(state) && <button disabled={busy} onClick={() => void run(() => aiManagementService.resume(companyId), 'AI Management resumed for ' + companyName + '.')}
-        className="inline-flex items-center gap-1 rounded border border-teal-200 px-1.5 py-0.5 text-[11px] text-teal-700 hover:bg-teal-50"><PlayIcon className="h-3 w-3" />Resume AI</button>}
+        className="inline-flex items-center gap-1 rounded border border-singtelRed-100 px-1.5 py-0.5 text-[11px] text-singtelRed-700 hover:bg-singtelRed-50"><PlayIcon className="h-3 w-3" />Resume AI</button>}
       {state !== 'HUMAN_HANDOVER' && <button disabled={busy} onClick={() => void run(() => aiManagementService.takeover(companyId), 'You now own the ' + companyName + ' conversation. Automation is stopped until you resume it.')}
-        className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] text-purple-700 hover:bg-purple-50"><UserCheckIcon className="h-3 w-3" />Take over</button>}
+        className="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] text-singtelGray-700 hover:bg-singtelGray-50"><UserCheckIcon className="h-3 w-3" />Take over</button>}
       {!compact && <button disabled={busy} onClick={() => void toggle()} className="inline-flex items-center gap-1 rounded border border-red-200 px-1.5 py-0.5 text-[11px] text-red-700 hover:bg-red-50"><PowerIcon className="h-3 w-3" />Disable</button>}
     </div>}
     {error && <p role="alert" className="flex items-start gap-1 text-[11px] text-red-700"><AlertTriangleIcon className="mt-0.5 h-3 w-3 shrink-0" />{error}</p>}

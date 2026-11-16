@@ -44,23 +44,23 @@ export default function CustomerGraphExplorer({ snapshot, selectedId, onSelect, 
       <div className="cg-graph-focus"><FocusIcon size={15} /><label htmlFor="cg-focus">Focus on</label><select id="cg-focus" value={selected?.kind === 'Idea' ? selected.id : ''} onChange={e => onSelect(e.target.value || null)}><option value="">All ideas</option>{ideas.map(n => <option key={n.id} value={n.id}>{n.label}</option>)}</select>{selected && <button onClick={() => onSelect(null)}>Clear selection</button>}</div>
       <div className="cg-canvas" ref={canvasRef} tabIndex={0} aria-label="Scrollable graph canvas">
         <svg viewBox={`0 0 900 ${layout.height}`} style={{ width: 900 * scale, height: layout.height * scale }} aria-label="Sources connected to facts, customer entities and proposed ideas">
-          <defs><pattern id="cg-dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.8" fill="#dbe3eb" /></pattern></defs>
+          <defs><pattern id="cg-dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.8" fill="var(--line)" /></pattern></defs>
           <rect width="900" height={layout.height} fill="url(#cg-dots)" />
           {['SOURCE ARTIFACTS', 'EXTRACTED FACTS', 'CUSTOMER CONTEXT', 'PROPOSED IDEAS'].map((title, i) => <text key={title} x={[105, 335, 565, 795][i]} y="35" textAnchor="middle" className="cg-graph-heading">{title}</text>)}
           {layout.edges.map(edge => {
             const a = layout.positions.get(edge.from)!, b = layout.positions.get(edge.to)!
             const highlighted = edge.from === selectedId || edge.to === selectedId
-            return <path key={edge.id} d={`M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`} fill="none" stroke={highlighted ? '#0d9488' : '#c4cfdc'} strokeWidth={highlighted ? 2.2 : 1.1} opacity={selectedId && !highlighted ? 0.16 : 0.8}><title>{edge.type.replaceAll('_', ' ')}</title></path>
+            return <path key={edge.id} d={`M ${a.x} ${a.y} C ${(a.x + b.x) / 2} ${a.y}, ${(a.x + b.x) / 2} ${b.y}, ${b.x} ${b.y}`} fill="none" stroke={highlighted ? 'var(--brand)' : '#c2c6cc'} strokeWidth={highlighted ? 2.2 : 1.1} opacity={selectedId && !highlighted ? 0.16 : 0.8}><title>{edge.type.replaceAll('_', ' ')}</title></path>
           })}
           {[...layout.positions.values()].map(({ x, y, node }) => {
             const idea = node.kind === 'Idea', fact = node.kind === 'Fact', active = node.id === selectedId
             return <g key={node.id} role="button" tabIndex={0} aria-label={`Inspect ${node.kind}: ${node.label}`} aria-pressed={active}
               onClick={() => onSelect(node.id)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(node.id) } }}
               className="cg-graph-node" transform={`translate(${x - 95}, ${y - 23})`} opacity={selectedId && !neighbors.has(node.id) ? 0.38 : 1}>
-              <rect width="190" height="46" rx="7" fill={idea ? '#173755' : fact ? '#edfaf7' : '#fff'} stroke={active ? '#0d9488' : idea ? '#173755' : '#d5dfe8'} strokeWidth={active ? 3 : 1} />
-              <circle cx="13" cy="14" r="3" fill={idea ? '#63dfcc' : fact ? '#0d9488' : '#7690aa'} />
-              <text x="23" y="18" fill={idea ? '#add0df' : '#64748b'} fontSize="9" fontWeight="600">{node.kind.toUpperCase()}</text>
-              <text x="12" y="35" fill={idea ? '#fff' : '#16324e'} fontSize="11" fontWeight="600">{short(node.label, 28)}</text><title>{node.label}</title>
+              <rect width="190" height="46" rx="9" fill={idea ? 'var(--ink)' : fact ? 'var(--canvas)' : 'var(--surface)'} stroke={active ? 'var(--brand)' : idea ? 'var(--ink)' : '#cdd0d6'} strokeWidth={active ? 3 : 1} />
+              <circle cx="13" cy="14" r="3" fill={idea ? '#ff99ac' : fact ? 'var(--brand)' : 'var(--muted)'} />
+              <text x="23" y="18" fill={idea ? '#e1e2e5' : 'var(--muted)'} fontSize="9" fontWeight="600">{node.kind.toUpperCase()}</text>
+              <text x="12" y="35" fill={idea ? 'var(--surface)' : 'var(--ink)'} fontSize="11" fontWeight="600">{short(node.label, 28)}</text><title>{node.label}</title>
             </g>
           })}
         </svg>
@@ -68,7 +68,7 @@ export default function CustomerGraphExplorer({ snapshot, selectedId, onSelect, 
       <div className="cg-graph-caption">{layout.positions.size} nodes · {layout.edges.length} connections shown. Select a node to trace its evidence.</div>
     </section>
     <aside className="cg-panel cg-inspector" aria-label="Graph node details" aria-live="polite">
-      {!selected ? <><div className="cg-eyebrow">FOLLOW THE EVIDENCE</div><h2>Every idea has a trail.</h2><p>Select an idea, fact or source in the graph. See what connects it to the customer, then open the original artifact.</p><div className="cg-path-example"><span>Source</span><ArrowRightIcon size={14} /><span>Fact</span><ArrowRightIcon size={14} /><span>Idea</span></div><p className="cg-muted">Ideas are proposals to verify. Facts are linked to recorded source material.</p></> : <>
+      {!selected ? <><h2>Inspect a connection</h2><p>Select an idea, fact or source in the graph. See what connects it to the customer, then open the original artifact.</p><div className="cg-path-example"><span>Source</span><ArrowRightIcon size={14} /><span>Fact</span><ArrowRightIcon size={14} /><span>Idea</span></div><p className="cg-muted">Ideas are proposals to verify. Facts are linked to recorded source material.</p></> : <>
         <div className="cg-eyebrow">{selected.kind === 'Idea' ? 'PROPOSED IDEA · HYPOTHESIS' : selected.kind.toUpperCase()}</div><h2>{selected.label}</h2>
         {selected.kind === 'Fact' ? <><p>{(selected.record as Fact).statement}</p>{(selected.record as Fact).value && <div className="cg-detail-value">{(selected.record as Fact).value}</div>}
           <h3>Source evidence</h3>{(selected.record as Fact).evidence.map((e, i) => <div className="cg-evidence" key={`${e.artifactId}-${i}`}><blockquote>“{e.quote}”</blockquote><button onClick={() => onArtifact(e.artifactId, e.quote)}><FileTextIcon size={13} />Open {snapshot.artifacts.find(a => a.id === e.artifactId)?.format}<ArrowRightIcon size={13} /></button></div>)}

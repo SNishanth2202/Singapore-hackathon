@@ -82,14 +82,14 @@ export default function CompanyProfile() {
       {/* Company Card */}
       <div className="card overflow-hidden">
         {/* Top accent bar */}
-        <div className="h-1.5 w-full" style={{ background: 'linear-gradient(90deg, #1E3A5F, #0D9488)' }} />
+        <div className="h-1 w-full" style={{ background: 'var(--brand)' }} />
 
         <div className="p-6">
           <div className="flex items-start justify-between mb-5">
             <div className="flex items-center gap-4">
               <div
                 className="w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm"
-                style={{ background: 'linear-gradient(135deg, #1E3A5F 0%, #2D5080 100%)' }}
+                style={{ background: 'var(--ink)' }}
               >
                 <span className="text-2xl font-bold text-white">
                   {company.companyName.charAt(0).toUpperCase()}

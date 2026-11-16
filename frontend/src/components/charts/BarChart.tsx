@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts'
+import { chartTheme } from './chartTheme'
 
 interface BarChartProps {
   data: { name: string; value: number }[]
@@ -16,14 +17,12 @@ interface BarChartProps {
   isSample?: boolean
 }
 
-const COLORS = ['#1E3A5F', '#0D9488', '#3D6BA3', '#1DB3AD', '#5A82B4', '#47C1BC', '#7A9BC4', '#2D5080']
-
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2.5">
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm px-3 py-2.5">
         <p className="text-xs font-semibold text-gray-700">{label}</p>
-        <p className="text-sm font-bold text-navy-600 mt-0.5">{payload[0].value} companies</p>
+        <p className="text-sm font-bold text-singtelGray-900 mt-0.5">{payload[0].value} companies</p>
       </div>
     )
   }
@@ -35,21 +34,21 @@ export function BarChart({ data, title, color, isSample }: BarChartProps) {
     <div className="card p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-          <p className="text-xs text-gray-400 mt-0.5">Distribution across sectors</p>
+          <h3 className="text-base font-semibold tracking-tight text-singtelGray-900">{title}</h3>
+          <p className="text-xs text-singtelGray-500 mt-0.5">Distribution across sectors</p>
         </div>
         {isSample && (
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-600 border border-amber-200">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-singtelGray-50 text-singtelGray-600 border border-gray-200">
             Account records
           </span>
         )}
       </div>
       <ResponsiveContainer width="100%" height={220}>
         <RechartsBarChart data={data} margin={{ top: 4, right: 8, left: -12, bottom: 0 }} barGap={4}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} vertical={false} />
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 10, fill: '#94A3B8' }}
+            tick={chartTheme.axis}
             axisLine={false}
             tickLine={false}
             interval={0}
@@ -58,14 +57,14 @@ export function BarChart({ data, title, color, isSample }: BarChartProps) {
             height={data.length > 6 ? 48 : 24}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: '#94A3B8' }}
+            tick={chartTheme.axis}
             axisLine={false}
             tickLine={false}
           />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F1F5F9', radius: 4 }} />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F7F8FA', radius: 4 }} />
           <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={36}>
-            {data.map((_, i) => (
-              <Cell key={i} fill={color ?? COLORS[i % COLORS.length]} />
+            {data.map((item, i) => (
+              <Cell key={item.name} fill={color ?? (i === 0 ? chartTheme.primary : chartTheme.muted)} />
             ))}
           </Bar>
         </RechartsBarChart>

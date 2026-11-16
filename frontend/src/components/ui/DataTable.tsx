@@ -68,11 +68,11 @@ export function DataTable<T>({
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100" style={{ background: '#F8FAFC' }}>
+            <tr className="border-b border-line bg-canvas">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-widest ${col.width ?? ''} ${col.sortable ? 'cursor-pointer select-none hover:text-gray-600' : ''}`}
+                  className={`px-4 py-3 text-left text-[11px] font-semibold text-muted uppercase tracking-wide ${col.width ?? ''} ${col.sortable ? 'cursor-pointer select-none hover:text-gray-600' : ''}`}
                   onClick={() => col.sortable && handleSort(col.key)}
                 >
                   <div className="flex items-center gap-1">
@@ -137,6 +137,7 @@ export function DataTable<T>({
           </p>
           <div className="flex items-center gap-1">
             <button
+              aria-label="First page"
               onClick={() => onPageChange(1)}
               disabled={page <= 1}
               className="p-1.5 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed text-gray-500 transition-colors"
@@ -152,7 +153,7 @@ export function DataTable<T>({
                     onClick={() => onPageChange(p)}
                     className={`w-7 h-7 rounded-lg text-xs font-medium transition-colors ${
                       p === page
-                        ? 'bg-navy-600 text-white'
+                        ? 'bg-brand text-white'
                         : 'text-gray-600 hover:bg-gray-200'
                     }`}
                   >
@@ -162,6 +163,7 @@ export function DataTable<T>({
               })}
             </div>
             <button
+              aria-label="Next page"
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
               className="p-1.5 rounded-lg hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed text-gray-500 transition-colors"

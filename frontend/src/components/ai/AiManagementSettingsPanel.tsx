@@ -3,7 +3,7 @@ import { Loader2Icon, OctagonIcon, PlayIcon, SaveIcon } from 'lucide-react'
 import { aiManagementService, AiSettings, apiError, when } from '../../services/aiManagement.service'
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return <label className="block text-xs font-medium text-gray-600">{label}<div className="mt-1">{children}</div>{hint && <span className="mt-1 block text-[11px] font-normal text-gray-400">{hint}</span>}</label>
+  return <label className="block text-xs font-medium text-gray-600">{label}<div className="mt-1">{children}</div>{hint && <span className="mt-1 block text-[11px] font-normal text-singtelGray-500">{hint}</span>}</label>
 }
 const input = 'w-full rounded-lg border px-3 py-2 text-sm'
 
@@ -39,20 +39,20 @@ export function AiManagementSettingsPanel({ onChanged }: { onChanged?: () => voi
     catch (e) { setError(apiError(e)) } finally { setBusy(false) }
   }
 
-  if (!settings) return <div className="card p-6 text-sm text-gray-500">{error || 'Loading AI Management settings…'}</div>
+  if (!settings) return <div className="card p-6 text-sm text-singtelGray-500">{error || 'Loading AI Management settings…'}</div>
   return <form onSubmit={save} className="space-y-5">
     <section className={`card flex flex-wrap items-center justify-between gap-3 p-4 ${settings.globalOutboundEnabled ? '' : 'border-red-300 bg-red-50'}`}>
-      <div><h3 className="text-sm font-semibold text-gray-800">Global emergency switch</h3>
-        <p className="text-xs text-gray-500">{settings.globalOutboundEnabled ? 'Autonomous outbound email is allowed for AI-managed companies.'
+      <div><h3 className="text-sm font-semibold text-singtelGray-800">Global emergency switch</h3>
+        <p className="text-xs text-singtelGray-500">{settings.globalOutboundEnabled ? 'Autonomous outbound email is allowed for AI-managed companies.'
           : `All autonomous outbound email is stopped${settings.outboundStoppedAt ? ' since ' + when(settings.outboundStoppedAt) : ''}. Replies are still recorded and escalated.`}</p></div>
       {settings.globalOutboundEnabled
         ? <button type="button" disabled={busy} onClick={() => void emergency(true)} className="inline-flex items-center gap-2 rounded bg-red-600 px-3 py-2 text-sm font-medium text-white"><OctagonIcon className="h-4 w-4" />Stop all autonomous email</button>
-        : <button type="button" disabled={busy} onClick={() => void emergency(false)} className="inline-flex items-center gap-2 rounded bg-teal-600 px-3 py-2 text-sm font-medium text-white"><PlayIcon className="h-4 w-4" />Resume autonomous email</button>}
+        : <button type="button" disabled={busy} onClick={() => void emergency(false)} className="inline-flex items-center gap-2 rounded bg-singtelRed px-3 py-2 text-sm font-medium text-white"><PlayIcon className="h-4 w-4" />Resume autonomous email</button>}
     </section>
 
     <section className="card space-y-4 p-5">
-      <div><h3 className="text-sm font-semibold text-gray-800">Daily lead discovery</h3>
-        <p className="text-xs text-gray-500">Runs on the backend scheduler, independent of this browser. The target is a maximum: only companies that pass the existing ranking thresholds are queued.</p></div>
+      <div><h3 className="text-sm font-semibold text-singtelGray-800">Daily lead discovery</h3>
+        <p className="text-xs text-singtelGray-500">Runs on the backend scheduler, independent of this browser. The target is a maximum: only companies that pass the existing ranking thresholds are queued.</p></div>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={settings.dailyRankingEnabled} onChange={e => set('dailyRankingEnabled', e.target.checked)} />Run Lead Ranking automatically every day</label>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Daily target (companies)"><input type="number" min={1} max={200} required value={settings.dailyTarget} onChange={e => set('dailyTarget', Number(e.target.value))} className={input} /></Field>
@@ -62,18 +62,18 @@ export function AiManagementSettingsPanel({ onChanged }: { onChanged?: () => voi
         <Field label="Minimum ranking confidence (%)"><input type="number" min={0} max={100} required value={settings.minimumConfidence} onChange={e => set('minimumConfidence', Number(e.target.value))} className={input} /></Field>
       </div>
       <dl className="grid gap-2 rounded-lg bg-gray-50 p-3 text-xs sm:grid-cols-3 lg:grid-cols-6">
-        <div><dt className="text-gray-400">Last execution</dt><dd className="font-medium">{when(settings.lastRun?.completedAt ?? settings.lastRun?.startedAt)}</dd></div>
-        <div><dt className="text-gray-400">Next scheduled</dt><dd className="font-medium">{when(settings.nextScheduledRunAt)}</dd></div>
-        <div><dt className="text-gray-400">Discovered</dt><dd className="font-medium">{settings.lastRun?.discovered ?? '—'}</dd></div>
-        <div><dt className="text-gray-400">Ranked</dt><dd className="font-medium">{settings.lastRun?.ranked ?? '—'}</dd></div>
-        <div><dt className="text-gray-400">Queued</dt><dd className="font-medium">{settings.lastRun?.selected ?? '—'}</dd></div>
-        <div><dt className="text-gray-400">Rejected / skipped</dt><dd className="font-medium">{settings.lastRun ? `${settings.lastRun.rejected} / ${settings.lastRun.skipped}` : '—'}</dd></div>
+        <div><dt className="text-singtelGray-500">Last execution</dt><dd className="font-medium">{when(settings.lastRun?.completedAt ?? settings.lastRun?.startedAt)}</dd></div>
+        <div><dt className="text-singtelGray-500">Next scheduled</dt><dd className="font-medium">{when(settings.nextScheduledRunAt)}</dd></div>
+        <div><dt className="text-singtelGray-500">Discovered</dt><dd className="font-medium">{settings.lastRun?.discovered ?? '—'}</dd></div>
+        <div><dt className="text-singtelGray-500">Ranked</dt><dd className="font-medium">{settings.lastRun?.ranked ?? '—'}</dd></div>
+        <div><dt className="text-singtelGray-500">Queued</dt><dd className="font-medium">{settings.lastRun?.selected ?? '—'}</dd></div>
+        <div><dt className="text-singtelGray-500">Rejected / skipped</dt><dd className="font-medium">{settings.lastRun ? `${settings.lastRun.rejected} / ${settings.lastRun.skipped}` : '—'}</dd></div>
       </dl>
     </section>
 
     <section className="card space-y-4 p-5">
-      <div><h3 className="text-sm font-semibold text-gray-800">Autonomous communication policy</h3>
-        <p className="text-xs text-gray-500">Applies to every AI-managed company. Pricing, legal, meetings, proposals, complaints and positive interest always go to a person.</p></div>
+      <div><h3 className="text-sm font-semibold text-singtelGray-800">Autonomous communication policy</h3>
+        <p className="text-xs text-singtelGray-500">Applies to every AI-managed company. Pricing, legal, meetings, proposals, complaints and positive interest always go to a person.</p></div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Field label="Follow-up intervals (days)" hint="Days after the previous email, comma-separated"><input required value={intervals} onChange={e => setIntervals(e.target.value)} className={input} /></Field>
         <Field label="Maximum follow-ups"><input type="number" min={0} max={5} required value={settings.maxFollowups} onChange={e => set('maxFollowups', Number(e.target.value))} className={input} /></Field>
@@ -90,8 +90,8 @@ export function AiManagementSettingsPanel({ onChanged }: { onChanged?: () => voi
         {settings.lastEmailPollAt ? ' Last inbox check: ' + when(settings.lastEmailPollAt) + '.' : ''}</p>
     </section>
     {error && <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-    {message && <p role="status" className="rounded bg-teal-50 p-3 text-sm text-teal-800">{message}</p>}
-    <div className="flex justify-end"><button disabled={busy} className="inline-flex items-center gap-2 rounded bg-navy-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
+    {message && <p role="status" className="rounded bg-emerald-50 p-3 text-sm text-emerald-800">{message}</p>}
+    <div className="flex justify-end"><button disabled={busy} className="inline-flex items-center gap-2 rounded bg-singtelRed px-4 py-2 text-sm font-medium text-white disabled:opacity-50">
       {busy ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <SaveIcon className="h-4 w-4" />}Save settings</button></div>
   </form>
 }

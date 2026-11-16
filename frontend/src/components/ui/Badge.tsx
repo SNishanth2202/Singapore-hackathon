@@ -7,12 +7,12 @@ interface BadgeProps {
 const priorityColors: Record<string, string> = {
   HIGH: 'bg-red-50 text-red-700 border-red-200 ring-red-100',
   MEDIUM: 'bg-amber-50 text-amber-700 border-amber-200 ring-amber-100',
-  LOW: 'bg-blue-50 text-blue-600 border-blue-200 ring-blue-100',
+  LOW: 'bg-gray-50 text-gray-600 border-gray-200 ring-gray-100',
 }
 
 const statusColors: Record<string, string> = {
-  OPEN: 'bg-teal-50 text-teal-700 border-teal-200',
-  IN_PROGRESS: 'bg-purple-50 text-purple-700 border-purple-200',
+  OPEN: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  IN_PROGRESS: 'bg-amber-50 text-amber-800 border-amber-200',
   CLOSED: 'bg-gray-100 text-gray-500 border-gray-200',
 }
 
@@ -32,7 +32,7 @@ export function Badge({ label, variant = 'default', value }: BadgeProps) {
   } else if (variant === 'industry') {
     className += 'bg-navy-50 text-navy-600 border-navy-100'
   } else if (variant === 'success') {
-    className += 'bg-teal-50 text-teal-700 border-teal-200'
+    className += 'bg-emerald-50 text-emerald-700 border-emerald-200'
   } else if (variant === 'warning') {
     className += 'bg-amber-50 text-amber-700 border-amber-200'
   } else {

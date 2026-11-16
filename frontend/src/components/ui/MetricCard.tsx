@@ -25,9 +25,9 @@ const colorMap = {
   },
   purple: {
     bg: 'bg-purple-600',
-    iconBg: 'bg-purple-50',
-    iconColor: 'text-purple-600',
-    accent: 'from-purple-500 to-purple-700',
+    iconBg: 'bg-gray-100',
+    iconColor: 'text-gray-600',
+    accent: 'from-gray-500 to-gray-500',
   },
   amber: {
     bg: 'bg-amber-500',
@@ -48,11 +48,11 @@ export function MetricCard({ label, value, icon: Icon, trend, isSample, color = 
 
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest truncate">{label}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2 tracking-tight">{value}</p>
+          <p className="text-xs font-semibold text-muted truncate">{label}</p>
+          <p className="text-3xl font-semibold tabular-nums text-gray-900 mt-2 tracking-tight">{value}</p>
           {trend && (
-            <div className={`flex items-center gap-1 mt-2 text-xs font-semibold ${isPositive ? 'text-teal-600' : 'text-red-500'}`}>
-              <div className={`flex items-center justify-center w-4 h-4 rounded-full ${isPositive ? 'bg-teal-50' : 'bg-red-50'}`}>
+            <div className={`flex items-center gap-1 mt-2 text-xs font-semibold ${isPositive ? 'text-emerald-700' : 'text-red-500'}`}>
+              <div className={`flex items-center justify-center w-4 h-4 rounded-full ${isPositive ? 'bg-emerald-50' : 'bg-red-50'}`}>
                 {isPositive ? (
                   <TrendingUpIcon className="w-2.5 h-2.5" />
                 ) : (

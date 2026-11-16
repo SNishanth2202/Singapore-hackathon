@@ -25,7 +25,7 @@ export default function LeadRanking({ researchId, qualifiedCount = 0 }: { resear
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div><h2 className="flex items-center gap-2 text-lg font-semibold text-navy-600"><BarChart3Icon className="w-5 h-5 text-teal-600" /> Lead Ranking Agent</h2>
         <p className="text-sm text-gray-500 mt-1">Send evidence-qualified service hypotheses to the ranked lead worklist.</p></div>
-      <button onClick={() => void rank()} disabled={loading || qualifiedCount === 0} className="inline-flex items-center gap-2 bg-navy-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-navy-700 disabled:opacity-60">
+      <button onClick={() => void rank()} disabled={loading || qualifiedCount === 0} className="inline-flex items-center gap-2 bg-brand text-white px-4 py-2.5 rounded-lg font-medium hover:bg-brand-600 disabled:opacity-60">
         {loading ? <RefreshCwIcon className="w-4 h-4 animate-spin" /> : <BarChart3Icon className="w-4 h-4" />}
         {loading ? 'Adding to worklist…' : result ? 'Refresh worklist candidate' : 'Add qualified leads'}
       </button>

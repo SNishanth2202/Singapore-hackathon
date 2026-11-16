@@ -1,137 +1,49 @@
-import { NavLink, useLocation } from 'react-router-dom'
-import {
-  LayoutDashboardIcon,
-  Building2Icon,
-  NetworkIcon,
-  TargetIcon,
-  SettingsIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  RadarIcon,
-  SparklesIcon,
-  UsersIcon,
-  BotIcon,
-} from 'lucide-react'
 import { useState } from 'react'
+import { NavLink, useLocation } from 'react-router-dom'
+import { LayoutDashboard, Building2, BookUser, Briefcase, Network, Share2, ListOrdered, Bot, Users, Settings, PanelLeftClose, PanelLeftOpen, Radar } from 'lucide-react'
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', path: '/', icon: LayoutDashboardIcon, exact: true },
-  { label: 'Company Intelligence', path: '/companies', icon: Building2Icon, exact: false },
-  { label: 'Customer CRM', path: '/crm', icon: UsersIcon, exact: false },
-  { label: 'Service Opportunities', path: '/service-opportunities', icon: TargetIcon, exact: false },
-  { label: 'Knowledge Graph', path: '/graph', icon: NetworkIcon, exact: false },
-  { label: 'Evidence Graph', path: '/research-graph', icon: NetworkIcon, exact: false },
-  { label: 'Lead Ranking', path: '/lead-ranking', icon: TargetIcon, exact: false },
-  { label: 'AI Management', path: '/ai-management', icon: BotIcon, exact: false },
-  { label: 'Sales Workbench', path: '/sales', icon: UsersIcon, exact: false },
-  { label: 'Settings', path: '/settings', icon: SettingsIcon, exact: false },
+const sections = [
+  { title: 'Workspace', items: [
+    { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { label: 'Company Intelligence', path: '/companies', icon: Building2 },
+    { label: 'Customer CRM', path: '/crm', icon: BookUser },
+    { label: 'Service Opportunities', path: '/service-opportunities', icon: Briefcase },
+  ] },
+  { title: 'Intelligence', items: [
+    { label: 'Knowledge Graph', path: '/graph', icon: Network },
+    { label: 'Evidence Graph', path: '/research-graph', icon: Share2 },
+    { label: 'Lead Ranking', path: '/lead-ranking', icon: ListOrdered },
+  ] },
+  { title: 'Operations', items: [
+    { label: 'AI Management', path: '/ai-management', icon: Bot },
+    { label: 'Sales Workbench', path: '/sales', icon: Users },
+    { label: 'Settings', path: '/settings', icon: Settings },
+  ] },
 ]
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
-  const location = useLocation()
-
-  function isActive(path: string, exact: boolean) {
-    if (exact) return location.pathname === path
-    return location.pathname.startsWith(path)
-  }
-
-  return (
-    <aside
-      className={`flex flex-col bg-navy-900 transition-all duration-200 ${collapsed ? 'w-16' : 'w-16 md:w-64'} flex-shrink-0`}
-      style={{ background: 'linear-gradient(180deg, #0D1929 0%, #13243B 100%)' }}
-    >
-      {/* Logo */}
-      <div className={`flex items-center gap-3 px-4 py-5 border-b border-white/10 ${collapsed ? 'justify-center' : ''}`}>
-        <div className="w-9 h-9 rounded-xl bg-teal-500 flex items-center justify-center flex-shrink-0 shadow-lg">
-          <RadarIcon className="w-5 h-5 text-white" />
-        </div>
-        {!collapsed && (
-          <div className="hidden md:block min-w-0">
-            <p className="text-sm font-bold text-white leading-tight tracking-wide">Singtel Scout</p>
-            <p className="text-xs text-teal-400 font-medium leading-tight mt-0.5">Enterprise Intelligence</p>
-          </div>
-        )}
-      </div>
-
-      {/* AI Badge */}
-      {!collapsed && (
-        <div className="hidden md:flex mx-3 mt-4 px-3 py-2 bg-teal-500/10 border border-teal-500/20 rounded-lg flex items-center gap-2">
-          <SparklesIcon className="w-3.5 h-3.5 text-teal-400 flex-shrink-0" />
-          <p className="text-xs text-teal-300 font-medium">AI-Powered Analysis</p>
-        </div>
-      )}
-
-      {/* Nav */}
-      <nav aria-label="Main navigation" className="flex-1 py-4 overflow-y-auto">
-        {!collapsed && (
-          <p className="hidden md:block px-5 mb-2 text-[10px] font-semibold text-gray-500 uppercase tracking-widest">Navigation</p>
-        )}
-        <ul className="space-y-0.5 px-2">
-          {NAV_ITEMS.map((item) => {
-            const active = isActive(item.path, item.exact)
-            return (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  title={item.label}
-                  aria-label={item.label}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group relative ${
-                    active
-                      ? 'bg-white/10 text-white'
-                      : 'text-gray-400 hover:bg-white/5 hover:text-gray-200'
-                  }`}
-                >
-                  {active && (
-                    <span className="absolute left-0 top-2 bottom-2 w-0.5 bg-teal-400 rounded-r" />
-                  )}
-                  <item.icon
-                    className={`flex-shrink-0 w-4.5 h-4.5 ${active ? 'text-teal-400' : 'text-gray-500 group-hover:text-gray-300'}`}
-                    style={{ width: 18, height: 18 }}
-                  />
-                  {!collapsed && <span className="hidden md:block truncate">{item.label}</span>}
-                  {active && !collapsed && (
-                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-teal-400" />
-                  )}
-                </NavLink>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
-
-      {/* User info */}
-      {!collapsed && (
-        <div className="hidden md:block px-4 py-3 border-t border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-teal flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">
-              SA
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-gray-200 truncate">Sales Analyst</p>
-              <p className="text-[10px] text-gray-500 truncate">Singtel Enterprise Group</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Collapse toggle */}
-      <div className="border-t border-white/10 p-2">
-        <button
-          onClick={() => setCollapsed((c) => !c)}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-500 hover:bg-white/5 hover:text-gray-300 transition-colors"
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? (
-            <ChevronRightIcon className="w-4 h-4" />
-          ) : (
-            <>
-              <ChevronLeftIcon className="w-4 h-4" />
-              <span className="hidden md:inline">Collapse</span>
-            </>
-          )}
-        </button>
-      </div>
-    </aside>
-  )
+  const { pathname } = useLocation()
+  const labelClass = collapsed ? 'sr-only' : 'hidden lg:inline'
+  return <aside className={`flex min-h-0 shrink-0 flex-col border-r border-line bg-white transition-[width] duration-200 ${collapsed ? 'w-16' : 'w-14 sm:w-16 lg:w-60'}`}>
+    <NavLink to="/" aria-label="Singtel Scout dashboard" className="flex h-16 shrink-0 items-center justify-center gap-2.5 border-b border-line lg:justify-start lg:px-3.5">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand text-white"><Radar size={23} strokeWidth={1.8} /></span>
+      {!collapsed && <span className="hidden lg:block"><strong className="block text-[15px] tracking-tight text-ink">Singtel Scout</strong><span className="text-xs text-muted">Singtel Enterprise</span></span>}
+    </NavLink>
+    <nav aria-label="Main navigation" className="flex-1 overflow-y-auto px-2 py-4">
+      {sections.map(section => <div key={section.title} className="mb-5">
+        <p className={`${labelClass} px-3 text-[10px] font-semibold uppercase tracking-[.13em] text-muted`}>{section.title}</p>
+        <ul className="mt-1.5 space-y-1">{section.items.map(({ label, path, icon: Icon }) => {
+          const active = pathname === path || (path === '/' ? pathname === '/dashboard' : pathname.startsWith(path + '/'))
+          return <li key={path}><NavLink to={path} end={path === '/'} aria-label={label} title={label} className={`relative flex min-h-10 items-center justify-center gap-3 rounded-lg px-2 text-[13px] font-medium transition-colors ${collapsed ? '' : 'lg:justify-start lg:px-3'} ${active ? 'bg-brand-50 text-brand-700' : 'text-gray-600 hover:bg-canvas hover:text-ink'}`}>
+            {active && <span aria-hidden className="absolute inset-y-2.5 left-0 w-[3px] rounded-r bg-brand" />}
+            <Icon size={17} strokeWidth={1.7} className="shrink-0" /><span className={labelClass}>{label}</span>
+          </NavLink></li>
+        })}</ul>
+      </div>)}
+    </nav>
+    <button type="button" aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-expanded={!collapsed} onClick={() => setCollapsed(!collapsed)} className="hidden w-full items-center gap-3 border-t border-line p-4 text-xs font-medium text-muted hover:bg-canvas lg:flex">
+      {collapsed ? <PanelLeftOpen size={18} /> : <><PanelLeftClose size={18} />Collapse sidebar</>}
+    </button>
+  </aside>
 }
