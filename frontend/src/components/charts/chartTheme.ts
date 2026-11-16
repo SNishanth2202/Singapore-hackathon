@@ -11,5 +11,3 @@ export const chartTheme = {
     fontSize: 12,
   },
 }
-
-export const categoryColors = [chartTheme.primary, chartTheme.secondary, '#DC8798', chartTheme.muted, '#88273C', '#B4BAC3', '#AE5B6C', '#D4D8DF']

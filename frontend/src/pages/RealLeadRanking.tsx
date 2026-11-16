@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ActivityIcon, Building2Icon, Loader2Icon, SearchIcon, Settings2Icon, SparklesIcon } from 'lucide-react'
 import {PageHeader} from '../components/ui/PageHeader'
 type Settings={markets:string[];intervalMinutes:number;enabled:boolean;maxCandidates:number}
@@ -8,20 +8,73 @@ const initial:Settings={markets:['Singapore','India'],intervalMinutes:240,enable
 const time=(value:string|null)=>value?new Date(value).toLocaleString('en-SG',{timeZone:'Asia/Singapore'}):'Not scheduled'
 async function request(path='',body?:unknown){const response=await fetch(`${(import.meta.env.VITE_API_BASE_URL??'').replace(/\/$/,'')}/api/v1/prospecting${path}`,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(20000)});const data=await response.json();if(!response.ok)throw Error(data.message??'Research request failed');return data}
 export default function RealLeadRanking(){
- const [state,setState]=useState<State|null>(null),[settings,setSettings]=useState(initial),[error,setError]=useState(''),[busy,setBusy]=useState(false),[selected,setSelected]=useState<Lead|null>(null),[query,setQuery]=useState('');const initialized=useRef(false)
- useEffect(()=>{let active=true;async function refresh(){try{const data=await request();if(!active)return;setState(data);if(!initialized.current){setSettings({markets:data.settings.markets,intervalMinutes:data.settings.intervalMinutes,enabled:data.settings.enabled,maxCandidates:data.settings.maxCandidates});initialized.current=true}setError('')}catch(e){if(active)setError((e as Error).message)}}void refresh();const timer=setInterval(()=>void refresh(),5000);return()=>{active=false;clearInterval(timer)}},[])
- async function save(run=false){setBusy(true);setError('');try{await request('/settings',settings);if(run)await request('/run',{});setState(await request())}catch(e){setError((e as Error).message)}finally{setBusy(false)}}
+ const [state, setState] = useState<State | null>(null)
+ const [settings, setSettings] = useState(initial)
+ const [markets, setMarkets] = useState('')
+ const [error, setError] = useState('')
+ const [busy, setBusy] = useState(false)
+ const [selected, setSelected] = useState<Lead | null>(null)
+ const [query, setQuery] = useState('')
+ const initialized = useRef(false)
+ const version = useRef(0)
+ const saving = useRef(false)
+
+ useEffect(() => {
+   let active = true
+   let timer: number
+   async function poll() {
+     const current = version.current
+     try {
+       if (saving.current) return
+       const data: State = await request()
+       if (!active || current !== version.current) return
+       setState(data)
+       if (!initialized.current) {
+         const { markets, intervalMinutes, enabled, maxCandidates } = data.settings
+         setSettings({ markets, intervalMinutes, enabled, maxCandidates })
+         setMarkets(data.settings.markets.join(', '))
+         initialized.current = true
+       }
+       setError('')
+     } catch (reason) {
+       if (active && current === version.current) setError((reason as Error).message)
+     } finally {
+       if (active) timer = window.setTimeout(poll, 5000)
+     }
+   }
+   void poll()
+   return () => { active = false; window.clearTimeout(timer) }
+ }, [])
+
+ async function save(run: boolean) {
+   if (saving.current || !state) return
+   saving.current = true
+   version.current++
+   setBusy(true)
+   setError('')
+   try {
+     const next = { ...settings, markets: markets.split(',').map(market => market.trim()).filter(Boolean) }
+     await request('/settings', next)
+     if (run) await request('/run', {})
+     setState(await request())
+   } catch (reason) {
+     setError((reason as Error).message)
+   } finally {
+     saving.current = false
+     setBusy(false)
+   }
+ }
  const running=state?.run&&['discovering','researching'].includes(state.run.status)
  const ranked=state?.leads??[]
  const reviewed=state?.reviewedCompanies??[]
  const input='block mt-1.5 w-full rounded-lg border border-singtelGray-200 bg-white px-3 py-2 text-sm font-normal text-singtelGray-800 focus:border-singtelRed focus:outline-singtelRed'
- return <div><PageHeader title="Lead Ranking" subtitle="Discover and research real companies. Evidence-backed opportunities for Singtel." actions={<button className="btn-primary inline-flex items-center gap-2" disabled={busy||!!running||!state} onClick={()=>void save(true)}>{running ? <Loader2Icon size={15} className="animate-spin"/> : <SparklesIcon size={15}/>} {running?'Research in progress…':'Research now'}</button>}/>
+ return <div><PageHeader title="Lead Ranking" subtitle="Discover and research real companies. Evidence-backed opportunities for Singtel." actions={<button className="btn-primary inline-flex items-center gap-2" disabled={busy||!!running||!state} type="button" form="prospecting-settings" onClick={event => { if (event.currentTarget.form?.reportValidity()) void save(true) }}>{running ? <Loader2Icon size={15} className="animate-spin"/> : <SparklesIcon size={15}/>} {running?'Research in progress…':'Research now'}</button>}/>
  {error&&<p role="alert" className="p-4 mb-4 border border-singtelRed-100 bg-singtelRed-50 rounded-lg text-sm text-singtelRed-700">{error}</p>}
- <form onSubmit={e=>{e.preventDefault();void save()}} className="card p-5 mb-5"><h2 className="flex items-center gap-2 text-base font-semibold mb-4"><Settings2Icon size={17} className="text-singtelGray-500"/>Research settings</h2><div className="grid sm:grid-cols-3 gap-4">
- <label className="text-sm font-medium text-singtelGray-700">Markets (comma separated)<input className={input} value={settings.markets.join(', ')} onChange={e=>setSettings({...settings,markets:e.target.value.split(',').map(s=>s.trim())})}/></label>
- <label className="text-sm font-medium text-singtelGray-700">Research every (minutes)<input type="number" min="15" max="43200" className={input} value={settings.intervalMinutes} onChange={e=>setSettings({...settings,intervalMinutes:Number(e.target.value)})}/><span className="block mt-1.5 font-normal text-xs text-singtelGray-500">240 minutes = 4 hours</span></label>
- <label className="text-sm font-medium text-singtelGray-700">Candidates per run<input type="number" min="1" max="40" className={input} value={settings.maxCandidates} onChange={e=>setSettings({...settings,maxCandidates:Number(e.target.value)})}/><span className="block mt-1.5 font-normal text-xs text-singtelGray-500">Start with 2–3 companies to reduce AI requests.</span></label></div>
- <div className="flex flex-wrap gap-x-4 gap-y-3 items-center mt-5 pt-4 border-t border-singtelGray-200"><label className="text-sm flex gap-2"><input type="checkbox" className="accent-singtelRed" checked={settings.enabled} onChange={e=>setSettings({...settings,enabled:e.target.checked})}/>Automatic research</label><button type="submit" className="btn-secondary" disabled={busy||!!running}>Save settings</button><span className="text-xs text-singtelGray-500">Next run: {time(state?.nextRunAt??null)} SGT</span></div>
+ <form id="prospecting-settings" onSubmit={event => { event.preventDefault(); void save(false) }} className="card p-5 mb-5"><h2 className="flex items-center gap-2 text-base font-semibold mb-4"><Settings2Icon size={17} className="text-singtelGray-500"/>Research settings</h2><div className="grid sm:grid-cols-3 gap-4">
+ <label className="text-sm font-medium text-singtelGray-700">Markets (comma separated)<input className={input} required disabled={!state || busy || !!running} value={markets} onChange={event => setMarkets(event.target.value)}/></label>
+ <label className="text-sm font-medium text-singtelGray-700">Research every (minutes)<input required disabled={!state || busy || !!running} type="number" min="15" max="43200" className={input} value={settings.intervalMinutes} onChange={e=>setSettings({...settings,intervalMinutes:Number(e.target.value)})}/><span className="block mt-1.5 font-normal text-xs text-singtelGray-500">240 minutes = 4 hours</span></label>
+ <label className="text-sm font-medium text-singtelGray-700">Candidates per run<input required disabled={!state || busy || !!running} type="number" min="1" max="40" className={input} value={settings.maxCandidates} onChange={e=>setSettings({...settings,maxCandidates:Number(e.target.value)})}/><span className="block mt-1.5 font-normal text-xs text-singtelGray-500">Start with 2–3 companies to reduce AI requests.</span></label></div>
+ <div className="flex flex-wrap gap-x-4 gap-y-3 items-center mt-5 pt-4 border-t border-singtelGray-200"><label className="text-sm flex gap-2"><input type="checkbox" disabled={!state || busy || !!running} className="accent-singtelRed" checked={settings.enabled} onChange={e=>setSettings({...settings,enabled:e.target.checked})}/>Automatic research</label><button type="submit" className="btn-secondary" disabled={busy||!!running||!state}>Save settings</button><span className="text-xs text-singtelGray-500">Next run: {time(state?.nextRunAt??null)} SGT</span></div>
  {state?.settings.enabled&&<p className="text-xs text-singtelGray-500 mt-3">Schedules continue while the backend worker is running. A sleeping hosting service needs an external scheduler wake-up; configuration: {state.scheduler.externalWakeConfigured?'wake endpoint configured':'wake-up not configured'}. Storage: {state.scheduler.storage}.</p>}</form>
  {running&&<div role="status" className="rounded-xl border border-singtelRed-100 bg-singtelRed-50 p-4 mb-4 text-sm text-singtelRed-800"><strong className="flex items-center gap-2 mb-1"><ActivityIcon size={16}/>{state?.run?.status==='discovering'?'Searching live sources…':'Researching and validating companies…'}</strong><p>{state?.run?.cursor} / {state?.run?.candidateCount} candidates processed · {state?.run?.qualifiedCount} supported opportunities. New company reports appear as each finishes.</p>{state?.run?.currentCompany&&<p className="text-sm mt-1">Next company: {state.run.currentCompany}</p>}</div>}
  {state?.run?.status==='failed'&&<p role="status" className="border border-singtelRed-100 bg-singtelRed-50 text-singtelRed-700 rounded-lg text-sm p-4 mb-4">The latest research run failed. Previous results retain their original dates. See research history for details.</p>}

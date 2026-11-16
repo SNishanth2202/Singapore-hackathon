@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useCompanies } from '../hooks/useCompanies'
+import { useApiQuery } from '../hooks/useApiQuery'
+import { companiesService } from '../services/companies.service'
 import { AlertCircleIcon, Building2Icon, MailIcon, RefreshCwIcon, UsersIcon, TrendingUpIcon, TargetIcon, SearchIcon, ArrowRightIcon, SlidersHorizontalIcon, GlobeIcon, CalendarDaysIcon } from 'lucide-react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Bar, BarChart as RechartsBarChart, Legend } from 'recharts'
 import { analyticsService, SalesAnalyticsDashboard } from '../services/analytics.service'
@@ -42,12 +43,13 @@ function ChartCard({ title: heading, note, children }: { title: string; note: st
   )
 }
 
+const loadRecentCompanies = (signal: AbortSignal) => companiesService.getCompanies({ limit: 5 }, signal)
+
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { companies: recentCompanies, loading: companiesLoading } = useCompanies({ limit: 5 })
-  const [data, setData] = useState<SalesAnalyticsDashboard | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const { data: recent, loading: companiesLoading, error: companiesError, refetch: refreshCompanies } = useApiQuery(loadRecentCompanies)
+  const recentCompanies = recent?.data ?? []
+  const [mutationError, setMutationError] = useState('')
   const [preset, setPreset] = useState('30')
   const [startDate, setStartDate] = useState(dayValue(new Date(Date.now() - 29 * 86400000)))
   const [endDate, setEndDate] = useState(dayValue(new Date()))
@@ -55,32 +57,29 @@ export default function Dashboard() {
   const [busyIntervention, setBusyIntervention] = useState('')
   const [portfolioRevision, setPortfolioRevision] = useState(0)
 
-  async function load() {
-    setLoading(true); setError('')
-    try {
-      const search = new URLSearchParams({ startDate: `${startDate}T00:00:00.000Z`, endDate: `${endDate}T23:59:59.999Z`, page: '1', limit: '20' })
-      for (const [key, value] of Object.entries(filters)) if (value) search.set(key, value)
-      setData(await analyticsService.getSalesDashboard(Object.fromEntries(search.entries())))
-    } catch (e) { setError(e instanceof Error ? e.message : 'Analytics could not be loaded.') }
-    finally { setLoading(false) }
-  }
-  useEffect(() => { void load() }, [startDate, endDate, filters.country, filters.industry, filters.service, filters.agent, filters.status])
+  const fetchDashboard = useCallback((signal: AbortSignal) => {
+    const params: Record<string, string> = { startDate: startDate + 'T00:00:00.000Z', endDate: endDate + 'T23:59:59.999Z', page: '1', limit: '20' }
+    for (const [key, value] of Object.entries(filters)) if (value) params[key] = value
+    return analyticsService.getSalesDashboard(params, signal)
+  }, [startDate, endDate, filters])
+  const { data, loading, error: loadError, refetch: load } = useApiQuery(fetchDashboard)
+  const error = mutationError || loadError
 
   function changePeriod(value: string) {
     setPreset(value)
     if (value === 'custom') return
     const end = new Date()
-    const start = value === 'today' ? new Date(end.getFullYear(), end.getMonth(), end.getDate()) : new Date(end.getTime() - (Number(value) - 1) * 86400000)
+    const start = value === 'today' ? end : new Date(end.getTime() - (Number(value) - 1) * 86400000)
     setStartDate(dayValue(start)); setEndDate(dayValue(end))
   }
 
   async function updateIntervention(item: SalesAnalyticsDashboard['interventions']['items'][number], status: string) {
     const interventionId = String(item.payload.interventionId)
-    setBusyIntervention(interventionId); setError('')
+    setBusyIntervention(interventionId); setMutationError('')
     try {
       await api.patch(`/api/v1/sales/companies/${encodeURIComponent(item.companyId)}/interventions/${encodeURIComponent(interventionId)}`, { status, assignedTo: item.assignedTo === 'Unassigned' ? 'Sales team' : item.assignedTo })
-      await load()
-    } catch (e) { setError(e instanceof Error ? e.message : 'Could not update this intervention.') }
+      load()
+    } catch (e) { setMutationError(e instanceof Error ? e.message : 'Could not update this intervention.') }
     finally { setBusyIntervention('') }
   }
 
@@ -101,7 +100,7 @@ export default function Dashboard() {
       title="Singtel Scout"
       subtitle="Account portfolio, sales activity and outreach performance."
       actions={<>
-        <button onClick={() => { setPortfolioRevision(value => value + 1); void load() }} disabled={loading} className="btn-secondary inline-flex items-center gap-2">
+        <button onClick={() => { setPortfolioRevision(value => value + 1); setMutationError(''); refreshCompanies(); load() }} disabled={loading} className="btn-secondary inline-flex items-center gap-2">
           <RefreshCwIcon size={15} className={loading ? 'animate-spin' : ''} />Refresh
         </button>
         <Link to="/lead-ranking" className="btn-primary inline-flex items-center gap-2"><SearchIcon size={15} />Find new customers</Link>
@@ -138,7 +137,7 @@ export default function Dashboard() {
       </details>
     {error && <div role="alert" className="flex gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700"><AlertCircleIcon className="h-4 w-4 shrink-0" />{error}</div>}
     {loading && !data ? <LoadingSpinner label="Loading sales analytics…" /> : data && <>
-      <section><div className="mb-3 flex items-baseline justify-between"><h2 className="font-semibold text-gray-800">Sales activity</h2><p className="text-xs text-singtelGray-500">{new Date(data.period.startDate).toLocaleDateString()} – {new Date(data.period.endDate).toLocaleDateString()}</p></div><div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section><div className="mb-3 flex items-baseline justify-between"><h2 className="font-semibold text-gray-800">Sales activity</h2><p className="text-xs text-singtelGray-500">{new Date(data.period.startDate).toLocaleDateString(undefined, { timeZone: 'UTC' })} – {new Date(data.period.endDate).toLocaleDateString(undefined, { timeZone: 'UTC' })}</p></div><div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Metric label="Discovered" value={metric.totalCompaniesDiscovered} detail="Unique companies" icon={Building2Icon} />
         <Metric label="Qualified" value={metric.qualifiedCompanies} detail="Evidence-linked hypotheses" icon={TargetIcon} />
         <Metric label="Selected" value={metric.companiesSelected} detail="For sales outreach" icon={UsersIcon} />
@@ -249,7 +248,7 @@ export default function Dashboard() {
                   <td className="px-5 py-3 text-xs text-singtelGray-500">{formatDate(company.createdAt)}</td>
                 </tr>
               ))}
-              {!recentCompanies.length && <tr><td colSpan={5} className="px-5 py-5 text-sm text-singtelGray-500">No recent companies.</td></tr>}
+              {!recentCompanies.length && <tr><td colSpan={5} className="px-5 py-5 text-sm text-singtelGray-500">{companiesError ? 'Recent companies could not be loaded.' : 'No recent companies.'}</td></tr>}
             </tbody>
           </table></div>
         )}

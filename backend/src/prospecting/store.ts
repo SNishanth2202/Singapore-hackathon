@@ -15,10 +15,20 @@ export function memoryJobStore(): JobStore { let state = initialState(), token: 
         return null; return token = randomUUID(); }, async write(next, t) { if (t !== token)
         return false; state = structuredClone(next); return true; }, async release(t) { if (t === token)
         token = null; } }; }
-const local = memoryJobStore();
-export const jobStore: JobStore = env.STORAGE_MODE === 'memory' ? local : {
-    async read() { requireCloudMongo(); await Model.updateOne({ _id: 'active' }, { $setOnInsert: { state: initialState(), leaseUntil: new Date(0) } }, { upsert: true }); return structuredClone((await Model.findById('active').lean() as any).state); },
-    async claim() { await this.read(); const token = randomUUID(); const row = await Model.findOneAndUpdate({ _id: 'active', leaseUntil: { $lte: new Date() } }, { $set: { token, leaseUntil: new Date(Date.now() + 600000) } }, { new: true }); return row ? token : null; },
+export const jobStore: JobStore = env.STORAGE_MODE === 'memory' ? memoryJobStore() : {
+    async read() {
+        requireCloudMongo();
+        const row = await Model.findById('active').select('state').lean<{ state: State }>();
+        return row?.state ?? initialState();
+    },
+    async claim() {
+        requireCloudMongo();
+        await Model.updateOne({ _id: 'active' }, { $setOnInsert: { state: initialState(), leaseUntil: new Date(0) } }, { upsert: true });
+        const token = randomUUID();
+        const result = await Model.updateOne({ _id: 'active', leaseUntil: { $lte: new Date() } },
+            { $set: { token, leaseUntil: new Date(Date.now() + 600000) } });
+        return result.matchedCount ? token : null;
+    },
     async write(state, token) { return (await Model.updateOne({ _id: 'active', token, leaseUntil: { $gt: new Date() } }, { $set: { state } })).matchedCount === 1; },
     async release(token) { await Model.updateOne({ _id: 'active', token }, { $set: { leaseUntil: new Date(0) }, $unset: { token: 1 } }); },
 };

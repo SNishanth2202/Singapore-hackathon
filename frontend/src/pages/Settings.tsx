@@ -3,7 +3,6 @@ import {
   CheckCircle2Icon,
   XCircleIcon,
   RefreshCwIcon,
-  UserIcon,
   SlidersIcon,
   DatabaseIcon,
   WifiIcon,
@@ -68,7 +67,7 @@ export default function Settings() {
     <div className="max-w-4xl mx-auto space-y-6">
       <PageHeader
         title="Settings"
-        subtitle="Manage platform configuration, user preferences, and integration health"
+        subtitle="Manage research settings, platform configuration and integration health"
       />
 
       <section aria-labelledby="ai-settings-heading" className="space-y-3">
@@ -78,40 +77,6 @@ export default function Settings() {
 
       {/* Business Knowledge */}
       <BusinessKnowledge />
-
-      {/* User Profile */}
-      <div className="card overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-navy-50 flex items-center justify-center">
-            <UserIcon className="w-4 h-4 text-navy-600" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-gray-800">User Profile</h2>
-            <p className="text-xs text-gray-400">Authentication will be added later</p>
-          </div>
-        </div>
-
-        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[
-            { label: 'Full Name', value: 'Enterprise Analyst', type: 'text' },
-            { label: 'Email Address', value: 'analyst@singtel.com', type: 'email' },
-            { label: 'Role', value: 'Strategic Enterprise Sales & Intelligence', type: 'text' },
-            { label: 'Division', value: 'Singtel Enterprise Group (Singapore HQ)', type: 'text' },
-          ].map((field) => (
-            <div key={field.label}>
-              <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
-                {field.label}
-              </label>
-              <input
-                type={field.type}
-                readOnly
-                value={field.value}
-                className="w-full text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-700 cursor-not-allowed focus:outline-none"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Platform Config */}
       <div className="card overflow-hidden">

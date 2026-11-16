@@ -1,5 +1,19 @@
 import {test,expect} from '@playwright/test'
 
+test('multiword research markets can be typed and saved', async ({ page }) => {
+  const settings = { markets: ['Singapore'], intervalMinutes: 240, enabled: false, maxCandidates: 3 }
+  const state = { settings, run: null, leads: [], history: [], sourceCatalogue: [] }
+  await page.route('**/api/v1/prospecting**', route => route.fulfill({ json: state }))
+  await page.goto('/lead-ranking')
+  const markets = page.getByLabel('Markets (comma separated)')
+  await expect(markets).toHaveValue('Singapore')
+  await markets.fill('')
+  await markets.pressSequentially('New Zealand, South Korea')
+  const request = page.waitForRequest(req => req.url().endsWith('/prospecting/settings') && req.method() === 'POST')
+  await page.getByRole('button', { name: 'Save settings', exact: true }).click()
+  expect((await request).postDataJSON().markets).toEqual(['New Zealand', 'South Korea'])
+})
+
 test('research interval persists and can be paused without creating mock leads',async({page,request})=>{
  await page.goto('/lead-ranking')
  await expect(page.getByRole('heading',{name:'Research settings'})).toBeVisible()

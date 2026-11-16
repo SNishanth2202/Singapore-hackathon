@@ -1,42 +1,38 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useOpportunities } from '../hooks/useOpportunities'
+import { useApiQuery } from '../hooks/useApiQuery'
+import { DEFAULT_PAGE_SIZE } from '../utils/constants'
 import { DataTable, Column } from '../components/ui/DataTable'
 import { FilterBar, FilterConfig } from '../components/ui/FilterBar'
 import { PageHeader } from '../components/ui/PageHeader'
 import { ErrorState } from '../components/ui/ErrorState'
 import { Badge } from '../components/ui/Badge'
 import { formatDate, formatConfidence } from '../utils/formatters'
-import { Opportunity } from '../services/opportunities.service'
+import { Opportunity, opportunitiesService } from '../services/opportunities.service'
 import { TargetIcon } from 'lucide-react'
-
-const PAGE_SIZE = 25
 
 export default function OpportunityIntelligence() {
   const [status, setStatus] = useState('')
   const [priority, setPriority] = useState('')
   const [page, setPage] = useState(1)
 
-  const { opportunities, total, loading, error, isMockData, refetch } = useOpportunities({
-    status,
-    priority,
-    page,
-    limit: PAGE_SIZE,
-  })
+  const load = useCallback((signal: AbortSignal) => opportunitiesService.getOpportunities(
+    { status, priority, page, limit: DEFAULT_PAGE_SIZE }, signal,
+  ), [status, priority, page])
+  const { data: result, loading, error, refetch } = useApiQuery(load)
+  const opportunities = result?.data ?? []
+  const total = result?.total ?? 0
 
   function handleFilterChange(id: string, value: string) {
-    const next = { status, priority, [id]: value }
     if (id === 'status') setStatus(value)
     if (id === 'priority') setPriority(value)
     setPage(1)
-    void refetch({ ...next, page: 1, limit: PAGE_SIZE })
   }
 
   function handleReset() {
     setStatus('')
     setPriority('')
     setPage(1)
-    void refetch({ page: 1, limit: PAGE_SIZE })
   }
 
   const filters: FilterConfig[] = [
@@ -134,14 +130,14 @@ export default function OpportunityIntelligence() {
     },
   ]
 
-  if (error) return <ErrorState message={error} onRetry={() => void refetch()} />
+  if (error) return <ErrorState message={error} onRetry={refetch} />
 
   return (
     <div className="max-w-7xl mx-auto space-y-5">
       <PageHeader
         title="Opportunity Intelligence"
         subtitle="Track and prioritise potential Singtel service opportunities"
-        badge={isMockData ? <Badge label="Account records" variant="sample" /> : undefined}
+        badge={result?.isMockData ? <Badge label="Account records" variant="sample" /> : undefined}
       />
 
       {/* Stats strip */}
@@ -173,11 +169,8 @@ export default function OpportunityIntelligence() {
         loading={loading}
         total={total}
         page={page}
-        pageSize={PAGE_SIZE}
-        onPageChange={(p) => {
-          setPage(p)
-          void refetch({ status, priority, page: p, limit: PAGE_SIZE })
-        }}
+        pageSize={DEFAULT_PAGE_SIZE}
+        onPageChange={setPage}
         keyExtractor={(row) => row._id}
         emptyMessage="No opportunities match your filters."
       />

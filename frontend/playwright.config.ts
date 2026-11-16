@@ -1,5 +1,6 @@
 import { defineConfig } from '@playwright/test'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 export default defineConfig({
   testDir: './e2e', testIgnore: '**/showcase.spec.ts', fullyParallel: false, workers: 1, timeout: 45000,
   reporter: [['list'], ['json', { outputFile: 'test-results/results.json' }]],
@@ -7,7 +8,7 @@ export default defineConfig({
     channel: process.platform === 'win32' ? 'msedge' : undefined,
     screenshot: 'only-on-failure', trace: 'retain-on-failure' },
   webServer: [
-    { command: 'npm --prefix ../backend run dev:preview', url: 'http://127.0.0.1:5010/api/v1/health', reuseExistingServer: process.env.PW_REUSE_SERVERS === 'true', timeout: 60000,
+    { command: 'node -r ts-node/register/transpile-only src/scripts/preview.ts', cwd: fileURLToPath(new URL('../backend', import.meta.url)), url: 'http://127.0.0.1:5010/api/v1/health', reuseExistingServer: process.env.PW_REUSE_SERVERS === 'true', timeout: 60000,
       env: { PORT: '5010', LEAD_RANKING_MODE: 'rules', CORS_ORIGIN: 'http://127.0.0.1:3010',
         LEAD_RANKING_STATE_PATH: path.resolve('..', '.local', 'e2e-ranking-state.json') } },
     { command: 'npm run dev -- --host 127.0.0.1 --port 3010 --strictPort', url: 'http://127.0.0.1:3010', reuseExistingServer: process.env.PW_REUSE_SERVERS === 'true', timeout: 60000,

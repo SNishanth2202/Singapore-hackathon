@@ -14,11 +14,9 @@ jobs:
             frontend/package-lock.json
       - run: npm --prefix backend ci
       - run: npm --prefix frontend ci
-      - run: npm --prefix backend run test:ranking
-      - run: node --test tools/gebiz-connector.test.mjs
-      - run: npm --prefix backend run build
-      - run: node --test tests/*.test.cjs
-        working-directory: backend
+      - run: npm --prefix backend test
+      - run: node --test tools/*.test.mjs
+      - run: npm --prefix frontend run lint
       - run: npm --prefix frontend run build
       - run: npm --prefix backend run verify:ranking-demo
       - run: npx playwright install --with-deps chromium
@@ -29,6 +27,7 @@ jobs:
         if: always()
         with:
           name: ranking-readiness
+          include-hidden-files: true
           path: |
             .local/readiness-report.json
             .local/screenshots

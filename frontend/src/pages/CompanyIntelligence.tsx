@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCompanies } from '../hooks/useCompanies'
+import { useApiQuery } from '../hooks/useApiQuery'
 import { DataTable } from '../components/ui/DataTable'
 import { SearchBar } from '../components/ui/SearchBar'
 import { FilterBar, FilterConfig } from '../components/ui/FilterBar'
@@ -8,13 +8,11 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { ErrorState } from '../components/ui/ErrorState'
 import { Badge } from '../components/ui/Badge'
 import { formatDate } from '../utils/formatters'
-import { INDUSTRIES, COUNTRIES, COMPANY_STAGES } from '../utils/constants'
-import { Company } from '../services/companies.service'
+import { INDUSTRIES, COUNTRIES, COMPANY_STAGES, DEFAULT_PAGE_SIZE } from '../utils/constants'
+import { Company, companiesService } from '../services/companies.service'
 import { Column } from '../components/ui/DataTable'
 import CompanyResearch from '../components/CompanyResearch'
 import { GlobeIcon, BuildingIcon } from 'lucide-react'
-
-const PAGE_SIZE = 25
 
 export default function CompanyIntelligence() {
   const navigate = useNavigate()
@@ -24,28 +22,23 @@ export default function CompanyIntelligence() {
   const [stage, setStage] = useState('')
   const [page, setPage] = useState(1)
 
-  const { companies, total, loading, error, isMockData, refetch } = useCompanies({
-    search,
-    country,
-    industry,
-    stage,
-    page,
-    limit: PAGE_SIZE,
-  })
+  const load = useCallback((signal: AbortSignal) => companiesService.getCompanies(
+    { search, country, industry, stage, page, limit: DEFAULT_PAGE_SIZE }, signal,
+  ), [search, country, industry, stage, page])
+  const { data: result, loading, error, refetch } = useApiQuery(load)
+  const companies = result?.data ?? []
+  const total = result?.total ?? 0
 
   function handleSearch(val: string) {
     setSearch(val)
     setPage(1)
-    void refetch({ search: val, country, industry, stage, page: 1, limit: PAGE_SIZE })
   }
 
   function handleFilterChange(id: string, value: string) {
-    const next = { search, country, industry, stage, [id]: value }
     if (id === 'country') setCountry(value)
     if (id === 'industry') setIndustry(value)
     if (id === 'stage') setStage(value)
     setPage(1)
-    void refetch({ ...next, page: 1, limit: PAGE_SIZE })
   }
 
   function handleReset() {
@@ -54,7 +47,6 @@ export default function CompanyIntelligence() {
     setIndustry('')
     setStage('')
     setPage(1)
-    void refetch({ page: 1, limit: PAGE_SIZE })
   }
 
   const filters: FilterConfig[] = [
@@ -132,14 +124,12 @@ export default function CompanyIntelligence() {
     },
   ]
 
-  if (error) return <ErrorState message={error} onRetry={() => void refetch()} />
-
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <PageHeader
         title="Company Intelligence"
         subtitle="Browse, filter and research companies tracked across Southeast Asia"
-        badge={isMockData ? <Badge label="Account records" variant="sample" /> : undefined}
+        badge={result?.isMockData ? <Badge label="Account records" variant="sample" /> : undefined}
       />
 
       {/* AI Research widget */}
@@ -168,21 +158,18 @@ export default function CompanyIntelligence() {
           <FilterBar filters={filters} onChange={handleFilterChange} onReset={handleReset} />
         </div>
 
-        <DataTable<Company>
+        {error ? <ErrorState message={error} onRetry={refetch} /> : <DataTable<Company>
           columns={columns}
           data={companies}
           loading={loading}
           total={total}
           page={page}
-          pageSize={PAGE_SIZE}
-          onPageChange={(p) => {
-            setPage(p)
-            void refetch({ search, country, industry, stage, page: p, limit: PAGE_SIZE })
-          }}
-          onRowClick={(row) => navigate(`/companies/${row._id}`)}
+          pageSize={DEFAULT_PAGE_SIZE}
+          onPageChange={setPage}
+          onRowClick={(row) => navigate(`/companies/${encodeURIComponent(row._id)}`)}
           keyExtractor={(row) => row._id}
           emptyMessage="No companies match your filters."
-        />
+        />}
       </div>
     </div>
   )

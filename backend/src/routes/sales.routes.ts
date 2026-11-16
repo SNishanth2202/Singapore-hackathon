@@ -5,7 +5,7 @@ import { env } from '../config/env';
 import { AppError } from '../utils/errors';
 import { sendSuccess, buildPaginationMeta } from '../utils/apiResponse';
 import { INTERVENTION_REASONS, INTERVENTION_STATUSES, ISalesActivity } from '../models/SalesActivity';
-import { appendActivity, findCompanyActivities, findInterventions, listDiscoveredCompanies, allActivityEvents } from '../salesStore';
+import { appendActivity, findInterventions, listDiscoveredCompanies, allActivityEvents } from '../salesStore';
 import { receiveReply, selectCompany, identifyContact, draftEmail, approveEmail, rejectEmail, sendApprovedEmail, updateIntervention, getWorkflow,
   scheduleFollowup, runDueFollowups, SalesCompanyContext } from '../sales/workflow';
 import { buildCompanyBrief } from '../sales/agents/company-context.agent';

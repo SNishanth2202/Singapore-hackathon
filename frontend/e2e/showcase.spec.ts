@@ -7,7 +7,7 @@ test('seeded dashboard, company filters, source catalogue and saved settings wor
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Sales intelligence', level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Singtel Scout', level: 1 })).toBeVisible()
   await expect(page.getByText('Discovered', { exact: true }).first()).toBeVisible()
   const overview = await (await request.get(api + '/analytics/overview')).json()
   expect(overview.data.metrics.totalCompaniesDiscovered).toBeGreaterThanOrEqual(4)
@@ -39,6 +39,7 @@ test('AI email activation, pause, resume, takeover, simulated reply and notifica
   await page.goto('/ai-management')
   await expect(page.getByRole('link', { name: /Harbourline Logistics/ }).first()).toBeVisible()
   await page.getByRole('link', { name: /Harbourline Logistics/ }).first().click()
+  await expect(page.getByRole('heading', { name: /Harbourline Logistics/, level: 1 })).toBeVisible()
   await page.getByRole('switch', { name: /Enable AI Management/ }).click()
   const activation = page.getByRole('dialog', { name: 'Enable AI Management' })
   await activation.getByRole('checkbox').nth(0).check()

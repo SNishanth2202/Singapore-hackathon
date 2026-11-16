@@ -3,6 +3,11 @@ import { JobStore, jobStore } from './store';
 import { SettingsSchema, State, topLeads } from './contracts';
 import { discover, researchLead } from './research';
 import { AppError } from '../utils/errors';
+
+function hasActiveRun(state: State) {
+    return state.run?.status === 'discovering' || state.run?.status === 'researching';
+}
+
 export class ProspectingService {
     constructor(private store: JobStore = jobStore, private discovery = discover, private research = researchLead, private now = () => Date.now()) { }
     async read() {
@@ -23,15 +28,19 @@ export class ProspectingService {
         await this.store.release(token);
     } }
     async settings(value: unknown) { const parsed = SettingsSchema.parse(value); return this.locked(async (state) => { state.settings = parsed; state.nextRunAt = parsed.enabled ? new Date(this.now() + parsed.intervalMinutes * 60000).toISOString() : null; }); }
-    async start() { return this.locked(async (state) => { if (state.run && ['discovering', 'researching'].includes(state.run.status))
+    async start() { return this.locked(async (state) => { if (hasActiveRun(state))
         throw new AppError('A research run is already active.', 409, 'RESEARCH_BUSY'); this.begin(state); }); }
     private begin(state: State) { state.run = { id: randomUUID(), status: 'discovering', startedAt: new Date(this.now()).toISOString(), settings: structuredClone(state.settings), candidates: [], cursor: 0, drafts: [], reviews: [], currentCompany: null, failures: [], sourceReports: [] }; }
+    private scheduledRunDue(state: State) {
+        return state.settings.enabled && state.nextRunAt !== null && Date.parse(state.nextRunAt) <= this.now();
+    }
     async tick() {
         try {
+            const current = await this.read();
+            if (!hasActiveRun(current) && !this.scheduledRunDue(current)) return current;
             return await this.locked(async (state) => {
-                if (!state.run || !['discovering', 'researching'].includes(state.run.status)) {
-                    if (!state.settings.enabled || !state.nextRunAt || Date.parse(state.nextRunAt) > this.now())
-                        return;
+                if (!hasActiveRun(state)) {
+                    if (!this.scheduledRunDue(state)) return;
                     this.begin(state);
                 }
                 const run = state.run!;

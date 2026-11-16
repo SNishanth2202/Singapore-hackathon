@@ -9,19 +9,14 @@
  * Usage:  pnpm run seed
  */
 
-import dotenv from 'dotenv';
-import path from 'path';
-
-dotenv.config({ path: path.resolve(__dirname, '..', '..', '..', '.env') });
-
-import mongoose from 'mongoose';
-import { env } from '../config/env';
+import { createHash } from 'node:crypto';
+import { closeDatabases } from '../config/database';
 import { logger } from '../utils/logger';
 import { Company } from '../models/Company';
 import { IntelligenceSignal } from '../models/IntelligenceSignal';
 import { Opportunity } from '../models/Opportunity';
-import { connectMongoDB, disconnectMongoDB } from '../integrations/mongodb/connection';
-import { connectNeo4j, disconnectNeo4j } from '../integrations/neo4j/connection';
+import { connectMongoDB } from '../integrations/mongodb/connection';
+import { connectNeo4j } from '../integrations/neo4j/connection';
 import { createCompanyNode, createRelationship, applyConstraints } from '../integrations/neo4j/graphService';
 
 const BANNER = `
@@ -186,7 +181,12 @@ const seedCompanies: SeedCompany[] = [
   },
 ];
 
-async function seed(): Promise<void> {
+const datasetTag = 'fictional-apac-seed-v1';
+function fixtureId(registrationNumber: string, kind: string) {
+  return createHash('sha256').update([datasetTag, registrationNumber, kind].join(':')).digest('hex').slice(0, 24);
+}
+
+export async function seed(): Promise<void> {
   console.log(BANNER);
   logger.info('Starting seed process...');
 
@@ -194,35 +194,18 @@ async function seed(): Promise<void> {
   await connectNeo4j();
   await applyConstraints();
 
-  // Clear existing seed data
-  await Company.deleteMany({});
-  await IntelligenceSignal.deleteMany({});
-  await Opportunity.deleteMany({});
-  logger.info('Cleared existing seed data from MongoDB');
-
-  for (const data of seedCompanies) {
-    // 1. Insert company into MongoDB
-    const company = await Company.create({
-      companyName:        data.companyName,
-      registrationNumber: data.registrationNumber,
-      website:            data.website,
-      description:        data.description,
-      industry:           data.industry,
-      country:            data.country,
-      headquarters:       data.headquarters,
-      foundedDate:        data.foundedDate,
-      employeeCount:      data.employeeCount,
-      companyStage:       data.companyStage,
-      sourceReferences: [
-        {
-          sourceName: 'Seed Script',
-          sourceUrl:  'internal://seed',
-          fetchedAt:  new Date(),
-        },
-      ],
-    });
-
-    logger.info(`Inserted company: ${company.companyName} (${company.id})`);
+  const companyIds = new Map<string, string>();
+  for (const { signal, opportunity, ...data } of seedCompanies) {
+    // Earlier versions generated IDs on insertion. Reuse their records and graph links.
+    const companyId = fixtureId(data.registrationNumber, 'company');
+    const company = await Company.findOneAndUpdate({ $or: [
+      { _id: companyId }, { registrationNumber: data.registrationNumber, 'sourceReferences.sourceUrl': 'internal://seed' },
+    ] }, {
+      $set: { datasetTag, isSynthetic: true },
+      $setOnInsert: { ...data, _id: companyId,
+        sourceReferences: [{ sourceName: 'Seed Script', sourceUrl: 'internal://seed', fetchedAt: new Date() }] },
+    }, { upsert: true, new: true });
+    companyIds.set(data.companyName, company.id);
 
     // 2. Create Neo4j node
     try {
@@ -247,36 +230,31 @@ async function seed(): Promise<void> {
     }
 
     // 3. Intelligence signal
-    await IntelligenceSignal.create({
-      companyId:       company._id,
-      signalType:      data.signal.signalType,
-      description:     data.signal.description,
-      source:          data.signal.source,
-      detectedAt:      new Date(),
-      confidenceScore: data.signal.confidenceScore,
-    });
+    const signalId = fixtureId(data.registrationNumber, 'signal');
+    await IntelligenceSignal.updateOne({ companyId: company._id, $or: [
+      { _id: signalId }, { source: signal.source, description: signal.description },
+    ] }, {
+      $set: { datasetTag, isSynthetic: true },
+      $setOnInsert: { ...signal, _id: signalId, detectedAt: new Date() },
+    }, { upsert: true });
 
     // 4. Opportunity
-    await Opportunity.create({
-      companyId:        company._id,
-      opportunityType:  data.opportunity.opportunityType,
-      potentialService: data.opportunity.potentialService,
-      reasoning:        data.opportunity.reasoning,
-      priority:         data.opportunity.priority,
-      confidenceScore:  data.opportunity.confidenceScore,
-      status:           'OPEN',
-    });
-
-    logger.info(`Created signal + opportunity for: ${company.companyName}`);
+    const opportunityId = fixtureId(data.registrationNumber, 'opportunity');
+    await Opportunity.updateOne({ companyId: company._id, $or: [
+      { _id: opportunityId }, { opportunityType: opportunity.opportunityType, reasoning: opportunity.reasoning },
+    ] }, {
+      $set: { datasetTag, isSynthetic: true },
+      $setOnInsert: { ...opportunity, _id: opportunityId, status: 'OPEN' },
+    }, { upsert: true });
   }
 
   // Create a sample PARTNERS_WITH relationship between the two Singapore companies
   try {
-    const sg1 = await Company.findOne({ companyName: 'QuantumLeap Technologies Pte Ltd' });
-    const sg2 = await Company.findOne({ companyName: 'GreenWatt Energy Pte Ltd' });
+    const sg1 = companyIds.get('QuantumLeap Technologies Pte Ltd');
+    const sg2 = companyIds.get('GreenWatt Energy Pte Ltd');
 
     if (sg1 && sg2) {
-      await createRelationship(sg1.id as string, sg2.id as string, 'PARTNERS_WITH', {
+      await createRelationship(sg1, sg2, 'PARTNERS_WITH', {
         since: '2024',
         description: 'Fictional partnership for smart factory energy monitoring',
       });
@@ -286,17 +264,12 @@ async function seed(): Promise<void> {
     logger.warn('Could not create sample relationship', { error: (err as Error).message });
   }
 
-  console.log('\n✅ Seed complete. 5 fictional companies inserted into MongoDB + Neo4j.\n');
-  logger.info('Seed complete');
+  logger.info('Seed complete', { fictionalCompanies: companyIds.size });
 }
 
-seed()
-  .catch((err: Error) => {
+if (require.main === module) {
+  seed().catch((err: Error) => {
     logger.error('Seed failed', { error: err.message, stack: err.stack });
-    process.exit(1);
-  })
-  .finally(async () => {
-    await Promise.allSettled([disconnectMongoDB(), disconnectNeo4j()]);
-    await mongoose.connection.close();
-    process.exit(0);
-  });
+    process.exitCode = 1;
+  }).finally(closeDatabases);
+}

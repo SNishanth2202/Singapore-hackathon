@@ -142,14 +142,20 @@ test('fact search, empty filters, graph zoom and account switching work without 
   await expect(page.getByText('No facts match these filters.')).toBeVisible()
   await page.getByRole('button', { name: 'Clear filters' }).click()
   await expect(page.locator('.cg-fact-card').first()).toBeVisible()
+  const zoom = page.locator('.cg-zoom span')
+  await expect(zoom).toHaveText('100%')
   await page.getByRole('button', { name: 'Zoom out', exact: true }).click()
+  await expect(zoom).toHaveText('75%')
   await expect(page.getByRole('button', { name: 'Zoom out', exact: true })).toBeDisabled()
-  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Zoom in', exact: true }).click()
+  for (const level of ['100%', '125%', '150%']) {
+    await page.getByRole('button', { name: 'Zoom in', exact: true }).click()
+    await expect(zoom).toHaveText(level)
+  }
   await expect(page.getByRole('button', { name: 'Zoom in', exact: true })).toBeDisabled()
   await page.getByRole('combobox', { name: 'Focus on' }).selectOption({ index: 1 })
   await expect(page.getByRole('complementary', { name: 'Graph node details' })).toContainText('HYPOTHESIS')
   await page.getByRole('button', { name: 'Clear selection' }).click()
-  await expect(page.getByRole('complementary', { name: 'Graph node details' })).toContainText('Every idea has a trail.')
+  await expect(page.getByRole('complementary', { name: 'Graph node details' }).getByRole('heading', { name: 'Inspect a connection' })).toBeVisible()
   await expect(page.locator('.cg-canvas').getByRole('button', { name: /Inspect Account: Meridian Logistics/ })).toHaveCount(1)
   await expect(page.locator('.cg-canvas').getByRole('button', { name: /Inspect Account: Harbour Precision/ })).toHaveCount(1)
 })
@@ -192,13 +198,12 @@ test('layouts at narrow phone, tablet and desktop widths keep content inside the
     await page.setViewportSize({ width, height: 960 })
     await page.goto('/customer-graph')
     await expect(page.locator('.cg-fact-card').first()).toBeVisible()
-    expect(await page.locator('header>h2').first().evaluate(el => {
-      const title = el.getBoundingClientRect(), header = el.parentElement!.getBoundingClientRect()
+    expect(await page.getByRole('banner').getByRole('heading', { level: 2 }).evaluate(el => {
+      const title = el.getBoundingClientRect(), header = el.closest('header')!.getBoundingClientRect()
       return title.top >= header.top && title.bottom <= header.bottom
     }), `header title overflow at ${width}px`).toBeTruthy()
     for (const counter of await page.locator('.cg-stats strong').all()) expect((await counter.boundingBox())!.height, `wrapped counter at ${width}px`).toBeLessThanOrEqual(36)
     expect(await page.locator('main').evaluate(el => el.scrollWidth <= el.clientWidth + 1), `main overflow at ${width}px`).toBeTruthy()
-    expect(await page.locator('main').evaluate(el => el.scrollWidth <= el.clientWidth + 1), `graph overflow at ${width}px`).toBeTruthy()
     await page.screenshot({ path: `../.local/screenshots/customer-graph-width-${width}.png` })
   }
 })

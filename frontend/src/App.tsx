@@ -1,21 +1,22 @@
+import { lazy } from 'react'
 import { BrowserRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom'
-import { AppProvider } from './context/AppContext'
 import MainLayout from './layouts/MainLayout'
-import Dashboard from './pages/Dashboard'
-import CompanyIntelligence from './pages/CompanyIntelligence'
-import CompanyProfile from './pages/CompanyProfile'
-import CustomerGraph from './pages/CustomerGraph'
-import OpportunityIntelligence from './pages/OpportunityIntelligence'
-import LeadRankingQueue from './pages/RealLeadRanking'
-import ReferenceRanking from './pages/LeadRankingQueue'
-import Settings from './pages/Settings'
-import SalesWorkbench from './pages/SalesWorkbench'
-import SalesWorkflowPage from './pages/SalesWorkflowPage'
-import KnowledgeGraph from './pages/KnowledgeGraph'
-import AiManagementPage from './pages/AiManagementPage'
-import AiCompanyPage from './pages/AiCompanyPage'
-import CrmAccounts from './pages/CrmAccounts'
-import CustomerPortfolio from './pages/CustomerPortfolio'
+
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const CompanyIntelligence = lazy(() => import('./pages/CompanyIntelligence'))
+const CompanyProfile = lazy(() => import('./pages/CompanyProfile'))
+const CustomerGraph = lazy(() => import('./pages/CustomerGraph'))
+const OpportunityIntelligence = lazy(() => import('./pages/OpportunityIntelligence'))
+const LeadRankingQueue = lazy(() => import('./pages/RealLeadRanking'))
+const ReferenceRanking = import.meta.env.DEV ? lazy(() => import('./pages/LeadRankingQueue')) : null
+const Settings = lazy(() => import('./pages/Settings'))
+const SalesWorkbench = lazy(() => import('./pages/SalesWorkbench'))
+const SalesWorkflowPage = lazy(() => import('./pages/SalesWorkflowPage'))
+const KnowledgeGraph = lazy(() => import('./pages/KnowledgeGraph'))
+const AiManagementPage = lazy(() => import('./pages/AiManagementPage'))
+const AiCompanyPage = lazy(() => import('./pages/AiCompanyPage'))
+const CrmAccounts = lazy(() => import('./pages/CrmAccounts'))
+const CustomerPortfolio = lazy(() => import('./pages/CustomerPortfolio'))
 
 function LegacyCustomerGraph() {
   const { search } = useLocation()
@@ -24,36 +25,34 @@ function LegacyCustomerGraph() {
 
 function App() {
   return (
-    <AppProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Routes>
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/lead-ranking" element={<LeadRankingQueue />} />
-            {import.meta.env.DEV && <Route path="/lead-ranking/reference" element={<ReferenceRanking />} />}
-            <Route path="/sales" element={<SalesWorkbench />} />
-            <Route path="/crm" element={<CustomerPortfolio />} />
-            <Route path="/crm/records" element={<CrmAccounts />} />
-            <Route path="/crm/records/:accountId" element={<CrmAccounts />} />
-            <Route path="/crm/:accountId" element={<CustomerPortfolio />} />
-            <Route path="/service-opportunities" element={<OpportunityIntelligence />} />
-            <Route path="/sales/companies/:companyId" element={<SalesWorkflowPage />} />
-            <Route path="/ai-management" element={<AiManagementPage />} />
-            <Route path="/ai-management/companies/:companyId" element={<AiCompanyPage />} />
-            <Route path="/opportunities" element={<Navigate to="/lead-ranking" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/companies" element={<CompanyIntelligence />} />
-            <Route path="/companies/:id" element={<CompanyProfile />} />
-            <Route path="/graph" element={<CustomerGraph />} />
-            <Route path="/research-graph" element={<KnowledgeGraph />} />
-            <Route path="/customer-graph" element={<LegacyCustomerGraph />} />
-            <Route path="/customer-360" element={<LegacyCustomerGraph />} />
-            <Route path="/legacy-opportunities" element={<OpportunityIntelligence />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AppProvider>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/lead-ranking" element={<LeadRankingQueue />} />
+          {ReferenceRanking && <Route path="/lead-ranking/reference" element={<ReferenceRanking />} />}
+          <Route path="/sales" element={<SalesWorkbench />} />
+          <Route path="/crm" element={<CustomerPortfolio />} />
+          <Route path="/crm/records" element={<CrmAccounts />} />
+          <Route path="/crm/records/:accountId" element={<CrmAccounts />} />
+          <Route path="/crm/:accountId" element={<CustomerPortfolio />} />
+          <Route path="/service-opportunities" element={<OpportunityIntelligence />} />
+          <Route path="/sales/companies/:companyId" element={<SalesWorkflowPage />} />
+          <Route path="/ai-management" element={<AiManagementPage />} />
+          <Route path="/ai-management/companies/:companyId" element={<AiCompanyPage />} />
+          <Route path="/opportunities" element={<Navigate to="/lead-ranking" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/companies" element={<CompanyIntelligence />} />
+          <Route path="/companies/:id" element={<CompanyProfile />} />
+          <Route path="/graph" element={<CustomerGraph />} />
+          <Route path="/research-graph" element={<KnowledgeGraph />} />
+          <Route path="/customer-graph" element={<LegacyCustomerGraph />} />
+          <Route path="/customer-360" element={<LegacyCustomerGraph />} />
+          <Route path="/legacy-opportunities" element={<OpportunityIntelligence />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 

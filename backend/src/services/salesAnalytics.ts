@@ -11,7 +11,6 @@ export interface AnalyticsFilters {
 type Counts = { count: number; companies: string[] };
 function asSetCount(row: Counts | undefined) { return new Set(row?.companies ?? []).size; }
 function percent(numerator: number, denominator: number) { return denominator ? Math.round(numerator / denominator * 1000) / 10 : 0; }
-const emptyCounts = () => ({ count: 0, companies: [] as string[] });
 
 function filtered(events: ISalesActivity[], filters: AnalyticsFilters) {
   return events.filter(event => new Date(event.createdAt) >= filters.startDate && new Date(event.createdAt) <= filters.endDate
@@ -166,7 +165,7 @@ export async function getSalesAnalytics(filters: AnalyticsFilters) {
   const insights = [] as { insight: string; supportingMetric: string; period: string; recommendedAction: string; confidence: number }[];
   if (metrics.pendingInterventions > 0) insights.push({ insight: `${metrics.pendingInterventions} human intervention(s) are pending.`, supportingMetric: 'pendingInterventions', period: `${filters.startDate.toISOString()} to ${filters.endDate.toISOString()}`, recommendedAction: 'Review the intervention queue and assign an owner.', confidence: 1 });
   if (metrics.emailsAcceptedByProvider > 0) insights.push({ insight: `${metrics.responseRatePct}% of contacted companies have replied.`, supportingMetric: 'responseRatePct', period: `${filters.startDate.toISOString()} to ${filters.endDate.toISOString()}`, recommendedAction: 'Review reply intent and follow up through the approved sales workflow.', confidence: 1 });
-  if (!insights.length) insights.push({ insight: 'No sales activity is recorded for this reporting period.', supportingMetric: 'totalCompaniesDiscovered', period: `${filters.startDate.toISOString()} to ${filters.endDate.toISOString()}`, recommendedAction: 'Run company discovery or the labelled synthetic demo to populate the worklist.', confidence: 1 });
+  if (!insights.length) insights.push({ insight: 'No sales activity is recorded for this reporting period.', supportingMetric: 'totalCompaniesDiscovered', period: `${filters.startDate.toISOString()} to ${filters.endDate.toISOString()}`, recommendedAction: 'Run company discovery to populate the worklist.', confidence: 1 });
   return { generatedAt: new Date().toISOString(), period: { startDate: filters.startDate.toISOString(), endDate: filters.endDate.toISOString(), timezone: 'UTC' }, filters: { country: filters.country ?? null, industry: filters.industry ?? null, service: filters.service ?? null, agent: filters.agent ?? null, status: filters.status ?? null },
     dataMode: env.STORAGE_MODE === 'memory' ? 'memory_preview' : 'mongodb', containsSyntheticData: (current.byType ?? []).some((row: any) => row.isSynthetic), metrics, funnel,
     funnelDenominator: 'One nested cohort of companies discovered in this period. Each stage contains only companies recorded at all preceding stages. Outreach authorisation includes human approval and explicit autonomous authorisation. Positive interest includes meeting, proposal, pricing and service requests. Email counts are reported separately.',

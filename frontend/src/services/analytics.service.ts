@@ -1,25 +1,5 @@
 import api from './api'
 
-export interface CountryCount {
-  country: string
-  count: number
-}
-
-export interface IndustryCount {
-  industry: string
-  count: number
-}
-
-export interface AnalyticsOverview {
-  totalCompanies: number
-  newThisWeek: number
-  openOpportunities: number
-  highPriorityOpportunities: number
-  companiesByCountry: CountryCount[]
-  companiesByIndustry: IndustryCount[]
-  isMockData?: boolean
-}
-
 export interface SalesAnalyticsDashboard {
   generatedAt: string
   period: { startDate: string; endDate: string; timezone: string }
@@ -47,47 +27,11 @@ export interface HealthStatus {
     mongodb: { status: string; latencyMs?: number }
     neo4j: { status: string; latencyMs?: number }
   }
-  isMockData?: boolean
 }
-
-// ─── Mock Data ───────────────────────────────────────────────────────────────
-
-export const MOCK_OVERVIEW: AnalyticsOverview = {
-  totalCompanies: 247,
-  newThisWeek: 12,
-  openOpportunities: 38,
-  highPriorityOpportunities: 9,
-  companiesByCountry: [
-    { country: 'Singapore', count: 82 },
-    { country: 'Malaysia', count: 55 },
-    { country: 'Indonesia', count: 48 },
-    { country: 'Thailand', count: 31 },
-    { country: 'Philippines', count: 21 },
-    { country: 'Vietnam', count: 10 },
-  ],
-  companiesByIndustry: [
-    { industry: 'Technology', count: 71 },
-    { industry: 'Finance', count: 44 },
-    { industry: 'Healthcare', count: 36 },
-    { industry: 'Logistics', count: 28 },
-    { industry: 'Retail', count: 25 },
-    { industry: 'Manufacturing', count: 22 },
-    { industry: 'Education', count: 21 },
-  ],
-  isMockData: true,
-}
-
-// ─── Service ─────────────────────────────────────────────────────────────────
 
 export const analyticsService = {
-  async getOverview(): Promise<AnalyticsOverview> {
-    const response = await api.get('/api/v1/analytics/overview')
-    const resData = response.data
-    return (resData.data ?? resData) as AnalyticsOverview
-  },
-
-  async getSalesDashboard(params: Record<string, string> = {}): Promise<SalesAnalyticsDashboard> {
-    const response = await api.get('/api/v1/analytics/overview', { params })
+  async getSalesDashboard(params: Record<string, string> = {}, signal?: AbortSignal): Promise<SalesAnalyticsDashboard> {
+    const response = await api.get('/api/v1/analytics/overview', { params, signal })
     return response.data.data as SalesAnalyticsDashboard
   },
 
@@ -104,13 +48,12 @@ export const analyticsService = {
           mongodb:
             typeof rawServices.mongodb === 'object'
               ? rawServices.mongodb
-              : { status: rawServices.mongodb === 'up' ? 'healthy' : 'down' },
+              : { status: rawServices.mongodb === 'up' ? 'healthy' : rawServices.mongodb ?? 'unknown' },
           neo4j:
             typeof rawServices.neo4j === 'object'
               ? rawServices.neo4j
-              : { status: rawServices.neo4j === 'up' ? 'healthy' : 'down' },
+              : { status: rawServices.neo4j === 'up' ? 'healthy' : rawServices.neo4j ?? 'unknown' },
         },
-        isMockData: false,
       }
     } catch {
       return {
@@ -120,7 +63,6 @@ export const analyticsService = {
           mongodb: { status: 'unknown' },
           neo4j: { status: 'unknown' },
         },
-        isMockData: true,
       }
     }
   },

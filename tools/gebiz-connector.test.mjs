@@ -40,6 +40,19 @@ test('all pages are collected with stable record IDs and hashes on repeated read
   assert.deepEqual(first, second);
 });
 
+test('missing or non-numeric amounts cannot become observed zero-value awards', () => {
+  for (const awarded_amt of ['', ' ', false, []]) {
+    assert.throws(() => normalizeAward({ ...raw(1), awarded_amt }, '2026-11-15', 'x'), /award amount/);
+  }
+  for (const awarded_amt of [0, '0']) {
+    assert.equal(normalizeAward({ ...raw(1), awarded_amt }, '2026-11-15', 'x').claims.awardAmountSgd, 0);
+  }
+});
+
+test('records exceeding the declared total cannot be published as a complete dataset', async () => {
+  await assert.rejects(fetchGebiz({ fetchImpl: async () => response([raw(1), raw(2)], 1) }), /declared total/);
+});
+
 test('a later-page source failure rejects the generation rather than publishing partial records', async () => {
   const fetchImpl = async url => Number(url.searchParams.get('offset')) === 0
     ? response([raw(1)], 2) : { ok: false, status: 429 };

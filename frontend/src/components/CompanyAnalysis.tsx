@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { SparklesIcon, RefreshCwIcon, AlertCircleIcon, CheckCircleIcon } from 'lucide-react'
 import axios from 'axios'
 import api from '../services/api'
@@ -31,6 +31,16 @@ export default function CompanyAnalysis({ companyId, sources = [], autoRun = fal
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [reviewed, setReviewed] = useState(false)
+  const analyze = useCallback(async () => {
+    setLoading(true); setError(''); setReviewed(false)
+    try {
+      const response = await api.post('/api/v1/ai/analyze', { companyId }, { timeout: 180000 })
+      setResult(response.data.data)
+    } catch (e) {
+      setResult(null)
+      setError(axios.isAxiosError(e) ? e.response?.data?.message ?? 'The analysis request failed. Check the backend and AI provider.' : 'Could not analyze this company.')
+    } finally { setLoading(false) }
+  }, [companyId])
   useEffect(() => {
     let active = true
     setResult(null); setError(''); setReviewed(false); setLoading(true)
@@ -42,17 +52,7 @@ export default function CompanyAnalysis({ companyId, sources = [], autoRun = fal
       else setLoading(false)
     }).catch(() => { if (active) { setLoading(false); setError('Saved analysis could not be loaded. You can retry with Analyze with AI.') } })
     return () => { active = false }
-  }, [companyId, autoRun]) // eslint-disable-line react-hooks/exhaustive-deps
-  async function analyze() {
-    setLoading(true); setError(''); setReviewed(false)
-    try {
-      const response = await api.post('/api/v1/ai/analyze', { companyId }, { timeout: 180000 })
-      setResult(response.data.data)
-    } catch (e) {
-      setResult(null)
-      setError(axios.isAxiosError(e) ? e.response?.data?.message ?? 'The analysis request failed. Check the backend and AI provider.' : 'Could not analyze this company.')
-    } finally { setLoading(false) }
-  }
+  }, [companyId, autoRun, analyze])
   const a = result?.analysis
   const qualifiedCount = a?.possibleNeeds.length ?? 0
   useEffect(() => { onQualificationChange?.(loading ? 0 : qualifiedCount) }, [qualifiedCount, loading, onQualificationChange])

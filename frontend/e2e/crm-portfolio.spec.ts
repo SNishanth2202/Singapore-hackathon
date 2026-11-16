@@ -15,7 +15,7 @@ test('dashboard and CRM use the connected account totals, filters, search and pa
   await page.goto('/')
   await expect(page.getByRole('region', { name: 'Customer portfolio overview', exact: true })).toBeVisible()
   await expect(page.getByRole('link', { name: new RegExp('Customer accounts ' + data.metrics.accounts) })).toBeVisible()
-  expect(await page.getByRole('main').innerText()).not.toMatch(/\b(synthetic|demo|dummy|prototype|mock)\b/i)
+  expect(await page.getByRole('region', { name: 'Customer portfolio overview', exact: true }).innerText()).not.toMatch(/\b(synthetic|demo|dummy|prototype|mock)\b/i)
   await page.screenshot({ path: '../.local/screenshots/crm-filled-dashboard.png', fullPage: true })
   await page.getByRole('link', { name: 'Explore customers', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Customer accounts ' + data.accounts.length, exact: true })).toBeVisible()

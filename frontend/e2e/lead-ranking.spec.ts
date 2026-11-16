@@ -202,7 +202,7 @@ test('missing-key popup connects without browser key storage; AI urgency and per
 
 test('lead ranking uses the shared app shell, keeps dashboard home and redirects older links', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Sales intelligence', level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Singtel Scout', level: 1 })).toBeVisible()
   const navigation = page.getByRole('navigation', { name: 'Main navigation' })
   await navigation.getByRole('link', { name: 'Lead Ranking', exact: true }).click()
   await expect(page).toHaveURL(/\/lead-ranking$/)

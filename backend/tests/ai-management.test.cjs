@@ -61,3 +61,13 @@ test('manual ranking run reports only imported discovery companies and never fil
   const history = await request('/daily-runs?limit=5');
   assert.equal(history.json.data[0].runId, run.json.data.runId);
 });
+
+test('a completed evening ranking run schedules the next local calendar day across a DST change', async () => {
+  const { nextScheduledRun } = require('../dist/ai-management/scheduler');
+  const { saveDailyRankingRun } = require('../dist/ai-management/store');
+  await saveDailyRankingRun({ runId: 'daily-ranking:2026-10-31', status: 'COMPLETED' });
+  const next = await nextScheduledRun({
+    dailyRankingEnabled: true, timezone: 'America/New_York', preferredTime: '20:30',
+  }, new Date('2026-11-01T01:00:00Z'));
+  assert.equal(next.toISOString(), '2026-11-02T01:30:00.000Z');
+});

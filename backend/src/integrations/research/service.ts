@@ -58,7 +58,7 @@ function source(kind: ResearchSource['kind'], title: string, url: string, excerp
     verification: kind === 'news_headline' ? 'headline_only' : kind === 'official_page' ? 'retrieved_official_page' : 'retrieved_profile' };
 }
 
-export function parseNews(xml: string, company: CompanyIdentity, strictNames = false): ResearchSource[] {
+export function parseNews(xml: string, company: CompanyIdentity): ResearchSource[] {
   const parser = new XMLParser({ ignoreAttributes: false, processEntities: false, isArray: (_name, jpath) => jpath === 'rss.channel.item' });
   const data = parser.parse(xml);
   const items = data?.rss?.channel?.item ?? [];
@@ -150,7 +150,7 @@ export async function researchIdentity(company: CompanyIdentity, discoverySource
       try {
         const query = `"${company.name.replace(/["\\]/g, ' ')}" when:90d`;
         const feed = await publicFetch(`https://news.google.com/rss/search?${new URLSearchParams({ q: query, hl: 'en-IN', gl: 'IN', ceid: 'IN:en' })}`);
-        const news = parseNews(feed.text, company, strictNames); sources.push(...news);
+        const news = parseNews(feed.text, company); sources.push(...news);
         if (!news.length) warnings.push('No recent name-matching news headlines were found. This does not prove that the company has no needs.');
         else warnings.push('News items are publisher-reported headlines from Google News. Article bodies and company-specific relevance have not been independently verified.');
       } catch { warnings.push('News discovery is unavailable. No headlines were invented or substituted.'); }

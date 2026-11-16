@@ -46,8 +46,9 @@ export async function nextScheduledRun(settings: AiManagementSettingsRecord, now
   const todayAt = zonedTimeToUtc(today, settings.preferredTime, settings.timezone);
   if (!todayRun && +todayAt > +now) return todayAt;
   if (!todayRun || todayRun.status === 'FAILED') return now; // due now; the worker checks every minute
-  const tomorrow = localClock(new Date(+todayAt + 36 * 3600_000), settings.timezone).date;
-  return zonedTimeToUtc(tomorrow, settings.preferredTime, settings.timezone);
+  const tomorrow = new Date(today + 'T00:00:00Z');
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+  return zonedTimeToUtc(tomorrow.toISOString().slice(0, 10), settings.preferredTime, settings.timezone);
 }
 
 function discoveryEntity(row: QueueRow): { companyId: string; companyName: string } | null {

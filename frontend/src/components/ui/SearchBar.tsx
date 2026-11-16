@@ -13,7 +13,8 @@ export function SearchBar({ value, onChange, placeholder = 'Search...' }: Search
         <SearchIcon className="w-4 h-4 text-gray-400" />
       </div>
       <input
-        type="text"
+        type="search"
+        aria-label="Search tracked companies"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -21,6 +22,8 @@ export function SearchBar({ value, onChange, placeholder = 'Search...' }: Search
       />
       {value && (
         <button
+          type="button"
+          aria-label="Clear company search"
           onClick={() => onChange('')}
           className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
         >

@@ -10,16 +10,4 @@ const api = axios.create({
   },
 })
 
-api.interceptors.request.use((config) => {
-  return config
-})
-
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Propagate so callers can handle and fall back to mock data
-    return Promise.reject(error)
-  },
-)
-
 export default api

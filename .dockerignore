@@ -2,6 +2,6 @@
 **/dist
 .git
 .local
-.env
+**/.env*
 **/test-results
 **/playwright-report

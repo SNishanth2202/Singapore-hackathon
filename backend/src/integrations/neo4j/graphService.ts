@@ -31,10 +31,8 @@ export async function runQuery<T extends RecordShape = RecordShape>(
 
   const session: Session = getDriver().session({ database: env.NEO4J_DATABASE });
   try {
-    const result = await session.run<T>(cypher, params);
-    return result;
+    return await session.run<T>(cypher, params);
   } catch (error) {
-    const err = error as Error;
     logger.error('Neo4j query failed');
     throw error;
   } finally {

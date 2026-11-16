@@ -38,15 +38,6 @@ export async function findCompanies(
   return { companies: companies as unknown as ICompanyDocument[], total };
 }
 
-export async function findCompanyById(
-  id: string
-): Promise<ICompanyDocument | null> {
-  if (!Types.ObjectId.isValid(id)) return null;
-
-  const company = await Company.findById(id).lean();
-  return company as unknown as ICompanyDocument | null;
-}
-
 export async function findCompanyWithSignals(id: string): Promise<{
   company: ICompanyDocument | null;
   signals: unknown[];
@@ -64,39 +55,4 @@ export async function findCompanyWithSignals(id: string): Promise<{
     company: company as unknown as ICompanyDocument | null,
     signals,
   };
-}
-
-export async function createCompany(
-  data: Partial<ICompanyDocument>
-): Promise<ICompanyDocument> {
-  const company = new Company(data);
-  return company.save();
-}
-
-export async function updateCompanyNeo4jId(
-  companyId: string,
-  neo4jNodeId: string
-): Promise<void> {
-  await Company.findByIdAndUpdate(companyId, { neo4jNodeId });
-}
-
-export async function countCompaniesByCountry(): Promise<Array<{ _id: string; count: number }>> {
-  return Company.aggregate([
-    { $group: { _id: '$country', count: { $sum: 1 } } },
-    { $sort: { count: -1 } },
-    { $limit: 20 },
-  ]);
-}
-
-export async function countCompaniesByIndustry(): Promise<Array<{ _id: string; count: number }>> {
-  return Company.aggregate([
-    { $group: { _id: '$industry', count: { $sum: 1 } } },
-    { $sort: { count: -1 } },
-  ]);
-}
-
-export async function countNewCompaniesThisWeek(): Promise<number> {
-  const oneWeekAgo = new Date();
-  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-  return Company.countDocuments({ createdAt: { $gte: oneWeekAgo } });
 }

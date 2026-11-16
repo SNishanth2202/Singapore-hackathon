@@ -1,5 +1,26 @@
 import { test, expect } from '@playwright/test'
 
+test('retrying a filtered company search keeps the query and the research workspace', async ({ page }) => {
+  const searches: string[] = []
+  await page.route('**/api/v1/companies?**', async route => {
+    const query = new URL(route.request().url()).searchParams.get('search')
+    if (query) searches.push(query)
+    if (searches.length === 1 && query) {
+      await route.fulfill({ status: 503, json: { message: 'Temporary failure' } })
+      return
+    }
+    const data = query ? [{ _id: 'cedar', companyName: 'Cedar Retail' }] : []
+    await route.fulfill({ json: { data, meta: { total: data.length } } })
+  })
+  await page.goto('/companies')
+  await page.getByLabel('Company name to research').fill('Research in progress')
+  await page.getByRole('searchbox', { name: 'Search tracked companies' }).fill('Cedar')
+  await page.getByRole('button', { name: 'Retry', exact: true }).click()
+  await expect(page.getByText('Cedar Retail', { exact: true })).toBeVisible()
+  await expect(page.getByLabel('Company name to research')).toHaveValue('Research in progress')
+  expect(searches).toEqual(['Cedar', 'Cedar'])
+})
+
 test('company detail renders linked DB opportunities and opens its canonical sales account', async ({ page }) => {
   const id = '0123456789abcdef01234567', salesId = 'synthetic:linked-account'
   await page.route('**/api/v1/companies/' + id, route => route.fulfill({ json: { success: true, data: {

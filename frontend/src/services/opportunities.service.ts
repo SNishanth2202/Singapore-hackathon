@@ -33,8 +33,8 @@ export interface OpportunityFilters {
 }
 
 export const opportunitiesService = {
-  async getOpportunities(filters: OpportunityFilters = {}): Promise<PaginatedOpportunities> {
-    const response = await api.get('/api/v1/opportunities', { params: filters })
+  async getOpportunities(filters: OpportunityFilters = {}, signal?: AbortSignal): Promise<PaginatedOpportunities> {
+    const response = await api.get('/api/v1/opportunities', { params: filters, signal })
     const result = response.data
     if (!Array.isArray(result?.data)) throw new Error('The opportunity service returned an invalid response. Please retry.')
     return { data: result.data, total: result.meta?.total ?? result.data.length,

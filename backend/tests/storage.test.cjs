@@ -5,6 +5,21 @@ const {saveResearch,loadResearch,listResearch}=require('../dist/integrations/res
 const {saveAnalysis,latestAnalysis,loadAnalysis}=require('../dist/integrations/research/analysisStore');
 const {researchGraphData}=require('../dist/integrations/neo4j/researchGraph');
 const {retryDelay,syncNextResearch}=require('../dist/integrations/neo4j/syncWorker');
+
+test('cloud startup installs the unique keys used for worker leases, settings, ranking and notifications', async t => {
+  const mongoose = require('mongoose');
+  const { ensureCloudIndexes } = require('../dist/models/CloudStorage');
+  const { AiManagementCompany, AiManagementSettings, AiManagementNotification, DailyRankingRun, AiManagementLease } = require('../dist/models/AiManagement');
+  const indexed = new Set();
+  for (const model of Object.values(mongoose.models)) {
+    t.mock.method(model, 'createCollection', async () => {});
+    t.mock.method(model, 'createIndexes', async () => indexed.add(model.modelName));
+  }
+  await ensureCloudIndexes();
+  for (const model of [AiManagementCompany, AiManagementSettings, AiManagementNotification, DailyRankingRun, AiManagementLease]) {
+    assert.ok(indexed.has(model.modelName), model.modelName + ' indexes must exist before workers start');
+  }
+});
 const record={id:'research-11111111-1111-4111-8111-111111111111',company:{entityId:'Q123',name:'Example Logistics',aliases:[],description:'Test fixture',website:null,identitySource:'https://example.com',wikipediaTitle:null},createdAt:new Date().toISOString(),warnings:[],sources:[{id:'e1',kind:'news_headline',title:'Example Logistics opens a warehouse',url:'https://example.com/news',publisher:'Example',excerpt:'Headline only',publishedAt:new Date().toISOString(),retrievedAt:new Date().toISOString(),contentHash:'abc',verification:'headline_only'},{id:'e2',kind:'news_headline',title:'Unrelated company launches a product',url:'https://example.com/other',publisher:'Example',excerpt:'Other company',publishedAt:new Date().toISOString(),retrievedAt:new Date().toISOString(),contentHash:'def',verification:'headline_only'}]};
 
 test('history and saved reports retain the exact snapshot and clone returned values',async()=>{
@@ -42,4 +57,43 @@ test('graph failures leave a leased snapshot pending for retry; success acknowle
   assert.equal(await syncNextResearch(),true);assert.equal(update.$set.graphStatus,'SYNCED');
   assert.ok(update.$set.graphSyncedAt instanceof Date);
   assert.equal(retryDelay(999),300000);
+});
+
+test('the fictional seed reuses existing company IDs and scopes insertions to its own records', async t => {
+  const { seed } = require('../dist/scripts/seed');
+  const { Company } = require('../dist/models/Company');
+  const { IntelligenceSignal } = require('../dist/models/IntelligenceSignal');
+  const { Opportunity } = require('../dist/models/Opportunity');
+  const graph = require('../dist/integrations/neo4j/graphService');
+  t.mock.method(require('../dist/integrations/mongodb/connection'), 'connectMongoDB', async () => {});
+  t.mock.method(require('../dist/integrations/neo4j/connection'), 'connectNeo4j', async () => {});
+  t.mock.method(graph, 'applyConstraints', async () => {});
+  t.mock.method(graph, 'createCompanyNode', async () => {});
+  const links = t.mock.method(graph, 'createRelationship', async () => {});
+  t.mock.method(Company, 'findByIdAndUpdate', async () => {});
+  for (const model of [Company, IntelligenceSignal, Opportunity]) {
+    t.mock.method(model, 'deleteMany', () => assert.fail('Seeding cannot delete application data'));
+  }
+  const legacyId = '123456789012345678901234';
+  const companies = t.mock.method(Company, 'findOneAndUpdate', async (filter, update) => {
+    const row = update.$setOnInsert;
+    assert.deepEqual(filter.$or, [{ _id: row._id }, {
+      registrationNumber: row.registrationNumber, 'sourceReferences.sourceUrl': 'internal://seed',
+    }]);
+    const id = row.registrationNumber === 'SG-FAKE-202301001' ? legacyId : row._id;
+    return { ...row, id, _id: id };
+  });
+  const signals = t.mock.method(IntelligenceSignal, 'updateOne', async () => {});
+  const opportunities = t.mock.method(Opportunity, 'updateOne', async () => {});
+  await seed();
+  await seed();
+  for (const writes of [companies, signals, opportunities]) {
+    const insertedIds = writes.mock.calls.map(({ arguments: [, update] }) => update.$setOnInsert._id);
+    assert.equal(insertedIds.length, 10);
+    assert.equal(new Set(insertedIds).size, 5);
+  }
+  for (const writes of [signals, opportunities]) {
+    assert.equal(writes.mock.calls[0].arguments[0].companyId, legacyId);
+  }
+  assert.equal(links.mock.calls[0].arguments[0], legacyId);
 });

@@ -12,10 +12,6 @@ export function Navbar({ title }: { title: string }) {
     <div className="flex shrink-0 items-center gap-2 sm:gap-3">
       <Link to="/companies" title="Search companies" aria-label="Search companies" className="flex h-8 items-center gap-2 rounded-lg border border-line px-2 text-xs text-muted hover:border-gray-300 sm:px-3"><Search size={15} /><span className="hidden md:inline">Search companies</span></Link>
       <NotificationBell />
-      <div className="flex items-center gap-2.5 border-l border-line pl-3">
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-gray-100 text-xs font-bold text-gray-700">SA</span>
-        <div className="hidden md:block"><p className="text-xs font-semibold text-ink">Sales Analyst</p><p className="text-[11px] text-muted">admin@singtel.com</p></div>
-      </div>
     </div>
   </header>
 }

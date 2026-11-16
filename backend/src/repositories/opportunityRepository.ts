@@ -53,18 +53,3 @@ export async function findOpportunities(
 
   return { opportunities: opportunities.map(serializeOpportunity) as unknown as IOpportunityDocument[], total };
 }
-
-export async function createOpportunity(
-  data: Partial<IOpportunityDocument>
-): Promise<IOpportunityDocument> {
-  const opportunity = new Opportunity(data);
-  return opportunity.save();
-}
-
-export async function countOpenOpportunities(): Promise<number> {
-  return Opportunity.countDocuments({ status: 'OPEN' });
-}
-
-export async function countHighPriorityOpportunities(): Promise<number> {
-  return Opportunity.countDocuments({ priority: 'HIGH', status: { $ne: 'CLOSED' } });
-}

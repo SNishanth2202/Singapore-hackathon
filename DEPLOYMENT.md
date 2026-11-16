@@ -41,4 +41,6 @@ Run backend `test:research`, `test:deployment` and `check:deployment`, then the 
 
 No user login is added. Hosted research and analysis are available with request limits. Model-list diagnostics, test generation and business-configuration edits remain local-only; the hosted catalogue is view-only until administrator access is implemented.
 
-Database integration is deferred to the next version. To enable it later, configure Atlas/Aura credentials, set `STORAGE_MODE=cloud`, `LOCAL_DEMO_MODE=false` and `HOSTED_PREVIEW=false`, and run `verify:cloud`. Research-to-graph synchronisation remains separate unfinished work. Render Free can sleep when idle, so initial requests may take longer.
+For a persistent deployment, configure Atlas and Aura, set `STORAGE_MODE=cloud`, `LOCAL_DEMO_MODE=false` and `HOSTED_PREVIEW=false`, and run `npm --prefix backend run verify:cloud` from the repository root. The cloud backend stores research in Atlas and projects it into Neo4j through the graph-sync worker. See the [cloud configuration and verification instructions](backend/CLOUD-STORAGE.md).
+
+Render Free can sleep when idle, so initial requests may take longer.

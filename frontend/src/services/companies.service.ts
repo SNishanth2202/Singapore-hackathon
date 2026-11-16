@@ -75,16 +75,16 @@ export interface CompanyFilters {
 }
 
 export const companiesService = {
-  async getCompanies(filters: CompanyFilters = {}): Promise<PaginatedCompanies> {
-    const response = await api.get('/api/v1/companies', { params: filters })
+  async getCompanies(filters: CompanyFilters = {}, signal?: AbortSignal): Promise<PaginatedCompanies> {
+    const response = await api.get('/api/v1/companies', { params: filters, signal })
     const result = response.data
     if (!Array.isArray(result?.data)) throw new Error('The company service returned an invalid response. Please retry.')
     return { data: result.data, total: result.meta?.total ?? result.data.length,
       page: result.meta?.page ?? filters.page ?? 1, limit: result.meta?.limit ?? filters.limit ?? 25,
       isMockData: result.dataMode === 'sample' || (result.data.length > 0 && result.data.every((row: Company) => row.isSynthetic === true)) }
   },
-  async getCompanyById(id: string): Promise<CompanyWithSignals> {
-    const response = await api.get('/api/v1/companies/' + encodeURIComponent(id))
+  async getCompanyById(id: string, signal?: AbortSignal): Promise<CompanyWithSignals> {
+    const response = await api.get('/api/v1/companies/' + encodeURIComponent(id), { signal })
     const company = response.data?.data
     if (!company?._id) throw new Error('The company service returned an invalid profile. Please retry.')
     return company

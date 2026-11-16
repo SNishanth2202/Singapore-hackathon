@@ -62,9 +62,8 @@ Singtel Scout aggregates public signals about companies (funding rounds, hiring 
 
 ## Prerequisites
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) >= 24
-- [Node.js](https://nodejs.org/) >= 20 (for local dev)
-- [pnpm](https://pnpm.io/) >= 9 (`npm i -g pnpm`)
+- The Docker preview uses [Docker Desktop](https://www.docker.com/products/docker-desktop/) with Docker Compose.
+- Local development uses Node.js 22 and its bundled npm. CI uses the same major version.
 
 ---
 
@@ -75,43 +74,28 @@ Singtel Scout aggregates public signals about companies (funding rounds, hiring 
 git clone <repo-url>
 cd Singapore-hackathon
 
-# 2. Create your .env file
-cp .env.example .env
-# Edit .env -- set NEO4J_PASSWORD and JWT_SECRET at minimum
-
-# 3. Start all services
+# 2. Start the frontend and memory-preview backend
 docker compose up --build -d
 
-# 4. Check health
+# 3. Check health
 curl http://localhost:5000/api/v1/health
 ```
 
-Services will be available at:
-- **Backend API**: http://localhost:5000
-- **Neo4j Browser**: http://localhost:7474
-- **Frontend**: http://localhost:3000
+Open the [website](http://localhost:3000) or the [backend health endpoint](http://localhost:5000/api/v1/health).
+For the customer graph, also run `docker compose up -d neo4j`. The [Neo4j Browser](http://localhost:7474) is available when that service is running. The optional MongoDB and Neo4j containers belong to the `legacy` Compose profile.
 
 ---
 
 ## Local Development
 
 ```bash
-# Install backend dependencies
-cd backend
-pnpm install
-
-# Start MongoDB + Neo4j only via Docker
-docker compose up mongodb neo4j -d
-
-# Run dev server (hot-reload)
-pnpm run dev
-
-# Build TypeScript
-pnpm run build
-
-# Seed sample data
-pnpm run seed
+# From the repository root
+npm --prefix backend ci
+npm --prefix frontend ci
+npm run dev
 ```
+
+Open the [local website](http://localhost:3000). The development launcher starts Vite and the memory-preview API. For persistent storage, configure Atlas and Aura in the project-root `.env` and run `npm --prefix backend run dev`. Start Vite in another terminal with `npm --prefix frontend run dev`. See the [cloud storage setup](backend/CLOUD-STORAGE.md).
 
 ---
 
@@ -152,11 +136,10 @@ See [.env.example](.env.example) for a full list with descriptions.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `MONGODB_URI` | Yes | MongoDB connection string |
-| `NEO4J_URI` | Yes | Neo4j Bolt URI |
-| `NEO4J_USERNAME` | Yes | Neo4j username |
-| `NEO4J_PASSWORD` | Yes | Neo4j password |
-| `JWT_SECRET` | Yes | Secret for JWT signing |
+| `MONGODB_URI` | Cloud storage | MongoDB Atlas connection string |
+| `NEO4J_URI` | Cloud storage and graph features | Neo4j connection URI |
+| `NEO4J_USERNAME` | Cloud storage and graph features | Neo4j username |
+| `NEO4J_PASSWORD` | Cloud storage and graph features | Neo4j password |
 | `PORT` | No | API port (default 5000) |
 | `CORS_ORIGIN` | No | Allowed CORS origin |
 
@@ -164,12 +147,12 @@ See [.env.example](.env.example) for a full list with descriptions.
 
 ## Seed Data
 
+The memory preview starts with fixtures automatically. To populate a sample database, point the backend database settings at that database and run the command below. It creates or updates five fictional companies and their corresponding signals and opportunities.
+
 ```bash
 cd backend
-pnpm run seed
+npm run seed
 ```
-
-Inserts **5 fictional sample companies** (clearly labelled) with associated opportunities and intelligence signals into both MongoDB and Neo4j. **This data is not real.**
 
 ---
 
@@ -215,8 +198,6 @@ Singapore-hackathon/
         │   ├── charts/
         │   ├── layout/
         │   └── ui/
-        ├── context/
-        ├── hooks/
         ├── layouts/
         ├── pages/
         │   ├── Dashboard.tsx
@@ -235,8 +216,8 @@ Singapore-hackathon/
 
 ```bash
 cd frontend
-npm install # or pnpm install
-npm run dev # runs Vite on http://localhost:3000 with API proxy to port 5000
+npm ci
+npm run dev # serves http://localhost:3000 and proxies API calls to the backend PORT (default 5000)
 npm run build # TypeScript compilation & optimized production bundle
 ```
 
@@ -279,11 +260,11 @@ Verified local model: `mistral-small-3.2-24b` (served as Mistral-Small-3.2-24B-I
 
 ## Visible company-analysis preview
 
-On Windows, open FreeLLMAPI Desktop, then double-click **Start Enterprise Radar.cmd** in the project folder (or the Desktop launcher). It prepares and starts the local backend and website, waits for readiness and opens Company Intelligence. Keep its window open; Ctrl+C stops only the services it started. If the project is already running, it reuses it. This starts the same local public-research/sample-account preview described below. Restart the launcher after backend code changes.
+On Windows, install both packages with the local development commands above and configure `.env` at the project root. Open FreeLLMAPI Desktop if you use that provider, then double-click **Start Enterprise Radar.cmd**. The launcher compiles the backend, starts the website and opens Company Intelligence. It uses Atlas and Aura with `STORAGE_MODE=cloud` and the sample preview with `STORAGE_MODE=memory`. It reuses running services. Keep its window open and press Ctrl+C to stop the services it started.
 
 Open two terminals. In `backend`, run `npm run preview:local`. In `frontend`, run `npm run dev -- --host 127.0.0.1 --strictPort`. Visit `http://127.0.0.1:3000/companies/demo-logistics-001` and select **Analyze with AI**. Keep FreeLLMAPI Desktop running.
 
-The explicit local preview uses two fictional company scenarios and does not initialize or modify MongoDB or Neo4j. AI output is live. The profile shows observations with evidence IDs, possible needs, a conditional capability match, discovery questions and unknowns. The no-signal retail case exercises the hold path.
+The explicit local preview stores sample commercial records in memory. Graph operations use the configured shared Neo4j connection. AI output is live. The profile shows observations with evidence IDs, possible needs, a conditional capability match, discovery questions and unknowns. The no-signal retail case exercises the hold path.
 
 `POST /api/v1/ai/analyze` accepts only `companyId`; the backend loads the matching company context and validates the generated JSON and citation IDs. It does not accept arbitrary company text from the browser. The local-only/origin restrictions of the AI routes apply. In non-demo development mode it reads the existing company and signals from MongoDB. This is a controlled local prototype, not an authenticated production deployment.
 

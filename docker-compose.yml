@@ -55,6 +55,20 @@ services:
       STORAGE_MODE: memory
       LOCAL_DEMO_MODE: 'true'
       ENABLE_DEMO_CONTROLS: 'true'
+      AI_BASE_URL:
+      AI_API_KEY:
+      AI_MODEL:
+      AI_PROTOCOL:
+      AI_MODELS_URL:
+      AI_TIMEOUT_MS:
+      AI_REASONING_EFFORT:
+      AI_FREELLM_FALLBACK_ENABLED:
+      FREELLMAPI_BASE_URL:
+      FREELLMAPI_API_KEY:
+      FREELLMAPI_MODEL:
+      FREELLMAPI_REASONING_EFFORT:
+      FREELLMAPI_USE_TOOLS:
+      FREELLMAPI_TIMEOUT_MS:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_MODEL: ${OPENAI_MODEL:-}
       NEO4J_URI: bolt://neo4j:7687
@@ -68,7 +82,7 @@ services:
     volumes:
       - ranking_data:/app/.local
 
-  # ---- Frontend (placeholder — built by frontend agent) ----
+  # ---- Frontend (Nginx) ----
   frontend:
     build:
       context: ./frontend

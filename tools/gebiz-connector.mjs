@@ -26,7 +26,11 @@ export function normalizeAward(row, retrievedAt, requestUrl) {
     if (row[field] === undefined || row[field] === null) throw new Error(`Missing field: ${field}`);
   }
   if (!Number.isInteger(row._id)) throw new Error('Missing integer source row ID');
-  const amount = Number(row.awarded_amt);
+  const rawAmount = row.awarded_amt;
+  if (typeof rawAmount !== 'number' && (typeof rawAmount !== 'string' || !rawAmount.trim())) {
+    throw new Error('Invalid award amount');
+  }
+  const amount = Number(rawAmount);
   if (!Number.isFinite(amount) || amount < 0) throw new Error('Invalid award amount');
   const id = `gebiz:${row.tender_no}:${row._id}`;
   return {
@@ -66,6 +70,7 @@ export async function fetchGebiz({ query = 'telecommunication', pageSize = 5, ma
         || !Number.isInteger(result.total) || result.total < 0) throw new Error('Unexpected GeBIZ response schema');
     if (expectedTotal !== undefined && result.total !== expectedTotal) throw new Error('Dataset changed during pagination; retry');
     expectedTotal = result.total;
+    if (offset + result.records.length > expectedTotal) throw new Error('Source returned records beyond its declared total');
     requests.push({ url: url.href, status: response.status, returned: result.records.length });
     for (const row of result.records) {
       const record = normalizeAward(row, retrievedAt, url.href);
@@ -73,7 +78,7 @@ export async function fetchGebiz({ query = 'telecommunication', pageSize = 5, ma
       seen.add(record.id); records.push(record);
     }
     offset += result.records.length;
-    if (offset >= expectedTotal) return {
+    if (offset === expectedTotal) return {
       schemaVersion: 1, connector: 'gebiz-awards-spike-v1', retrievedAt, query,
       complete: true, sourceTotal: expectedTotal, requests, records,
     };

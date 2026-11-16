@@ -5,7 +5,7 @@ test('test-provider email workflow moves through review, approval, reply and fol
   await expect(page.getByRole('heading', { name: 'Sales Outreach & Intervention', level: 1 })).toBeVisible()
 
   await page.getByRole('button', { name: 'Prepare workflow walkthrough' }).click()
-  await expect(page.getByRole('status')).toContainText('Workflow activity is retained for review')
+  await expect(page.getByRole('status').filter({ hasText: 'Workflow activity is retained for review' })).toBeVisible()
 
   const company = page.locator('a[href="/sales/companies/synthetic%3Amerlion-logistics"]')
   await expect(company).toBeVisible()

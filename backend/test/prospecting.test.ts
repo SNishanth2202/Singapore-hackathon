@@ -17,6 +17,18 @@ import * as salesWorkflow from '../src/sales/workflow';
 const settings=initialState().settings;
 const lead=(id:string,score=50)=>({id,name:id,score} as Lead);
 
+test('idle and future-scheduled prospecting polls avoid taking a write lease', async t => {
+ const store = memoryJobStore();
+ const clock = Date.parse('2026-11-16T00:00:00Z');
+ const service = new ProspectingService(store, undefined, undefined, () => clock);
+ const claim = t.mock.method(store, 'claim');
+ await service.tick();
+ assert.equal(claim.mock.callCount(), 0);
+ await service.settings({ ...settings, enabled: true });
+ await service.tick();
+ assert.equal(claim.mock.callCount(), 1);
+});
+
 test('small research batches can be configured and retain their chosen limit', async()=>{
  const service=new ProspectingService(memoryJobStore(),async config=>({names:Array.from({length:config.maxCandidates},(_,i)=>`Company ${i+1}`),reports:[]}),async name=>lead(name));
  await service.settings({...settings,maxCandidates:2});await service.start();await service.tick();await service.tick();await service.tick();await service.tick();
@@ -83,7 +95,7 @@ test('an AI-unavailable batch keeps old rankings and exposes newly collected com
 test('autonomous company news rejects surname collisions and unrelated businesses',()=>{
  const company={entityId:'Q1532489',name:'Pall Corporation',aliases:[],description:'American company',website:null,wikipediaTitle:null,identitySource:'https://www.wikidata.org/wiki/Q1532489'};
  const xml='<rss><channel>'+['Pall Corporation breaks ground on a manufacturing facility','67 Pall Mall opens a club','Meet Zeba Pall'].map(title=>`<item><title>${title}</title><link>https://news.google.com/articles/${encodeURIComponent(title)}</link><pubDate>${new Date(Date.now()-1000).toUTCString()}</pubDate></item>`).join('')+'</channel></rss>';
- const rows=parseNews(xml,company,true);assert.equal(rows.length,1);assert.match(rows[0].title,/Pall Corporation/);
+ const rows=parseNews(xml,company);assert.equal(rows.length,1);assert.match(rows[0].title,/Pall Corporation/);
 });
 test('facility construction headlines establish expansion, unrelated ground commentary does not',()=>{assert.equal(detectEventType('Pall Corporation breaks ground on manufacturing facility in Singapore'),'EXPANSION');assert.equal(detectEventType('Analyst breaks ground on a new theory'),'OTHER')});
 test('source parsing rejects stale/future/insecure items; candidates must be cited verbatim',()=>{

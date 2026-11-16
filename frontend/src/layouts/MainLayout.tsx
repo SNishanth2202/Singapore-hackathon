@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { Outlet, useLocation } from 'react-router-dom'
 import { PageLayout } from '../components/layout/PageLayout'
 
@@ -34,7 +36,9 @@ export default function MainLayout() {
 
   return (
     <PageLayout title={title}>
-      <Outlet />
+      <Suspense fallback={<LoadingSpinner label="Loading page..." />}>
+        <Outlet />
+      </Suspense>
     </PageLayout>
   )
 }

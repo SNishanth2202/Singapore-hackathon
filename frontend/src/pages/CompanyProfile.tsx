@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeftIcon,
@@ -12,7 +12,8 @@ import {
   ExternalLinkIcon,
   BuildingIcon,
 } from 'lucide-react'
-import { companiesService, CompanyWithSignals } from '../services/companies.service'
+import { companiesService } from '../services/companies.service'
+import { useApiQuery } from '../hooks/useApiQuery'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { ErrorState } from '../components/ui/ErrorState'
 import { Badge } from '../components/ui/Badge'
@@ -42,30 +43,11 @@ function ProfileField({ icon: Icon, label, value }: ProfileFieldProps) {
 export default function CompanyProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [company, setCompany] = useState<(CompanyWithSignals & { isMockData?: boolean }) | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  async function fetchCompany() {
-    if (!id) return
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await companiesService.getCompanyById(id)
-      setCompany(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load company')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    void fetchCompany()
-  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
+  const fetchCompany = useCallback((signal: AbortSignal) => companiesService.getCompanyById(id!, signal), [id])
+  const { data: company, loading, error, refetch } = useApiQuery(fetchCompany)
 
   if (loading) return <LoadingSpinner label="Loading company profile…" />
-  if (error) return <ErrorState message={error} onRetry={fetchCompany} />
+  if (error) return <ErrorState message={error} onRetry={refetch} />
   if (!company) return <ErrorState title="Company not found" message="The requested company could not be found." />
 
   return (
