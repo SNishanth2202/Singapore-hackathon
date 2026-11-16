@@ -21,9 +21,10 @@ async function main() {
     if (process.argv.includes('--graph')) {
       await connectNeo4j();
       const { projectResearch } = await import('../integrations/neo4j/researchGraph');
+      const { loadResearch } = await import('../integrations/research/store');
       const { ResearchSnapshot } = await import('../models/CloudStorage');
       for (const research of data.research) {
-        await projectResearch(research);
+        await projectResearch(await loadResearch(research.id));
         await ResearchSnapshot.updateOne({ _id: research.id }, { $set: { graphStatus: 'SYNCED', graphSyncedAt: new Date() } });
       }
       console.log('Projected the 12 illustrative research snapshots into Aura.');

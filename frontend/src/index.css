@@ -16,7 +16,8 @@
   }
 
   body {
-    @apply bg-slate-50 text-gray-900 antialiased;
+    @apply bg-white antialiased;
+    color: #231F20;
   }
 
   ::-webkit-scrollbar {
@@ -37,7 +38,8 @@
 
 @layer components {
   .card {
-    @apply bg-white border border-gray-100 rounded-xl shadow-card;
+    @apply bg-white rounded-xl shadow-card;
+    border: 1px solid #D1D1D1;
   }
 
   .card-hover {
@@ -45,22 +47,41 @@
   }
 
   .btn-primary {
-    @apply bg-navy-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-navy-700 transition-all duration-150 shadow-sm active:scale-95;
+    @apply text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 shadow-sm active:scale-95;
+    background-color: #EE133B;
+  }
+
+  .btn-primary:hover {
+    background-color: #D0102F;
   }
 
   .btn-secondary {
-    @apply bg-white text-gray-700 px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-150 active:scale-95;
+    @apply bg-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 active:scale-95;
+    color: #333333;
+    border: 1px solid #D1D1D1;
+  }
+
+  .btn-secondary:hover {
+    background-color: #F7F7F7;
+    border-color: #959595;
   }
 
   .btn-teal {
-    @apply bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-teal-700 transition-all duration-150 shadow-sm active:scale-95;
+    @apply text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 shadow-sm active:scale-95;
+    background-color: #EE133B;
+  }
+
+  .btn-teal:hover {
+    background-color: #D0102F;
   }
 
   .stat-label {
-    @apply text-xs font-semibold text-gray-400 uppercase tracking-widest;
+    @apply text-xs font-semibold uppercase tracking-widest;
+    color: #6B6B6B;
   }
 
   .section-title {
-    @apply text-sm font-semibold text-gray-700;
+    @apply text-sm font-semibold;
+    color: #231F20;
   }
 }

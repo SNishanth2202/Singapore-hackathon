@@ -6,6 +6,7 @@ import { recordDiscoveryHandoff, recordDiscoverySnapshot } from '../sales/workfl
 import { AppError } from '../utils/errors';
 import { localClock } from './scheduler';
 import { getAiManagementSettings, saveDailyRankingRun } from './store';
+import { salesPreviewEnabled } from '../sales/preview-policy';
 
 /** Clearly labelled synthetic companies for Local Preview Mode. Contacts use the reserved .invalid domain. */
 const COMPANIES = [
@@ -21,7 +22,7 @@ const COMPANIES = [
 ];
 
 export function previewSeedingAllowed() {
-  const syntheticPreview = env.HOSTED_PREVIEW && env.STORAGE_MODE === 'memory' && env.LOCAL_DEMO_MODE;
+  const syntheticPreview = salesPreviewEnabled();
   return env.SALES_EMAIL_PROVIDER === 'mock' && (env.NODE_ENV !== 'production' || syntheticPreview);
 }
 

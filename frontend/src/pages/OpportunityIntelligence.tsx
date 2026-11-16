@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useOpportunities } from '../hooks/useOpportunities'
 import { DataTable, Column } from '../components/ui/DataTable'
 import { FilterBar, FilterConfig } from '../components/ui/FilterBar'
@@ -73,9 +74,14 @@ export default function OpportunityIntelligence() {
               {(row.companyName ?? 'C').charAt(0).toUpperCase()}
             </span>
           </div>
-          <span className="font-semibold text-gray-800">{row.companyName ?? row.companyId}</span>
+          {row.companyId ? <Link className="font-semibold text-gray-800 hover:text-teal-700 underline" to={'/companies/' + encodeURIComponent(row.companyId)}>{row.companyName ?? 'Company account'}</Link> : <span className="text-gray-500">Company unavailable</span>}
         </div>
       ),
+    },
+    {
+      key: 'salesCompanyId',
+      label: 'Next step',
+      render: (row) => row.salesCompanyId ? <Link className="text-sm font-medium text-teal-700 underline" to={'/sales/companies/' + encodeURIComponent(row.salesCompanyId)}>Open sales workflow</Link> : <span className="text-xs text-gray-500">Review company evidence</span>,
     },
     {
       key: 'potentialService',

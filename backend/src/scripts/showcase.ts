@@ -16,6 +16,9 @@ async function main() {
   });
   process.env.AI_MODELS_URL = process.env.AI_BASE_URL + '/models';
   delete process.env.AI_REASONING_EFFORT;
+  if (process.env.SHOWCASE_RESTORE_PATH && process.env.STORAGE_MODE !== 'memory') {
+    throw new Error('SHOWCASE_RESTORE_PATH is only available with memory storage.');
+  }
 
   // Import only after selecting storage and recorded-only email.
   const { initializeDatabases, closeDatabases } = await import('../config/database');
@@ -33,6 +36,10 @@ async function main() {
       if (!response.ok) throw new Error(`Workflow preparation returned HTTP ${response.status}`);
       console.log(`Singtel Scout workspace ready: ${seeded.queued.length} queued accounts and a complete sales conversation.`);
       console.log(`API: http://127.0.0.1:${process.env.PORT}; AI model selection: ${process.env.AI_MODEL}; email: recorded test outbox.`);
+      if (process.env.SHOWCASE_RESTORE_PATH) {
+        const { restoreShowcaseSessionFile } = await import('./showcase-session');
+        console.log(JSON.stringify(await restoreShowcaseSessionFile(path.resolve(process.env.SHOWCASE_RESTORE_PATH))));
+      }
     } catch (error) {
       console.error(error instanceof Error ? error.message : 'Workspace preparation failed.');
       server.close(); process.exitCode = 1;

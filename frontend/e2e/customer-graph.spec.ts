@@ -171,9 +171,10 @@ test('initial load failure is retryable and an unavailable graph is clearly labe
   await expect(page.getByRole('button', { name: 'Sync to Neo4j' })).toBeEnabled()
 })
 
-test('no-key and not-yet-ingested states leave the source library usable', async ({ page }) => {
+test('no-key and not-yet-ingested states leave the source library usable', async ({ page, request }) => {
+  const response = await request.get('http://127.0.0.1:5010/api/v1/customer-graph')
+  const snapshot = await response.json()
   await page.route('**/api/v1/customer-graph', async route => {
-    const response = await route.fetch(), snapshot = await response.json()
     return route.fulfill({ json: { ...snapshot, run: null, graph: { nodes: [], edges: [] }, ingestionConfigured: false } })
   })
   await page.goto('/customer-graph')

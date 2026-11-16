@@ -14,6 +14,7 @@ import SalesWorkflowPage from './pages/SalesWorkflowPage'
 import KnowledgeGraph from './pages/KnowledgeGraph'
 import AiManagementPage from './pages/AiManagementPage'
 import AiCompanyPage from './pages/AiCompanyPage'
+import CrmAccounts from './pages/CrmAccounts'
 
 function LegacyCustomerGraph() {
   const { search } = useLocation()
@@ -30,6 +31,9 @@ function App() {
             <Route path="/lead-ranking" element={<LeadRankingQueue />} />
             {import.meta.env.DEV && <Route path="/lead-ranking/reference" element={<ReferenceRanking />} />}
             <Route path="/sales" element={<SalesWorkbench />} />
+            <Route path="/crm" element={<CrmAccounts />} />
+            <Route path="/crm/:accountId" element={<CrmAccounts />} />
+            <Route path="/service-opportunities" element={<OpportunityIntelligence />} />
             <Route path="/sales/companies/:companyId" element={<SalesWorkflowPage />} />
             <Route path="/ai-management" element={<AiManagementPage />} />
             <Route path="/ai-management/companies/:companyId" element={<AiCompanyPage />} />

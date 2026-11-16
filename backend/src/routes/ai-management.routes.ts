@@ -18,9 +18,10 @@ import { OUTREACH_BASES } from '../ai-management/policy';
 import { MANAGEMENT_STATES, COMMUNICATION_STATES, NOTIFICATION_TYPES } from '../models/AiManagement';
 import { emailProviderStatus } from '../sales/email-provider';
 import { previewSeedingAllowed, seedPreviewCompanies } from '../ai-management/preview';
+import { salesPreviewEnabled } from '../sales/preview-policy';
 
 const router = Router();
-const syntheticPreview = () => env.HOSTED_PREVIEW && env.STORAGE_MODE === 'memory' && env.LOCAL_DEMO_MODE && env.SALES_EMAIL_PROVIDER === 'mock';
+const syntheticPreview = salesPreviewEnabled;
 router.use((req, _res, next) => {
   if (env.NODE_ENV !== 'production' || syntheticPreview()) { next(); return; }
   if (!env.SALES_API_TOKEN) { next(new AppError('AI Management is disabled until SALES_API_TOKEN is configured.', 503, 'SALES_AUTH_NOT_CONFIGURED')); return; }

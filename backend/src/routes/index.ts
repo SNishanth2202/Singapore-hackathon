@@ -11,6 +11,7 @@ import salesRoutes from './sales.routes';
 import aiManagementRoutes from './ai-management.routes';
 import { createCustomerGraphRouter } from '../customer-graph/routes';
 import prospectingRoutes from './prospecting.routes';
+import { createCrmRouter } from '../crm/routes';
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router.use('/sales',        salesRoutes);
 router.use('/ai-management', aiManagementRoutes);
 router.use('/customer-graph', createCustomerGraphRouter());
 router.use('/prospecting', prospectingRoutes);
+router.use('/crm', createCrmRouter());
 if (process.env.DEMO_REAL_CLOCK === 'true') {
   const rankingClock = setInterval(() => { void rankingService.advance(new Date().toISOString()).catch(err => console.error(err.message)); }, 30000);
   rankingClock.unref();

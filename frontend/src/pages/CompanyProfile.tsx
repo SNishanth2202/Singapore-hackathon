@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeftIcon,
   GlobeIcon,
@@ -98,7 +98,7 @@ export default function CompanyProfile() {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-xl font-bold text-gray-900">{company.companyName}</h1>
-                  {company.isMockData && <Badge label="Illustrative" variant="sample" />}
+                  {(company.isSynthetic || company.isMockData) && <Badge label="Illustrative" variant="sample" />}
                 </div>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   {company.industry && <Badge label={company.industry} variant="industry" />}
@@ -145,6 +145,14 @@ export default function CompanyProfile() {
           </div>
         </div>
       </div>
+
+      {company.salesCompanyId && <section className="card p-5 flex flex-wrap items-center justify-between gap-4" aria-label="Linked sales account">
+        <div><h2 className="font-semibold text-gray-800">Sales account</h2><p className="mt-1 text-sm text-gray-500">Review the recorded opportunity, outreach and conversation for this account.</p></div>
+        <div className="flex flex-wrap gap-3">
+          <Link className="rounded-lg bg-teal-600 px-4 py-2 text-sm font-medium text-white" to={'/sales/companies/' + encodeURIComponent(company.salesCompanyId)}>Open sales workflow</Link>
+          <Link className="rounded-lg border px-4 py-2 text-sm font-medium text-teal-700" to={'/ai-management/companies/' + encodeURIComponent(company.salesCompanyId)}>Open conversation</Link>
+        </div>
+      </section>}
 
       {/* AI Analysis */}
       <CompanyAnalysis key={company._id} companyId={company._id} />

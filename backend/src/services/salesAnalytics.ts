@@ -135,7 +135,7 @@ export async function getSalesAnalytics(filters: AnalyticsFilters) {
     emailsAcceptedByProvider: count('EMAIL_PROVIDER_ACCEPTED'), failedEmailAttempts: count('EMAIL_FAILED'), uniqueCompaniesContacted: contacted,
     totalFollowupsSent: count('EMAIL_PROVIDER_ACCEPTED') ? current.byType?.find((row: any) => row._id === 'EMAIL_PROVIDER_ACCEPTED')?.followups ?? 0 : 0,
     totalRepliesReceived: count('REPLY_RECEIVED'), uniqueCompaniesThatReplied: replied,
-    positiveResponses: intent('INTERESTED') + intent('MEETING_REQUEST') + intent('REQUEST_FOR_INFORMATION') + intent('REFERRAL'),
+    positiveResponses: [...positiveIntents, 'REQUEST_FOR_INFORMATION', 'REFERRAL'].reduce((total, value) => total + intent(value), 0),
     negativeResponses: intent('NOT_INTERESTED') + intent('COMPLAINT'), meetingRequests: intent('MEETING_REQUEST'), informationRequests: intent('REQUEST_FOR_INFORMATION'), unsubscribeRequests: intent('UNSUBSCRIBE'),
     totalInterventionsRequired: interventions(), pendingInterventions: interventionRows.filter((row: any) => !['RESOLVED', 'CLOSED'].includes(row._id?.status)).reduce((sum: number, row: any) => sum + row.count, 0),
     highPriorityInterventions: interventionRows.filter((row: any) => !['RESOLVED', 'CLOSED'].includes(row._id?.status) && ['HIGH', 'CRITICAL'].includes(row._id?.priority)).reduce((sum: number, row: any) => sum + row.count, 0),

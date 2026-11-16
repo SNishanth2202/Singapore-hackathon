@@ -182,7 +182,7 @@ export async function sendApprovedEmail(context: SalesCompanyContext, draftId: s
   if (await findEmailSuppression(approval.contactEmail ?? '')) {
     throw new AppError('This contact has opted out of further outreach.', 409, 'CONTACT_OPTED_OUT');
   }
-  if (env.NODE_ENV === 'production' && !(env.HOSTED_PREVIEW && env.STORAGE_MODE === 'memory' && env.LOCAL_DEMO_MODE) && env.SALES_EMAIL_PROVIDER === 'mock') {
+  if (env.NODE_ENV === 'production' && !env.HOSTED_PREVIEW && env.SALES_EMAIL_PROVIDER === 'mock') {
     throw new AppError('Configure a real email provider before sending from production.', 503, 'EMAIL_PROVIDER_NOT_CONFIGURED');
   }
   if (approval.payload.kind === 'initial' && events.some(event => event.type === 'EMAIL_PROVIDER_ACCEPTED' && event.contactEmail?.toLowerCase() === approval.contactEmail?.toLowerCase())) {

@@ -26,6 +26,7 @@ test('representative CRM dataset is idempotent and fills charts with consistent 
   assert.equal(analytics.metrics.totalCompaniesDiscovered, 12);
   assert.equal(analytics.metrics.uniqueCompaniesContacted, 11);
   assert.equal(analytics.metrics.uniqueCompaniesThatReplied, 8);
+  assert.equal(analytics.metrics.positiveResponses, 5);
   assert.equal(analytics.metrics.convertedOpportunities, 1);
   assert.equal(analytics.metrics.totalFollowupsSent, 2);
   assert.equal(analytics.metrics.pendingInterventions, 5);
