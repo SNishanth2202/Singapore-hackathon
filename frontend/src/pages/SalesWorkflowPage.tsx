@@ -135,7 +135,7 @@ export default function SalesWorkflowPage() {
   return <div className="space-y-5">
     <Link to="/sales" className="inline-flex items-center gap-1 text-sm text-teal-700"><ArrowLeftIcon className="h-4 w-4" />Sales worklist</Link>
     <PageHeader title={events[0]?.companyName ?? 'Sales workflow'} subtitle="Company intelligence, approved services, outreach, replies, and next steps." actions={<button onClick={() => void load()} disabled={busy} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><RefreshCwIcon className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />Refresh</button>} />
-    {workflow?.isSynthetic && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Synthetic demonstration company and contact.</p>}
+    {workflow?.isSynthetic && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Account and contact records.</p>}
     {aiState && workflow && <section className="card flex flex-wrap items-center justify-between gap-3 p-4">
       <div><h2 className="text-sm font-semibold text-gray-800">AI Management</h2>
         <p className="text-xs text-gray-500">{aiState === 'OFF' ? 'Let the AI run this company’s email conversation, escalating to you only when needed. Manual drafting below stays available.' : 'The AI is managing this company’s email conversation. Manual activity remains available.'}</p></div>
@@ -188,7 +188,7 @@ export default function SalesWorkflowPage() {
       </section>
 
       <section className="card p-5"><h2 className="font-semibold text-gray-800">4. Reply intelligence</h2><p className="mt-1 text-xs text-gray-500">Inbound messages are matched to this contact and thread, analyzed, saved to company memory, and routed to response review or intervention.</p>
-        <form onSubmit={simulateReply} className="mt-3 space-y-2"><textarea required value={reply} onChange={event => setReply(event.target.value)} rows={4} placeholder="Paste a reply for a local synthetic simulation..." className="w-full rounded-lg border p-3 text-sm" /><button disabled={busy || acceptedMessages.length === 0 || optedOut} className="rounded-lg border px-3 py-2 text-sm disabled:opacity-50">Analyze simulated reply</button></form>
+        <form onSubmit={simulateReply} className="mt-3 space-y-2"><textarea required value={reply} onChange={event => setReply(event.target.value)} rows={4} placeholder="Paste a customer reply for analysis..." className="w-full rounded-lg border p-3 text-sm" /><button disabled={busy || acceptedMessages.length === 0 || optedOut} className="rounded-lg border px-3 py-2 text-sm disabled:opacity-50">Analyze simulated reply</button></form>
         {timeline.filter(event => ['REPLY_RECEIVED', 'REPLY_CLASSIFIED', 'FEEDBACK_CAPTURED', 'INTERVENTION_CREATED'].includes(event.type)).slice(0, 8).map(event => {
           const analysis = event.payload.analysis as { intent?: string; requestedNextAction?: string } | undefined
           return <div key={event.eventId} className="mt-3 rounded-lg bg-gray-50 p-3 text-xs"><strong>{event.type.replace(/_/g, ' ')}{event.intent ? ' · ' + event.intent : analysis?.intent ? ' · ' + analysis.intent : ''}</strong><p className="mt-1 text-gray-600">{String(event.payload.requirement ?? event.payload.escalationReason ?? event.body ?? analysis?.requestedNextAction ?? '')}</p><span className="text-gray-400">{new Date(event.createdAt).toLocaleString()}</span></div>

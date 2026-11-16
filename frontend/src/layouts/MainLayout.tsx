@@ -4,6 +4,8 @@ import { PageLayout } from '../components/layout/PageLayout'
 const PAGE_TITLES: Record<string, string> = {
   '/': 'Dashboard',
   '/companies': 'Company Intelligence',
+  '/crm': 'Customer CRM',
+  '/service-opportunities': 'Service Opportunities',
   '/graph': 'Knowledge Graph',
   '/customer-graph': 'Central Customer Graph Database',
   '/dashboard': 'Dashboard',
@@ -17,6 +19,7 @@ const PAGE_TITLES: Record<string, string> = {
 function getPageTitle(pathname: string): string {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname]
   if (pathname.startsWith('/companies/')) return 'Company Profile'
+  if (pathname.startsWith('/crm/')) return 'Customer Account'
   if (pathname.startsWith('/sales/companies/')) return 'Sales Workflow'
   return 'Singtel Scout'
 }

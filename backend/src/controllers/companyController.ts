@@ -3,6 +3,7 @@ import { findCompanies, findCompanyWithSignals } from '../repositories/companyRe
 import { sendSuccess, buildPaginationMeta } from '../utils/apiResponse';
 import { NotFoundError } from '../utils/errors';
 import { CompanyQuery } from '../validators/company.validator';
+import { findOpportunities } from '../repositories/opportunityRepository';
 
 export async function listCompanies(
   req: Request,
@@ -35,13 +36,16 @@ export async function getCompany(
 ): Promise<void> {
   try {
     const { id } = req.params;
-    const { company, signals } = await findCompanyWithSignals(id);
+    const [{ company, signals }, { opportunities }] = await Promise.all([
+      findCompanyWithSignals(id),
+      findOpportunities({ companyId: id }, { page: 1, limit: 100 }),
+    ]);
 
     if (!company) {
       throw new NotFoundError('Company');
     }
 
-    sendSuccess(res, { ...company, signals });
+    sendSuccess(res, { ...company, signals, opportunities });
   } catch (err) {
     next(err);
   }

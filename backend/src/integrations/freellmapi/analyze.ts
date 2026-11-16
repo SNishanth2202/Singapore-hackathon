@@ -88,7 +88,7 @@ export async function analyzeCompany(id: string) {
   let evidence: BusinessEvidence[];
   let research: ResearchRecord | null = null;
   let overview: ResearchOverview | null = null;
-  const sample = !id.startsWith('research-') && env.LOCAL_DEMO_MODE && (env.NODE_ENV !== 'production' || env.HOSTED_PREVIEW);
+  const sample = !id.startsWith('research-') && env.STORAGE_MODE === 'memory' && env.LOCAL_DEMO_MODE && (env.NODE_ENV !== 'production' || env.HOSTED_PREVIEW);
   if (id.startsWith('research-')) {
     research = await loadResearch(id);
     identity = research.company;

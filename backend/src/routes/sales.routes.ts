@@ -11,6 +11,7 @@ import { receiveReply, selectCompany, identifyContact, draftEmail, approveEmail,
 import { buildCompanyBrief } from '../sales/agents/company-context.agent';
 import { resolveSalesContext } from '../sales/context';
 import { handleInboundEmail } from '../ai-management/orchestrator';
+import { salesPreviewEnabled } from '../sales/preview-policy';
 
 const router = Router();
 
@@ -18,7 +19,7 @@ export { resolveSalesContext };
 
 router.use((req, _res, next) => {
   if (req.path === '/webhooks/inbound') { next(); return; }
-  const syntheticPreview = env.HOSTED_PREVIEW && env.STORAGE_MODE === 'memory' && env.LOCAL_DEMO_MODE && env.SALES_EMAIL_PROVIDER === 'mock';
+  const syntheticPreview = salesPreviewEnabled();
   if (env.NODE_ENV !== 'production' || syntheticPreview) { next(); return; }
   if (!env.SALES_API_TOKEN) { next(new AppError('Sales API is disabled until SALES_API_TOKEN is configured.', 503, 'SALES_AUTH_NOT_CONFIGURED')); return; }
   const supplied = req.header('authorization')?.replace(/^Bearer\s+/i, '') ?? '';

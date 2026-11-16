@@ -12,6 +12,21 @@ export interface PaginationOptions {
   limit: number;
 }
 
+/** Keep populated Mongo references out of the API's scalar company identity fields. */
+export function serializeOpportunity(row: Record<string, any>) {
+  const reference = row.companyId;
+  const company = reference && typeof reference === 'object' && 'companyName' in reference ? reference : null;
+  return {
+    ...row,
+    _id: String(row._id),
+    companyId: String(company?._id ?? reference ?? ''),
+    companyName: row.companyName ?? company?.companyName,
+    salesCompanyId: row.salesCompanyId ?? company?.salesCompanyId,
+    country: row.country ?? company?.country,
+    industry: row.industry ?? company?.industry,
+  };
+}
+
 export async function findOpportunities(
   filters: OpportunityFilters,
   pagination: PaginationOptions
@@ -28,7 +43,7 @@ export async function findOpportunities(
 
   const [opportunities, total] = await Promise.all([
     Opportunity.find(query)
-      .populate('companyId', 'companyName country industry')
+      .populate('companyId', 'companyName country industry salesCompanyId')
       .skip(skip)
       .limit(pagination.limit)
       .sort({ priority: 1, createdAt: -1 })
@@ -36,7 +51,7 @@ export async function findOpportunities(
     Opportunity.countDocuments(query),
   ]);
 
-  return { opportunities: opportunities as unknown as IOpportunityDocument[], total };
+  return { opportunities: opportunities.map(serializeOpportunity) as unknown as IOpportunityDocument[], total };
 }
 
 export async function createOpportunity(

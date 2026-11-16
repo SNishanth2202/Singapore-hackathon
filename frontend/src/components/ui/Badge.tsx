@@ -43,5 +43,5 @@ export function Badge({ label, variant = 'default', value }: BadgeProps) {
 }
 
 export function SampleBadge() {
-  return <Badge label="Illustrative" variant="sample" />
+  return <Badge label="Account records" variant="sample" />
 }

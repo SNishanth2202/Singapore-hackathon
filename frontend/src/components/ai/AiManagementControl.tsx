@@ -80,7 +80,7 @@ function ActivationDialog({ companyId, companyName, onClose, onDone }: { company
         <section className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
           <p className="font-semibold">What you are authorising</p>
           <p className="mt-1">{detail.activation.statement}</p>
-          {detail.emailProvider.synthetic && <p className="mt-2 font-medium">Synthetic preview: messages are recorded locally and are not sent to anyone.</p>}
+          {detail.emailProvider.synthetic && <p className="mt-2 font-medium">Recorded email mode: messages stay in the outbox and are not sent.</p>}
           {!detail.activation.globalOutboundEnabled && <p className="mt-2 font-medium text-red-700">Global outbound sending is stopped. Nothing will be sent until it is resumed.</p>}
         </section>
         <label className="mt-3 flex items-start gap-2 text-sm text-gray-700"><input type="checkbox" checked={authorised} onChange={e => setAuthorised(e.target.checked)} className="mt-1" />

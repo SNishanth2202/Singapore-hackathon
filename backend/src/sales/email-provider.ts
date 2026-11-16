@@ -212,7 +212,7 @@ export function emailProviderStatus() {
     provider, configured, synthetic: provider === 'mock', sendsRealEmail: provider !== 'mock' && configured,
     inboundMode: provider === 'mock' ? 'synthetic_inbox' : 'polling_with_optional_webhook_relay',
     note: provider === 'mock'
-      ? 'Local preview: outbound messages go to a synthetic outbox and never leave this server. Customer replies must be simulated.'
+      ? 'Test provider: outbound messages stay in the recorded outbox and never leave this server. Customer replies can be simulated.'
       : configured ? 'Real provider configured. Provider acceptance is recorded separately from confirmed inbox delivery.'
         : 'Provider selected but OAuth credentials are missing; sending and inbox polling will fail until configured.',
   };

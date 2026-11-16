@@ -118,6 +118,24 @@ test('explicit hosted preview runs sample accounts, dashboard and research witho
 });
 
 
+test('hosted sales walkthrough supports cloud storage while retaining real-provider authentication', async t => {
+  const {env}=require('../dist/config/env'); const original={...env};
+  Object.assign(env,{NODE_ENV:'production',STORAGE_MODE:'memory',LOCAL_DEMO_MODE:false,HOSTED_PREVIEW:true,SALES_EMAIL_PROVIDER:'mock',SALES_API_TOKEN:''});
+  const server=require('../dist/app').default.listen(0,'127.0.0.1');await once(server,'listening');
+  t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));Object.assign(env,original);});
+  const base='http://127.0.0.1:'+server.address().port;
+  assert.equal((await fetch(base+'/api/v1/ai-management/settings')).status,200);
+  assert.equal((await fetch(base+'/api/v1/sales/companies')).status,200);
+  env.STORAGE_MODE='cloud';
+  const cloud=await fetch(base+'/api/v1/sales/companies');
+  assert.equal(cloud.status,503);
+  assert.notEqual((await cloud.json()).code,'SALES_AUTH_NOT_CONFIGURED');
+  env.HOSTED_PREVIEW=false;
+  assert.equal((await (await fetch(base+'/api/v1/ai-management/settings')).json()).code,'SALES_AUTH_NOT_CONFIGURED');
+  env.HOSTED_PREVIEW=true;env.SALES_EMAIL_PROVIDER='gmail';
+  assert.equal((await (await fetch(base+'/api/v1/ai-management/settings')).json()).code,'SALES_AUTH_NOT_CONFIGURED');
+});
+
 test('a backend-only build initializes ranked leads with its bundled cited snapshots', () => {
   const fs = require('node:fs');
   const os = require('node:os');
