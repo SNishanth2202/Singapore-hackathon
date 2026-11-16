@@ -94,6 +94,21 @@ const outboxFor = company => syntheticOutboxMessages().filter(message => message
 const notifications = async (query = '') => (await request('/ai-management/notifications?limit=100' + query)).json.data;
 const later = days => new Date(Date.now() + days * DAY);
 
+test('a new service request after declining reopens human attention without restarting outreach', async () => {
+  const company = await seedCompany();
+  await enable(company);
+  await reply(company, 'No, not interested.');
+  assert.equal((await state(company)).managementState, 'COMPLETED');
+  const sentBefore = (await accepted(company)).length;
+  await reply(company, 'nvm i want 5g');
+  const current = await state(company);
+  assert.equal(current.managementState, 'HUMAN_ATTENTION_REQUIRED');
+  assert.equal(current.communicationState, 'CUSTOMER_RESPONDED');
+  assert.equal(current.humanAttention, true);
+  assert.ok(current.memory.requirements.some(item => /5g/i.test(item.text)));
+  assert.equal((await accepted(company)).length, sentBefore);
+});
+
 test('1–2. enabling AI Management validates the company and autonomously sends personalised initial outreach', async () => {
   const company = await seedCompany();
   const unauthorised = await request(ai(company.companyId, '/enable'), 'POST', enableBody(company, { authorizationAcknowledged: false }));

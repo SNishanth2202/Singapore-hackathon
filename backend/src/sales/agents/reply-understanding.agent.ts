@@ -39,7 +39,7 @@ const INTENT_RULES: [ReplyIntent, RegExp, ReplyAnalysis['sentiment']][] = [
   ['FUTURE_OPPORTUNITY', /\b(next quarter|next year|in \d+ months|later this year|renewal|not right now|not at this time|revisit)\b/i, 'NEUTRAL'],
   ['NOT_INTERESTED', /\b(not interested|no thanks|no, thank you|not looking|we will pass|we'll pass|decline|no need)\b/i, 'NEGATIVE'],
   ['TECHNICAL_QUESTION', new RegExp(String.raw`\b(latency|bandwidth|throughput|architecture|integration|integrate|api|encryption|failover|redundan\w*|compliance|certification|iso 27001|interoperab\w*)\b[^.]*\?`, 'i'), 'NEUTRAL'],
-  ['SERVICE_REQUEST', new RegExp(String.raw`\b(we(?:'d| would)? (?:like|want) to (?:explore|discuss|look at)|we are (?:keen|looking) to (?:adopt|explore)|please tell us more about your)\b[^.?!]{0,100}\b${SERVICE_TERMS}\b`, 'i'), 'POSITIVE'],
+  ['SERVICE_REQUEST', new RegExp(String.raw`\b(we(?:'d| would)? (?:like|want) to (?:explore|discuss|look at)|we are (?:keen|looking) to (?:adopt|explore)|(?:i|we) (?:want|need|require)|please tell us more about your)\b[^.?!]{0,100}\b${SERVICE_TERMS}\b`, 'i'), 'POSITIVE'],
   ['SERVICE_QUESTION', new RegExp(String.raw`\b(?:can you|do you|does singtel|how does|what does|could you explain|what is|which)\b[^.?!]{0,90}\b${SERVICE_TERMS}\b`, 'i'), 'NEUTRAL'],
   ['REQUEST_FOR_INFORMATION', /\b(more information|more details|send (?:me |us )?(?:details|information|a brochure)|datasheet|brochure|case stud(?:y|ies))\b/i, 'POSITIVE'],
   ['REFERRAL', /\b(speak to|contact my colleague|refer you|responsible for this|better person|cc'?d (?:my|our) colleague)\b/i, 'NEUTRAL'],
@@ -50,7 +50,7 @@ const INTENT_RULES: [ReplyIntent, RegExp, ReplyAnalysis['sentiment']][] = [
 function clauses(text: string): string[] {
   return text.split(/(?<=[.!?])\s+|;\s*|,\s*(?:and|but)\s+|\s+and\s+(?=we\b|our\b|it\b)/i).map(part => part.trim()).filter(Boolean);
 }
-const REQUIREMENT_CUES = /\b(we need|we require|we're looking for|we are looking for|looking for|interested in|our requirement is|we are planning|we're planning|we plan to|we are expanding|we're expanding|we are experiencing|we're experiencing|we have (?:issues|problems) with|we want to|we must|we are moving|we're moving|we are opening|we're opening)\b/i;
+const REQUIREMENT_CUES = /\b((?:i|we) (?:need|require|want)|we're looking for|we are looking for|looking for|interested in|our requirement is|we are planning|we're planning|we plan to|we are expanding|we're expanding|we are experiencing|we're experiencing|we have (?:issues|problems) with|we must|we are moving|we're moving|we are opening|we're opening)\b/i;
 
 export function extractRequirements(text: string): { text: string; evidenceText: string }[] {
   const seen = new Set<string>();

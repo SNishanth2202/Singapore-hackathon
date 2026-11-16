@@ -4,6 +4,9 @@
   "description": "Enterprise Radar AI — Backend API (Singtel Hackathon)",
   "main": "dist/server.js",
   "scripts": {
+    "seed:showcase": "ts-node src/scripts/seed-showcase.ts",
+    "test:product-fixes": "npm run build && node --test tests/product-fixes.test.cjs",
+    "showcase": "ts-node --transpile-only src/scripts/showcase.ts",
     "ingest:customer-graph": "ts-node src/scripts/ingest-customer-graph.ts",
     "test:customer-graph": "node -r ts-node/register/transpile-only --test test/customer-graph.test.ts",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",

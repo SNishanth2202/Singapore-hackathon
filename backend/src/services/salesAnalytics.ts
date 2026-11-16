@@ -25,7 +25,7 @@ async function aggregateDatabase(filters: AnalyticsFilters) {
   const match: Record<string, unknown> = { createdAt: { $gte: filters.startDate, $lte: filters.endDate } };
   for (const key of ['country', 'industry', 'service', 'agent', 'status'] as const) if (filters[key]) match[key] = filters[key];
   const pipeline: any[] = [{ $match: match }, { $facet: {
-    byType: [{ $group: { _id: '$type', count: { $sum: 1 }, companies: { $addToSet: '$companyId' }, followups: { $sum: { $cond: ['$payload.isFollowup', 1, 0] } } } }],
+    byType: [{ $group: { _id: '$type', count: { $sum: 1 }, companies: { $addToSet: '$companyId' }, isSynthetic: { $max: '$isSynthetic' }, followups: { $sum: { $cond: [{ $or: ['$payload.isFollowup', { $eq: ['$payload.kind', 'followup'] }] }, 1, 0] } } } }],
     timeline: [{ $match: { type: { $in: ['EMAIL_PROVIDER_ACCEPTED', 'EMAIL_FAILED', 'REPLY_RECEIVED'] } } },
       { $group: { _id: { day: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'UTC' } }, type: '$type' }, count: { $sum: 1 } } }, { $sort: { '_id.day': 1 } }],
     replies: [{ $match: { type: 'REPLY_CLASSIFIED' } }, { $group: { _id: { intent: '$intent', sentiment: '$sentiment' }, count: { $sum: 1 }, companies: { $addToSet: '$companyId' }, averageConfidence: { $avg: '$confidence' } } }],
@@ -34,7 +34,7 @@ async function aggregateDatabase(filters: AnalyticsFilters) {
       { $group: { _id: { reason: '$reason', priority: '$priority', status: '$status' }, count: { $sum: 1 }, resolutionMs: { $avg: '$payload.resolutionMs' } } }],
     breakdowns: [{ $match: { type: { $in: ['DISCOVERED', 'QUALIFIED', 'FEEDBACK_CAPTURED'] } } },
       { $group: { _id: { type: '$type', country: '$country', industry: '$industry', service: '$service' }, companies: { $addToSet: '$companyId' }, count: { $sum: 1 }, maxScore: { $max: '$payload.score' } } }],
-    agents: [{ $match: { type: 'AGENT_EXECUTION' } }, { $group: { _id: '$agent', total: { $sum: 1 }, succeeded: { $sum: { $cond: ['$success', 1, 0] } }, failed: { $sum: { $cond: ['$success', 0, 1] } }, averageMs: { $avg: '$executionMs' }, lowConfidence: { $sum: { $cond: [{ $lt: ['$confidence', 0.65] }, 1, 0] } } } }],
+    agents: [{ $match: { type: 'AGENT_EXECUTION' } }, { $group: { _id: '$agent', total: { $sum: 1 }, succeeded: { $sum: { $cond: ['$success', 1, 0] } }, failed: { $sum: { $cond: ['$success', 0, 1] } }, averageMs: { $avg: '$executionMs' }, lowConfidence: { $sum: { $cond: [{ $lt: ['$confidence', 0.65] }, 1, 0] } }, escalated: { $sum: { $cond: [{ $or: [{ $eq: ['$payload.decision', 'ESCALATE'] }, { $eq: ['$payload.requiresHuman', true] }] }, 1, 0] } } } }],
     responseTimes: [{ $match: { type: { $in: ['EMAIL_PROVIDER_ACCEPTED', 'REPLY_RECEIVED'] } } },
       { $group: { _id: '$companyId', sent: { $min: { $cond: [{ $eq: ['$type', 'EMAIL_PROVIDER_ACCEPTED'] }, '$createdAt', null] } }, replied: { $min: { $cond: [{ $eq: ['$type', 'REPLY_RECEIVED'] }, '$createdAt', null] } } } },
       { $match: { sent: { $ne: null }, replied: { $ne: null } } }, { $project: { timeMs: { $subtract: ['$replied', '$sent'] } } }, { $group: { _id: null, averageMs: { $avg: '$timeMs' } } }],
@@ -45,14 +45,16 @@ async function aggregateDatabase(filters: AnalyticsFilters) {
   return result ?? {};
 }
 
-function aggregateMemory(events: ISalesActivity[], filters: AnalyticsFilters) {
+export function aggregateMemory(events: ISalesActivity[], filters: AnalyticsFilters) {
   const rows = filtered(events, filters);
   const group = (key: (event: ISalesActivity) => string) => {
     const map = new Map<string, { count: number; companies: Set<string> }>();
     for (const event of rows) { const id = key(event); const value = map.get(id) ?? { count: 0, companies: new Set<string>() }; value.count++; value.companies.add(event.companyId); map.set(id, value); }
     return [...map].map(([_id, v]) => ({ _id, count: v.count, companies: [...v.companies] }));
   };
-  const byType = group(event => event.type);
+  const byType = group(event => event.type).map(row => ({ ...row,
+    isSynthetic: rows.some(event => event.type === row._id && event.isSynthetic),
+    followups: rows.filter(event => event.type === row._id && (event.payload.isFollowup || event.payload.kind === 'followup')).length }));
   const timelineMap = new Map<string, number>();
   for (const event of rows.filter(event => ['EMAIL_PROVIDER_ACCEPTED', 'EMAIL_FAILED', 'REPLY_RECEIVED'].includes(event.type))) {
     const day = new Date(event.createdAt).toISOString().slice(0, 10), key = `${day}|${event.type}`; timelineMap.set(key, (timelineMap.get(key) ?? 0) + 1);
@@ -62,8 +64,9 @@ function aggregateMemory(events: ISalesActivity[], filters: AnalyticsFilters) {
   for (const event of rows) if (['INTERVENTION_CREATED', 'INTERVENTION_UPDATED'].includes(event.type)) activeInterventions.set(String(event.payload.interventionId), event);
   const interventionGroups = new Map<string, { count: number; resolutionMs: number[] }>();
   for (const event of activeInterventions.values()) { const key = `${event.reason}|${event.priority}|${event.status}`; const value = interventionGroups.get(key) ?? { count: 0, resolutionMs: [] }; value.count++; if (typeof event.payload.resolutionMs === 'number') value.resolutionMs.push(event.payload.resolutionMs); interventionGroups.set(key, value); }
-  const breakRows = rows.filter(event => ['DISCOVERED', 'QUALIFIED', 'FEEDBACK_CAPTURED'].includes(event.type));
-  const breakdowns = group(event => { if (!['DISCOVERED', 'QUALIFIED', 'FEEDBACK_CAPTURED'].includes(event.type)) return ''; return [event.type, event.country ?? '', event.industry ?? '', event.service ?? ''].join('|'); }).filter(x => x._id);
+  const breakdowns = group(event => ['DISCOVERED', 'QUALIFIED', 'FEEDBACK_CAPTURED'].includes(event.type)
+    ? JSON.stringify({ type: event.type, country: event.country ?? null, industry: event.industry ?? null, service: event.service ?? null }) : '')
+    .filter(row => row._id).map(row => ({ ...row, _id: JSON.parse(row._id) }));
   const agentsMap = new Map<string, ISalesActivity[]>();
   for (const event of rows.filter(event => event.type === 'AGENT_EXECUTION')) agentsMap.set(event.agent ?? 'Unknown agent', [...(agentsMap.get(event.agent ?? 'Unknown agent') ?? []), event]);
   const byCompany = new Map<string, { sent: number[]; replied: number[] }>();
@@ -77,7 +80,8 @@ function aggregateMemory(events: ISalesActivity[], filters: AnalyticsFilters) {
     replies: [...new Set(replies.map(x => x._id).filter(Boolean))].map(key => { const [intent, sentiment] = key.split('|'); const match = replies.find(x => x._id === key)!; return { _id: { intent, sentiment }, count: match.count, companies: match.companies }; }),
     interventions: [...interventionGroups].map(([key, v]) => { const [reason, priority, status] = key.split('|'); return { _id: { reason, priority, status }, count: v.count, resolutionMs: v.resolutionMs.length ? v.resolutionMs.reduce((a, b) => a + b, 0) / v.resolutionMs.length : null }; }),
     breakdowns,
-    agents: [...agentsMap].map(([_id, list]) => ({ _id, total: list.length, succeeded: list.filter(e => e.success).length, failed: list.filter(e => !e.success).length, averageMs: list.length ? list.reduce((sum, e) => sum + (e.executionMs ?? 0), 0) / list.length : 0, lowConfidence: list.filter(e => (e.confidence ?? 1) < 0.65).length })),
+    agents: [...agentsMap].map(([_id, list]) => ({ _id, total: list.length, succeeded: list.filter(e => e.success).length, failed: list.filter(e => !e.success).length, averageMs: list.length ? list.reduce((sum, e) => sum + (e.executionMs ?? 0), 0) / list.length : 0, lowConfidence: list.filter(e => (e.confidence ?? 1) < 0.65).length,
+      escalated: list.filter(event => event.payload.decision === 'ESCALATE' || event.payload.requiresHuman === true).length })),
     responseTimes: times.length ? [{ averageMs: times.reduce((a, b) => a + b, 0) / times.length }] : [],
     drafts: [{ count: [...drafts.values()].filter(type => type === 'EMAIL_DRAFTED').length }],
   };
@@ -101,16 +105,28 @@ export async function getSalesAnalytics(filters: AnalyticsFilters) {
   const interventions = (status?: string, priority?: string) => interventionRows.filter((row: any) => (!status || row._id?.status === status) && (!priority || row._id?.priority === priority)).reduce((sum: number, row: any) => sum + (row.count ?? 0), 0);
   const contacted = unique('EMAIL_PROVIDER_ACCEPTED');
   const replied = unique('REPLY_RECEIVED');
+  const positiveIntents = new Set(['INTERESTED', 'MEETING_REQUEST', 'PROPOSAL_REQUEST', 'SERVICE_REQUEST', 'PRICING_REQUEST', 'PROVIDER_DISSATISFACTION']);
+  const positiveCompanies = (aggregation: any) => new Set<string>((aggregation.replies ?? []).filter((row: any) => positiveIntents.has(row._id?.intent)).flatMap((row: any) => row.companies ?? []));
   const funnelStages = [
     ['Companies Discovered', 'DISCOVERED'], ['Companies Qualified', 'QUALIFIED'], ['Companies Selected', 'SELECTED'],
-    ['Emails Approved', 'EMAIL_APPROVED'], ['Emails Sent (provider accepted)', 'EMAIL_PROVIDER_ACCEPTED'], ['Companies Responded', 'REPLY_RECEIVED'],
+    ['Outreach Authorised', 'EMAIL_APPROVED'], ['Emails Sent (provider accepted)', 'EMAIL_PROVIDER_ACCEPTED'], ['Companies Responded', 'REPLY_RECEIVED'],
     ['Interested Companies', 'INTERESTED'], ['Meetings Requested', 'MEETING_REQUESTED'], ['Meetings Scheduled', 'MEETING_SCHEDULED'], ['Converted Opportunities', 'CONVERTED'],
   ] as const;
-  const funnel = funnelStages.map(([name, key], index) => {
-    const value = key === 'INTERESTED' ? companiesForIntent('INTERESTED') : unique(key);
-    const before = index ? (funnelStages[index - 1][1] === 'INTERESTED' ? companiesForIntent('INTERESTED') : unique(funnelStages[index - 1][1])) : value;
-    const previousValue = key === 'INTERESTED' ? new Set((previous.replies ?? []).filter((row: any) => row._id?.intent === 'INTERESTED').flatMap((row: any) => row.companies ?? [])).size : unique(key, previousCounts);
-    return { name, companies: value, conversionPct: index ? percent(value, before) : 100, dropoffPct: index ? percent(Math.max(0, before - value), before) : 0, previousPeriodCompanies: previousValue };
+  const cohorts = (aggregation: any) => {
+    let cohort: Set<string> | undefined;
+    return funnelStages.map(([, key]) => {
+      const eligible = key === 'INTERESTED' ? positiveCompanies(aggregation) : new Set<string>((aggregation.byType ?? [])
+        .filter((row: any) => row._id === key || (key === 'EMAIL_APPROVED' && row._id === 'EMAIL_AUTONOMOUS_AUTHORIZED'))
+        .flatMap((row: any) => row.companies ?? []));
+      cohort = cohort ? new Set([...cohort].filter(id => eligible.has(id))) : eligible;
+      return cohort.size;
+    });
+  };
+  const currentCohorts = cohorts(current), previousCohorts = cohorts(previous);
+  const funnel = funnelStages.map(([name], index) => {
+    const value = currentCohorts[index], before = currentCohorts[Math.max(0, index - 1)];
+    return { name, companies: value, conversionPct: index ? percent(value, before) : 100,
+      dropoffPct: index ? percent(before - value, before) : 0, previousPeriodCompanies: previousCohorts[index] };
   });
   const metrics = {
     totalCompaniesDiscovered: unique('DISCOVERED'), newCompaniesDiscovered: unique('DISCOVERED'), qualifiedCompanies: unique('QUALIFIED'),
@@ -121,28 +137,39 @@ export async function getSalesAnalytics(filters: AnalyticsFilters) {
     totalRepliesReceived: count('REPLY_RECEIVED'), uniqueCompaniesThatReplied: replied,
     positiveResponses: intent('INTERESTED') + intent('MEETING_REQUEST') + intent('REQUEST_FOR_INFORMATION') + intent('REFERRAL'),
     negativeResponses: intent('NOT_INTERESTED') + intent('COMPLAINT'), meetingRequests: intent('MEETING_REQUEST'), informationRequests: intent('REQUEST_FOR_INFORMATION'), unsubscribeRequests: intent('UNSUBSCRIBE'),
-    totalInterventionsRequired: interventions(), pendingInterventions: interventions('PENDING'), highPriorityInterventions: interventions(undefined, 'HIGH') + interventions(undefined, 'CRITICAL'),
+    totalInterventionsRequired: interventions(), pendingInterventions: interventionRows.filter((row: any) => !['RESOLVED', 'CLOSED'].includes(row._id?.status)).reduce((sum: number, row: any) => sum + row.count, 0),
+    highPriorityInterventions: interventionRows.filter((row: any) => !['RESOLVED', 'CLOSED'].includes(row._id?.status) && ['HIGH', 'CRITICAL'].includes(row._id?.priority)).reduce((sum: number, row: any) => sum + row.count, 0),
     interventionsInProgress: interventions('IN_PROGRESS'), resolvedInterventions: interventions('RESOLVED'),
     averageInterventionResolutionMs: (() => { const resolved = interventionRows.filter((row: any) => row._id?.status === 'RESOLVED' && typeof row.resolutionMs === 'number'); return resolved.length ? Math.round(resolved.reduce((sum: number, row: any) => sum + row.resolutionMs * row.count, 0) / resolved.reduce((sum: number, row: any) => sum + row.count, 0)) : null; })(),
-    interestedCompanies: companiesForIntent('INTERESTED'), meetingsRequested: unique('MEETING_REQUESTED'), meetingsScheduled: unique('MEETING_SCHEDULED'),
+    interestedCompanies: positiveCompanies(current).size, meetingsRequested: unique('MEETING_REQUESTED'), meetingsScheduled: unique('MEETING_SCHEDULED'),
     qualifiedSalesOpportunities: unique('QUALIFIED'), convertedOpportunities: unique('CONVERTED'), lostOrDisqualifiedCompanies: unique('DISQUALIFIED'),
-    responseRatePct: percent(replied, contacted), positiveResponseRatePct: percent(companiesForIntent('INTERESTED') + companiesForIntent('MEETING_REQUEST') + companiesForIntent('REQUEST_FOR_INFORMATION') + companiesForIntent('REFERRAL'), contacted),
+    responseRatePct: percent(new Set((eventCounts.get('REPLY_RECEIVED')?.companies ?? []).filter(id => eventCounts.get('EMAIL_PROVIDER_ACCEPTED')?.companies.includes(id))).size, contacted),
+    positiveResponseRatePct: percent([...positiveCompanies(current)].filter(id => eventCounts.get('EMAIL_PROVIDER_ACCEPTED')?.companies.includes(id)).length, contacted),
     failedEmailRatePct: percent(count('EMAIL_FAILED'), count('EMAIL_PROVIDER_ACCEPTED') + count('EMAIL_FAILED')),
     averageTimeToFirstReplyMs: current.responseTimes?.[0]?.averageMs ? Math.round(current.responseTimes[0].averageMs) : null,
   };
   const timeline = (current.timeline ?? []).map((row: any) => ({ date: row._id.day, type: row._id.type, count: row.count }));
   const intentDistribution = REPLY_INTENTS.map(value => ({ intent: value, count: intent(value), companies: companiesForIntent(value) }));
   const sentimentDistribution = ['POSITIVE', 'NEUTRAL', 'NEGATIVE'].map(sentiment => ({ sentiment, count: replies.filter((row: any) => row._id?.sentiment === sentiment).reduce((sum: number, row: any) => sum + row.count, 0) }));
-  const groupBreakdown = (field: 'country' | 'industry' | 'service', type: string) => (current.breakdowns ?? []).filter((row: any) => row._id?.type === type && row._id?.[field]).map((row: any) => ({ [field]: row._id[field], count: new Set(row.companies ?? []).size }));
+  const groupBreakdown = (field: 'country' | 'industry' | 'service', type: string) => {
+    const groups = new Map<string, Set<string>>();
+    for (const row of current.breakdowns ?? []) {
+      if (row._id?.type !== type || !row._id[field]) continue;
+      const value = String(row._id[field]), ids = groups.get(value) ?? new Set<string>();
+      for (const id of row.companies ?? []) ids.add(id);
+      groups.set(value, ids);
+    }
+    return [...groups].map(([value, ids]) => ({ [field]: value, count: ids.size }));
+  };
   const latestInterventions = await findInterventions({ page: filters.page, limit: filters.limit, status: filters.status, assignedTo: undefined, priority: undefined, reason: undefined });
-  const agentPerformance = (current.agents ?? []).map((row: any) => ({ agent: row._id, runs: row.total, succeeded: row.succeeded, failed: row.failed, averageExecutionMs: Math.round(row.averageMs ?? 0), lowConfidenceClassifications: row.lowConfidence, automationRatePct: percent(row.succeeded, row.total), humanEscalationRatePct: percent(interventions() && row._id === 'Reply Intelligence' ? count('INTERVENTION_CREATED') : 0, row.total) }));
+  const agentPerformance = (current.agents ?? []).map((row: any) => ({ agent: row._id, runs: row.total, succeeded: row.succeeded, failed: row.failed, averageExecutionMs: Math.round(row.averageMs ?? 0), lowConfidenceClassifications: row.lowConfidence, automationRatePct: percent(row.succeeded, row.total), humanEscalationRatePct: percent(row.escalated ?? 0, row.total) }));
   const insights = [] as { insight: string; supportingMetric: string; period: string; recommendedAction: string; confidence: number }[];
   if (metrics.pendingInterventions > 0) insights.push({ insight: `${metrics.pendingInterventions} human intervention(s) are pending.`, supportingMetric: 'pendingInterventions', period: `${filters.startDate.toISOString()} to ${filters.endDate.toISOString()}`, recommendedAction: 'Review the intervention queue and assign an owner.', confidence: 1 });
   if (metrics.emailsAcceptedByProvider > 0) insights.push({ insight: `${metrics.responseRatePct}% of contacted companies have replied.`, supportingMetric: 'responseRatePct', period: `${filters.startDate.toISOString()} to ${filters.endDate.toISOString()}`, recommendedAction: 'Review reply intent and follow up through the approved sales workflow.', confidence: 1 });
   if (!insights.length) insights.push({ insight: 'No sales activity is recorded for this reporting period.', supportingMetric: 'totalCompaniesDiscovered', period: `${filters.startDate.toISOString()} to ${filters.endDate.toISOString()}`, recommendedAction: 'Run company discovery or the labelled synthetic demo to populate the worklist.', confidence: 1 });
   return { generatedAt: new Date().toISOString(), period: { startDate: filters.startDate.toISOString(), endDate: filters.endDate.toISOString(), timezone: 'UTC' }, filters: { country: filters.country ?? null, industry: filters.industry ?? null, service: filters.service ?? null, agent: filters.agent ?? null, status: filters.status ?? null },
     dataMode: env.STORAGE_MODE === 'memory' ? 'memory_preview' : 'mongodb', containsSyntheticData: (current.byType ?? []).some((row: any) => row.isSynthetic), metrics, funnel,
-    funnelDenominator: 'Distinct companyId values at each stage in the selected period; stage conversion is current stage companies divided by the immediately preceding stage. Email counts are separately reported as email events.',
+    funnelDenominator: 'One nested cohort of companies discovered in this period. Each stage contains only companies recorded at all preceding stages. Outreach authorisation includes human approval and explicit autonomous authorisation. Positive interest includes meeting, proposal, pricing and service requests. Email counts are reported separately.',
     timeline, intentDistribution, sentimentDistribution,
     interventions: { total: metrics.totalInterventionsRequired, pending: metrics.pendingInterventions, highPriority: metrics.highPriorityInterventions, inProgress: metrics.interventionsInProgress, resolved: metrics.resolvedInterventions, averageResolutionMs: metrics.averageInterventionResolutionMs,
       byReason: INTERVENTION_REASONS.map(reason => ({ reason, count: interventionRows.filter((row: any) => row._id?.reason === reason).reduce((sum: number, row: any) => sum + row.count, 0) })),

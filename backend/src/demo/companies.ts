@@ -19,3 +19,9 @@ export const demoCompanies = [
     relationshipStatus: 'UNKNOWN', signals: [], sourceReferences: [],
   },
 ];
+
+export const demoOpportunities: unknown[] = [];
+export function registerShowcaseRecords(profiles: any[], opportunities: any[]) {
+  for (const profile of profiles) if (!demoCompanies.some(company => company._id === profile._id)) demoCompanies.push(profile);
+  for (const opportunity of opportunities) if (!demoOpportunities.some((row: any) => row._id === opportunity._id)) demoOpportunities.push(opportunity);
+}

@@ -19,6 +19,7 @@ export default function CompanyResearch() {
   const [note, setNote] = useState('')
   const [history, setHistory] = useState<SavedResearch[]>([])
   const [historyError, setHistoryError] = useState('')
+  const [qualifiedCount, setQualifiedCount] = useState(0)
   useEffect(() => {
     let active = true
     api.get('/api/v1/ai/research').then(response => { if (active) setHistory(response.data.data) })
@@ -26,12 +27,14 @@ export default function CompanyResearch() {
     return () => { active = false }
   }, [])
   async function reopen(id: string) {
+    setQualifiedCount(0)
     setError(''); setPhase('collecting'); setCandidates([])
     try { const response = await api.get(`/api/v1/ai/research/${encodeURIComponent(id)}`); setResearch(response.data.data) }
     catch (e) { setError(message(e)) }
     finally { setPhase('idle') }
   }
   async function collect(candidate: Candidate) {
+    setQualifiedCount(0)
     setPhase('collecting'); setError(''); setCandidates([])
     try {
       const response = await api.post('/api/v1/ai/research', { entityId: candidate.entityId }, { timeout: 100000 })
@@ -87,8 +90,8 @@ export default function CompanyResearch() {
         <div className="space-y-2 max-h-96 overflow-y-auto pr-1">{research.sources.map((s)=><details key={s.id} className="border border-gray-200 rounded-lg p-3"><summary className="cursor-pointer text-sm font-medium text-gray-800">{s.title}<span className="block font-normal text-xs text-gray-500 mt-1">{s.kind === 'news_headline' ? 'Headline only · article unverified' : s.kind === 'official_page' ? 'Retrieved company page' : 'Background / identity profile'} · {s.publisher}</span></summary><p className="text-sm text-gray-600 mt-3">{s.excerpt}</p><p className="text-xs text-gray-500 mt-2">Published: {s.publishedAt ? new Date(s.publishedAt).toLocaleDateString() : 'Unknown'} · Retrieved: {new Date(s.retrievedAt).toLocaleString()}</p><a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex gap-1 items-center text-xs text-teal-700 underline mt-2">Open source <ExternalLinkIcon className="w-3 h-3" /></a><p className="text-xs text-gray-400 mt-1">{s.id}</p></details>)}</div>
         <p className="text-xs text-gray-400 mt-4">{research.persistence?.durable ? 'Sources saved in cloud storage' : 'Temporary preview snapshot'} with retrieval times and content hashes. Snapshot: {research.id}</p>
       </div>
-      <CompanyAnalysis key={research.id} companyId={research.id} sources={research.sources} autoRun />
-      <LeadRanking key={`ranking-${research.id}`} researchId={research.id} />
+      <CompanyAnalysis key={research.id} companyId={research.id} sources={research.sources} autoRun onQualificationChange={setQualifiedCount} />
+      <LeadRanking key={`ranking-${research.id}`} researchId={research.id} qualifiedCount={qualifiedCount} />
     </div>}
   </section>
 }

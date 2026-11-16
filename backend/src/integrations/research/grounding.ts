@@ -17,7 +17,7 @@ export function researchEvidence(record: ResearchRecord, overview = buildResearc
     const event = assessment.eventId ? events.get(assessment.eventId) : undefined;
     return { id: s.id, title: event?.title ?? s.title, text: s.kind === 'news_headline' && event ? event.title : s.excerpt ?? '',
       kind: s.kind === 'company_profile' ? 'profile' : 'public', publishedAt: s.publishedAt,
-      relevance: assessment.relevance, eventType: assessment.eventType, eventId: assessment.eventId, businessRole: assessment.businessRole };
+      relevance: assessment.relevance, eventType: assessment.eventType, eventId: assessment.eventId, businessRole: assessment.businessRole, verification: s.verification };
   });
 }
 
@@ -58,7 +58,10 @@ export function groundAnalysis(analysis: Analysis, evidence: BusinessEvidence[],
     const citedMatches = sources.map(s => offeringEvidenceMatch(s, catalogue.get(need.offeringId)!, knowledge)!);
     const fit = citedMatches.find(m => m.fitLevel === 'DIRECT_SIGNAL') ?? citedMatches[0];
     const providerOnly = sources.every(s => s.businessRole === 'PROVIDER');
-    return [{ ...need, ...(providerOnly ? { need: `Explore ${catalogue.get(need.offeringId)!.name} for company-operated workloads, if any.`, reason: fit.basis } : {}),
+    const headlineOnly = sources.every(source => source.verification === 'headline_only' || source.verification === 'HEADLINE_ONLY');
+    const reported = (text: string) => text.replace(/\bconfirmed\b/gi, 'reported').replace(/\b(?:requires?|needs?)\b/gi, 'may need');
+    return [{ ...need, ...(headlineOnly ? { need: reported(need.need), reason: reported(need.reason) } : {}),
+      ...(providerOnly ? { need: `Explore ${catalogue.get(need.offeringId)!.name} for company-operated workloads, if any.`, reason: fit.basis } : {}),
       evidenceIds: ids, fitLevel: fit.fitLevel, basis: fit.basis,
       validationQuestion: catalogue.get(need.offeringId)!.discoveryQuestions[0] }];
   });
@@ -82,8 +85,9 @@ export function groundAnalysis(analysis: Analysis, evidence: BusinessEvidence[],
   const citedId = needs.find(n => n.offeringId === preferredId)?.evidenceIds[0] ?? preferred?.evidenceIds[0];
   const firstSource = citedId ? actionable.get(citedId) : actionable.values().next().value as BusinessEvidence | undefined;
   const eventLabel = firstSource?.eventType?.toLowerCase().replace(/_/g, ' ') ?? 'company development';
-  const question = !needs.length || firstSource?.businessRole === 'PROVIDER' || blocked(JSON.stringify(analysis.nextAction)) || /reported business developments|unmet technology need\?|which.*technology needs/i.test(analysis.nextAction.question)
-    ? offering?.discoveryQuestions[0] ?? knowledge.evidencePolicy.discoveryQuestion : analysis.nextAction.question;
+  // Select the question from the same validated offering as the cited event.
+  // The model may have proposed its next action for a different, rejected service.
+  const question = offering?.discoveryQuestions[0] ?? knowledge.evidencePolicy.discoveryQuestion;
   const nextAction = firstSource ? {
     role: offering?.buyerRoles[0] ?? knowledge.evidencePolicy.discoveryRole,
     question: `Regarding the reported ${eventLabel} (${firstSource.title.slice(0, 150)}): ${question}`.slice(0, 800),

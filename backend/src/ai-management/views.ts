@@ -4,6 +4,7 @@ import { allActivityEvents, findCompanyActivities } from '../salesStore';
 import { buildCompanyBrief } from '../sales/agents/company-context.agent';
 import { resolveSalesContext } from '../sales/context';
 import { emailProviderStatus } from '../sales/email-provider';
+import { plainEmailBody } from '../sales/email-format';
 import { AppError } from '../utils/errors';
 import { assessReadiness } from './orchestrator';
 import { AI_AUTHORIZATION_STATEMENT, AI_AUTHORIZATION_VERSION, buyingIntentLevel, OUTREACH_BASES } from './policy';
@@ -96,7 +97,7 @@ function messageView(event: ISalesActivity, events: ISalesActivity[]) {
       aiDecision: handled ? { decision: handled.payload.decision, reason: handled.payload.reason } : null };
   }
   return { id: event.eventId, direction: 'OUTBOUND' as const, at: event.createdAt, to: event.contactEmail, contactName: event.contactName, subject: event.subject,
-    body: event.body, threadId: String(event.payload.providerThreadId ?? event.providerMessageId ?? ''), kind: event.payload.kind,
+    body: event.body ? plainEmailBody(event.body) : event.body, threadId: String(event.payload.providerThreadId ?? event.providerMessageId ?? ''), kind: event.payload.kind,
     followupKind: event.payload.followupKind ?? null, sentBy: event.payload.authorizationMode === 'AUTONOMOUS' ? 'AI' : 'SALESPERSON',
     provider: event.provider, providerMessageId: event.providerMessageId, deliveryStatus: 'PROVIDER_ACCEPTED',
     synthetic: event.provider === 'MOCK', generatedBy: event.payload.generatedBy ?? null, rationale: event.payload.rationale ?? null };

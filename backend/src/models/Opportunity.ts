@@ -7,6 +7,8 @@ export type OpportunityPriority = (typeof OpportunityPriorityEnum)[number];
 export type OpportunityStatus   = (typeof OpportunityStatusEnum)[number];
 
 export interface IOpportunity {
+  isSynthetic?: boolean;
+  datasetTag?: string;
   companyId: Types.ObjectId;
   opportunityType: string;
   potentialService: string;
@@ -22,6 +24,8 @@ export interface IOpportunityDocument extends IOpportunity, Document {}
 
 const OpportunitySchema = new Schema<IOpportunityDocument>(
   {
+    isSynthetic: { type: Boolean, default: false },
+    datasetTag: { type: String },
     companyId: {
       type: Schema.Types.ObjectId,
       ref: 'Company',

@@ -15,6 +15,7 @@ import { getEmailProvider } from './email-provider';
 import { isNeo4jConnected } from '../integrations/neo4j/connection';
 import { linkSalesRequirement } from '../integrations/neo4j/graphService';
 import { outboundSafetyViolations, UNSUBSCRIBE_FOOTER } from '../ai-management/policy';
+import { plainEmailBody } from './email-format';
 
 export interface SalesCompanyContext {
   companyId: string; companyName: string; researchId?: string; country?: string; industry?: string;
@@ -25,6 +26,7 @@ export interface SalesCompanyContext {
 
 function makeEvent(context: SalesCompanyContext, type: SalesEventType, extra: Partial<ISalesActivity> & { eventId?: string } = {}): ISalesActivity {
   const { eventId = `${context.companyId}:${type}:${randomUUID()}`, ...fields } = extra;
+  if (fields.body && ['EMAIL_DRAFTED', 'EMAIL_APPROVED', 'EMAIL_AUTONOMOUS_AUTHORIZED', 'EMAIL_PROVIDER_ACCEPTED'].includes(type)) fields.body = plainEmailBody(fields.body);
   return { eventId, type, companyId: context.companyId, companyName: context.companyName,
     researchId: context.researchId, country: context.country, industry: context.industry, service: context.service,
     sourceIds: context.sourceIds ?? [], payload: {}, isSynthetic: context.isSynthetic ?? false,
@@ -35,10 +37,13 @@ async function log(context: SalesCompanyContext, type: SalesEventType, extra: Pa
   return appendActivity(makeEvent(context, type, extra));
 }
 
-export async function recordDiscoveryHandoff(input: SalesCompanyContext & { candidates: { opportunityId: string; service: string }[] }) {
-  const qualified = await Promise.all(input.candidates.map(({ opportunityId, service }) => log({ ...input, service }, 'QUALIFIED', {
+export interface DiscoveryCandidate { opportunityId: string; service: string; offeringId?: string; sourceIds?: string[]; reason?: string; question?: string }
+export async function recordDiscoveryHandoff(input: SalesCompanyContext & { candidates: DiscoveryCandidate[] }) {
+  const qualified = await Promise.all(input.candidates.map(({ opportunityId, service, offeringId, sourceIds, reason, question }) => log({ ...input, service }, 'QUALIFIED', {
     eventId: `qualified:${input.researchId}:${opportunityId}`, opportunityId,
-    service, payload: { stage: 'evidence_qualified', qualification: 'service hypothesis supported; customer need unconfirmed' },
+    service, sourceIds: sourceIds ?? input.sourceIds ?? [],
+    payload: { stage: 'evidence_qualified', qualification: 'service hypothesis supported; customer need unconfirmed',
+      ...(offeringId ? { offeringId } : {}), ...(reason ? { reason } : {}), ...(question ? { discoveryQuestion: question } : {}) },
   })));
   await log(input, 'AGENT_EXECUTION', { eventId: `agent:discovery:${input.researchId}`, agent: 'Discovery & Qualification', success: true, executionMs: 0,
     payload: { qualifiedCandidates: qualified.length } });
@@ -56,7 +61,8 @@ export async function getWorkflow(companyId: string) {
   const contactEmails = events.filter(e => e.type === 'CONTACT_IDENTIFIED' && e.contactEmail).map(e => e.contactEmail!.toLowerCase());
   const globalOptOuts = await Promise.all(contactEmails.map(async email => await findEmailSuppression(email) ? email : null));
   const optOuts = [...new Set([...localOptOuts, ...globalOptOuts.filter((email): email is string => !!email)])];
-  return { companyId, events, optedOutEmails: [...new Set(optOuts)], isSynthetic: events.some(e => e.isSynthetic) };
+  return { companyId, events: events.map(event => event.body && event.type.startsWith('EMAIL_') ? { ...event, body: plainEmailBody(event.body) } : event),
+    optedOutEmails: [...new Set(optOuts)], isSynthetic: events.some(e => e.isSynthetic) };
 }
 
 function needSelected(events: ISalesActivity[]) {
@@ -157,6 +163,7 @@ export async function rejectEmail(context: SalesCompanyContext, draftId: string,
 
 /** Single delivery seam; every provider acceptance is recorded separately from inbox delivery. */
 export async function sendApprovedEmail(context: SalesCompanyContext, draftId: string) {
+  if (context.isSynthetic && env.SALES_EMAIL_PROVIDER !== 'mock') throw new AppError('Illustrative accounts can only use the test email provider.', 409, 'SAMPLE_OUTREACH_DISABLED');
   const id = `provider-accepted:${draftId}`;
   const existing = await findActivityById(id); if (existing) return existing;
   const humanApproval = await findActivityById('approval:' + draftId);
@@ -201,7 +208,7 @@ export async function sendApprovedEmail(context: SalesCompanyContext, draftId: s
     if (!claim.claimed) throw new AppError('Another worker is processing this approved email. Refresh the conversation before retrying.', 409, 'EMAIL_SEND_IN_PROGRESS');
     ownedAttempt = attemptEvent;
     const providerResult = await getEmailProvider().send({ to: approval.contactEmail ?? '', subject: approval.subject ?? '',
-      body: approval.body ?? '', threadId: typeof approval.payload.providerThreadId === 'string' ? approval.payload.providerThreadId : undefined,
+      body: plainEmailBody(approval.body ?? ''), threadId: typeof approval.payload.providerThreadId === 'string' ? approval.payload.providerThreadId : undefined,
       providerMessageId: typeof approval.payload.inboundProviderMessageId === 'string' ? approval.payload.inboundProviderMessageId
         : approval.payload.kind === 'followup' && typeof approval.payload.inReplyTo === 'string' ? approval.payload.inReplyTo : undefined,
       inReplyTo: typeof approval.payload.internetMessageId === 'string' ? approval.payload.internetMessageId
@@ -302,6 +309,7 @@ async function sendAutonomousUnderLease(context: SalesCompanyContext, draftId: s
 }
 
 export async function sendAutonomousEmail(context: SalesCompanyContext, draftId: string, options: AutonomousSendOptions = {}) {
+  if (context.isSynthetic && env.SALES_EMAIL_PROVIDER !== 'mock') throw new AppError('Illustrative accounts can only use the test email provider.', 409, 'SAMPLE_OUTREACH_DISABLED');
   if (options.leaseHeld) return sendAutonomousUnderLease(context, draftId, options);
   const leaseKey = 'ai-company:' + context.companyId;
   const owner = await acquireAiManagementLease(leaseKey, 5 * 60_000);

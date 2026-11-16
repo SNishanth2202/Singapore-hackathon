@@ -760,6 +760,12 @@ async function handleManagedInbound(context: SalesCompanyContext, input: Inbound
       // Paused / escalated / handed over: record the reply, never act autonomously.
       return { ...transition(next, { communication: 'CUSTOMER_RESPONDED' }, SYSTEM_ACTOR, 'Customer replied while automation was ' + current.managementState + '.', now), memory };
     }
+    if (current.managementState === 'COMPLETED' && analysis.intent !== 'NOT_INTERESTED') {
+      return { ...transition(next, { management: 'HUMAN_ATTENTION_REQUIRED', communication: 'CUSTOMER_RESPONDED' }, SYSTEM_ACTOR,
+        'A new reply arrived after the conversation was closed; a salesperson must review it.', now), memory,
+        humanAttention: true, attentionReason: 'New customer reply after closure: ' + analysis.requestedNextAction,
+        completedAt: undefined, lastHandledInboundAt: handledAt, nextActionAt: null, nextActionKind: null, nextActionNote: null };
+    }
     if (current.managementState === 'COMPLETED' || current.managementState === 'OFF') {
       return { ...next, memory };
     }

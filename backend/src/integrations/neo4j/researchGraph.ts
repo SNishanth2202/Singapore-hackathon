@@ -50,6 +50,27 @@ export async function projectResearch(record: ResearchRecord): Promise<void> {
 
 export interface GraphNode { id: string; type: string; label: string; properties: Record<string, unknown> }
 export interface GraphEdge { id: string; source: string; target: string; type: string }
+
+/** Render the same provenance relationships for an isolated in-memory workspace. */
+export function previewResearchGraph(record: ResearchRecord): { nodes: GraphNode[]; edges: GraphEdge[] } {
+  const data = researchGraphData(record);
+  const nodes: GraphNode[] = [
+    { id: data.companyId, type: 'Company', label: data.name,
+      properties: { companyId: data.companyId, companyName: data.name, website: data.website, description: data.description } },
+    { id: data.snapshotId, type: 'ResearchSnapshot', label: 'Research snapshot',
+      properties: { id: data.snapshotId, createdAt: data.createdAt } },
+    ...data.sources.map(source => ({ id: source.id, type: 'EvidenceSource', label: source.title, properties: { ...source } })),
+    ...data.events.map(event => ({ id: event.id, type: 'BusinessEvent', label: event.title, properties: { ...event } })),
+  ];
+  const edge = (source: string, target: string, type: string): GraphEdge => ({ id: `${source}:${type}:${target}`, source, target, type });
+  const edges = [edge(data.companyId, data.snapshotId, 'HAS_RESEARCH'),
+    ...data.sources.map(source => edge(data.snapshotId, source.id, 'CITES')),
+    ...data.events.flatMap(event => [edge(data.snapshotId, event.id, 'REPORTS_EVENT'),
+      ...event.sourceIds.map(sourceId => edge(event.id, sourceId, 'SUPPORTED_BY'))]),
+  ];
+  return { nodes, edges };
+}
+
 export async function readResearchGraph(researchId?: string) {
   const session = getDriver().session({ database: env.NEO4J_DATABASE, defaultAccessMode: 'READ' });
   try {

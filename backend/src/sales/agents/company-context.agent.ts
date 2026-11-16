@@ -39,14 +39,15 @@ export async function buildCompanyBrief(context: SalesCompanyContext, events: IS
           ...(sourceMessageId ? { sourceMessageId } : {}) }];
       });
     }),
-    ...evidence.filter(source => source.kind === 'news_headline' || source.kind === 'company_profile').map(source => ({
+    ...evidence.filter(source => source.kind === 'news_headline' || (source.kind === 'official_page' && source.publishedAt)).map(source => ({
       text: source.title, status: 'PUBLIC_SIGNAL' as const, sourceIds: [source.sourceId],
     })),
     ...qualification.map(event => ({ text: event.service ?? 'Potential Singtel service fit', status: 'QUALIFICATION_HYPOTHESIS' as const, sourceIds: event.sourceIds })),
   ];
-  const services = knowledge.offerings.filter(offer => !context.service
-    || [offer.name, ...offer.aliases, offer.category].some(value => value.toLowerCase().includes(context.service!.toLowerCase())
-      || context.service!.toLowerCase().includes(value.toLowerCase())))
+  const qualifiedOfferingIds = new Set(qualification.map(event => event.payload.offeringId).filter(Boolean));
+  const serviceNames = new Set([context.service, ...qualification.map(event => event.service)].filter(Boolean).map(value => value!.toLowerCase().trim()));
+  const services = knowledge.offerings.filter(offer => offer.active && (qualifiedOfferingIds.has(offer.id)
+    || [offer.id, offer.name, ...offer.aliases].some(value => serviceNames.has(value.toLowerCase().trim()))))
     .map(offer => ({ id: offer.id, name: offer.name, fit: feedback.some(event => event.service?.toLowerCase() === offer.name.toLowerCase()) ? 'CUSTOMER_CONFIRMED' as const : 'POTENTIAL' as const,
       sourceIds: offer.sourceIds }));
   const description = context.description?.trim();

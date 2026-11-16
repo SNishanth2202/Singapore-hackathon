@@ -48,6 +48,7 @@ Thumbs.db
 coverage/
 .local/
 frontend/test-results/
+frontend/showcase-test-results/
 frontend/playwright-report/
 .nyc_output
 

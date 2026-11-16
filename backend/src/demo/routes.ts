@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { demoCompanies } from './companies';
+import { demoCompanies, demoOpportunities } from './companies';
 
 const router = Router();
-router.get('/opportunities', (_req, res) => res.json({ success: true, data: [], isMockData: true, meta: { total: 0, page: 1, limit: 25, totalPages: 0 } }));
+router.get('/opportunities', (_req, res) => res.json({ success: true, data: demoOpportunities, isMockData: true, meta: { total: demoOpportunities.length, page: 1, limit: 25, totalPages: 1 } }));
 router.get('/companies', (req, res) => {
   const search = String(req.query.search ?? '').toLowerCase();
   const data = demoCompanies.filter((c) => (!search || c.companyName.toLowerCase().includes(search)) &&

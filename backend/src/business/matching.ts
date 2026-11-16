@@ -6,6 +6,7 @@ export interface BusinessEvidence {
   id: string; title: string; text: string; kind: 'profile' | 'public' | 'sample' | 'account'; publishedAt: string | null;
   relevance?: 'COMPANY_EVENT' | 'COMMENTARY' | 'AMBIGUOUS' | 'BACKGROUND';
   eventType?: EventType; eventId?: string; businessRole?: 'OPERATIONS' | 'PROVIDER' | 'UNSPECIFIED';
+  verification?: string;
 }
 export interface CandidateMatch { offeringId: string; evidenceIds: string[]; matchedTerms: string[]; eventIds: string[]; fitLevel: 'DIRECT_SIGNAL' | 'EXPLORATORY'; basis: string }
 

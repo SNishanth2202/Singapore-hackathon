@@ -14,11 +14,25 @@ import { analyticsService, HealthStatus } from '../services/analytics.service'
 import { formatDate } from '../utils/formatters'
 import BusinessKnowledge from '../components/BusinessKnowledge'
 import { AiManagementSettingsPanel } from '../components/ai/AiManagementSettingsPanel'
+import api from '../services/api'
 
 export default function Settings() {
   const [health, setHealth] = useState<HealthStatus | null>(null)
   const [loadingHealth, setLoadingHealth] = useState(false)
-  const [refreshFrequency, setRefreshFrequency] = useState('6h')
+  const [refreshFrequency, setRefreshFrequency] = useState('')
+  const [feedBusy, setFeedBusy] = useState(false)
+  const [feedMessage, setFeedMessage] = useState('')
+  const [feedError, setFeedError] = useState('')
+
+  async function saveFeedInterval() {
+    setFeedBusy(true); setFeedMessage(''); setFeedError('')
+    try {
+      const current = (await api.get('/api/v1/prospecting')).data.settings
+      const saved = (await api.post('/api/v1/prospecting/settings', { ...current, intervalMinutes: Number(refreshFrequency) })).data
+      setRefreshFrequency(String(saved.settings.intervalMinutes)); setFeedMessage('Research interval saved. Lead Ranking uses the same setting.')
+    } catch { setFeedError('The interval could not be saved. Check whether research is running, then retry.') }
+    finally { setFeedBusy(false) }
+  }
 
   async function checkHealth() {
     setLoadingHealth(true)
@@ -41,6 +55,10 @@ export default function Settings() {
 
   useEffect(() => {
     void checkHealth()
+    let active = true
+    api.get('/api/v1/prospecting').then(response => { if (active) setRefreshFrequency(String(response.data.settings.intervalMinutes)) })
+      .catch(() => { if (active) setFeedError('The saved research interval could not be loaded.') })
+    return () => { active = false }
   }, [])
 
   const mongoHealthy = health?.services?.mongodb?.status === 'healthy' || health?.services?.mongodb?.status === 'connected'
@@ -108,22 +126,29 @@ export default function Settings() {
         </div>
 
         <div className="p-6">
-          <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
+          <label htmlFor="feed-refresh-interval" className="block text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
             Intelligence Feed Refresh Interval
           </label>
           <select
+            id="feed-refresh-interval"
             value={refreshFrequency}
+            disabled={!refreshFrequency || feedBusy}
             onChange={(e) => setRefreshFrequency(e.target.value)}
             className="text-sm border border-gray-200 rounded-lg px-3 py-2.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 w-full sm:w-auto"
           >
-            <option value="1h">Every 1 Hour (High Sensitivity)</option>
-            <option value="6h">Every 6 Hours (Standard)</option>
-            <option value="12h">Every 12 Hours</option>
-            <option value="24h">Daily (Low Bandwidth)</option>
+            {!refreshFrequency && <option value="">Loading saved interval…</option>}
+            {refreshFrequency && !['60', '360', '720', '1440'].includes(refreshFrequency) && <option value={refreshFrequency}>Every {refreshFrequency} minutes</option>}
+            <option value="60">Every 1 Hour</option>
+            <option value="360">Every 6 Hours</option>
+            <option value="720">Every 12 Hours</option>
+            <option value="1440">Daily</option>
           </select>
+          <button onClick={() => void saveFeedInterval()} disabled={feedBusy || !refreshFrequency} className="ml-3 rounded-lg border px-3 py-2 text-sm disabled:opacity-50">Save feed interval</button>
+          {feedMessage && <p role="status" className="mt-2 text-sm text-teal-700">{feedMessage}</p>}
+          {feedError && <p role="alert" className="mt-2 text-sm text-red-700">{feedError}</p>}
           <p className="text-xs text-gray-400 mt-2 flex items-center gap-1.5">
             <ClockIcon className="w-3 h-3" />
-            Determines how frequently background collectors poll registry APIs and news sources.
+            Uses the saved Lead Ranking research interval. Automatic research must be enabled on Lead Ranking for scheduled runs.
           </p>
         </div>
       </div>

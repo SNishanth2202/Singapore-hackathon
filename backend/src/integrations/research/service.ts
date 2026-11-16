@@ -63,8 +63,16 @@ export function parseNews(xml: string, company: CompanyIdentity, strictNames = f
   const data = parser.parse(xml);
   const items = data?.rss?.channel?.item ?? [];
   if (!Array.isArray(items)) return [];
-  const compare = strictNames ? (value: string) => value.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim() : normalizedName;
-  const aliases = [company.name, ...company.aliases].map(compare).filter((a) => a.length >= 3);
+  // Legal suffixes help distinguish a company from a person's name or a place.
+  // Do not reduce "Pall Corporation" to "Pall" for headline matching.
+  const compare = (value: string) => value.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').replace(/\s+/g, ' ').trim();
+  const fullName = compare(company.name);
+  const aliases = [company.name, ...company.aliases].map(compare).filter((name) => {
+    if (name.length < 3) return false;
+    // Short aliases are too ambiguous when the known identity has a longer name.
+    // Single-name brands such as DHL retain their canonical identity.
+    return name === fullName || !fullName.includes(' ') || name.includes(' ') || name.length >= 5;
+  });
   const seen = new Set<string>();
   const sources: ResearchSource[] = [];
   const relevance = (item: any) => {
@@ -140,7 +148,7 @@ export async function researchIdentity(company: CompanyIdentity, discoverySource
     })(),
     (async () => {
       try {
-        const query = `"${normalizedName(company.name)}" when:90d`;
+        const query = `"${company.name.replace(/["\\]/g, ' ')}" when:90d`;
         const feed = await publicFetch(`https://news.google.com/rss/search?${new URLSearchParams({ q: query, hl: 'en-IN', gl: 'IN', ceid: 'IN:en' })}`);
         const news = parseNews(feed.text, company, strictNames); sources.push(...news);
         if (!news.length) warnings.push('No recent name-matching news headlines were found. This does not prove that the company has no needs.');

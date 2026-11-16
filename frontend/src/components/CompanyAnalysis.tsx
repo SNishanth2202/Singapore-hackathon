@@ -26,7 +26,7 @@ interface AnalysisResult {
   }
 }
 
-export default function CompanyAnalysis({ companyId, sources = [], autoRun = false }: { companyId: string; sources?: { id: string; title: string; url: string }[]; autoRun?: boolean }) {
+export default function CompanyAnalysis({ companyId, sources = [], autoRun = false, onQualificationChange }: { companyId: string; sources?: { id: string; title: string; url: string }[]; autoRun?: boolean; onQualificationChange?: (count: number) => void }) {
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -54,6 +54,8 @@ export default function CompanyAnalysis({ companyId, sources = [], autoRun = fal
     } finally { setLoading(false) }
   }
   const a = result?.analysis
+  const qualifiedCount = a?.possibleNeeds.length ?? 0
+  useEffect(() => { onQualificationChange?.(loading ? 0 : qualifiedCount) }, [qualifiedCount, loading, onQualificationChange])
   const assessment = result?.evidenceAssessment
   function citations(ids: string[]) {
     return ids.map((id, j) => { const source = sources.find(s => s.id === id); return <span key={id}>{j ? ', ' : ''}{source ? <a href={source.url} target="_blank" rel="noopener noreferrer" className="underline" title={source.title}>{id}</a> : id}</span> })

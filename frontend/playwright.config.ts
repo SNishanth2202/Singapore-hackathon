@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test'
 import path from 'node:path'
 export default defineConfig({
-  testDir: './e2e', fullyParallel: false, workers: 1, timeout: 45000,
+  testDir: './e2e', testIgnore: '**/showcase.spec.ts', fullyParallel: false, workers: 1, timeout: 45000,
   reporter: [['list'], ['json', { outputFile: 'test-results/results.json' }]],
   use: { baseURL: 'http://127.0.0.1:3010', viewport: { width: 1440, height: 1000 },
     channel: process.platform === 'win32' ? 'msedge' : undefined,

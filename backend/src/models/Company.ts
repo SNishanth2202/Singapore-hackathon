@@ -49,6 +49,7 @@ export interface ICompany {
   companyStage: CompanyStage;
   sourceReferences: ISourceReference[];
   neo4jNodeId?: string;
+  isSynthetic?: boolean; datasetTag?: string; salesCompanyId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -78,6 +79,7 @@ const CompanySchema = new Schema<ICompanyDocument>(
     companyStage:       { type: String, enum: CompanyStageEnum, required: true },
     sourceReferences:   { type: [SourceReferenceSchema], default: [] },
     neo4jNodeId:        { type: String },
+    isSynthetic: { type: Boolean, default: false }, datasetTag: String, salesCompanyId: String,
   },
   {
     timestamps: true,

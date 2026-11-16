@@ -15,6 +15,8 @@ export const SignalTypeEnum = [
 export type SignalType = (typeof SignalTypeEnum)[number];
 
 export interface IIntelligenceSignal {
+  isSynthetic?: boolean;
+  datasetTag?: string;
   companyId: Types.ObjectId;
   signalType: SignalType;
   description: string;
@@ -31,6 +33,8 @@ export interface IIntelligenceSignalDocument extends IIntelligenceSignal, Docume
 
 const IntelligenceSignalSchema = new Schema<IIntelligenceSignalDocument>(
   {
+    isSynthetic: { type: Boolean, default: false },
+    datasetTag: { type: String },
     companyId: {
       type: Schema.Types.ObjectId,
       ref: 'Company',
